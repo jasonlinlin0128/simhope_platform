@@ -1,0 +1,2032 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>公司 AI 工具中心 — SimHope</title>
+  <script src="data.js"></script>
+  <meta name="description" content="集中收錄公司內部 AI 應用工具，解決工廠現場、行政、品管、溝通各種日常痛點。直接找到你需要的工具，打開就用。" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700&family=Noto+Sans+TC:wght@400;500;700;900&display=swap"
+    rel="stylesheet" />
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #FFF8F0;
+      --clay-yellow: #FFD166;
+      --clay-coral: #FF6B6B;
+      --clay-purple: #A78BFA;
+      --clay-blue: #60A5FA;
+      --clay-green: #34D399;
+      --clay-pink: #F472B6;
+      --clay-orange: #FB923C;
+      --text-dark: #1E1B4B;
+      --text-mid: #4B5563;
+      --white: #FFFFFF;
+      --shadow-clay: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
+      --shadow-clay-lg: 0 16px 48px rgba(0, 0, 0, 0.14), 0 4px 16px rgba(0, 0, 0, 0.1);
+      --radius-clay: 24px;
+      --radius-pill: 999px;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Nunito', 'Noto Sans TC', sans-serif;
+      background: var(--bg);
+      color: var(--text-dark);
+      overflow-x: hidden;
+    }
+
+    /* ─── BG BLOBS ─── */
+    .bg-blobs {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.3;
+    }
+
+    .blob-1 {
+      width: 600px;
+      height: 600px;
+      top: -200px;
+      left: -150px;
+      background: var(--clay-purple);
+      animation: float1 12s ease-in-out infinite;
+    }
+
+    .blob-2 {
+      width: 500px;
+      height: 500px;
+      top: 20%;
+      right: -100px;
+      background: var(--clay-blue);
+      animation: float2 10s ease-in-out infinite;
+    }
+
+    .blob-3 {
+      width: 400px;
+      height: 400px;
+      bottom: 10%;
+      left: 30%;
+      background: var(--clay-yellow);
+      animation: float3 14s ease-in-out infinite;
+    }
+
+    .blob-4 {
+      width: 350px;
+      height: 350px;
+      bottom: -100px;
+      right: 10%;
+      background: var(--clay-green);
+      animation: float1 9s ease-in-out infinite reverse;
+    }
+
+    @keyframes float1 {
+
+      0%,
+      100% {
+        transform: translate(0, 0) scale(1)
+      }
+
+      50% {
+        transform: translate(30px, -40px) scale(1.05)
+      }
+    }
+
+    @keyframes float2 {
+
+      0%,
+      100% {
+        transform: translate(0, 0) scale(1)
+      }
+
+      50% {
+        transform: translate(-20px, 30px) scale(1.08)
+      }
+    }
+
+    @keyframes float3 {
+
+      0%,
+      100% {
+        transform: translate(0, 0) scale(1)
+      }
+
+      50% {
+        transform: translate(10px, -20px) scale(0.95)
+      }
+    }
+
+    /* ─── NAVBAR ─── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 5%;
+      background: rgba(255, 248, 240, 0.8);
+      backdrop-filter: blur(16px);
+      border-bottom: 2px solid rgba(255, 255, 255, 0.6);
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.3rem;
+      font-weight: 900;
+      color: var(--text-dark);
+      text-decoration: none;
+    }
+
+    .nav-logo .logo-badge {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--clay-purple), var(--clay-blue));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      box-shadow: 0 4px 12px rgba(167, 139, 250, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.4);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-links a {
+      padding: 8px 16px;
+      border-radius: var(--radius-pill);
+      text-decoration: none;
+      font-weight: 700;
+      color: var(--text-mid);
+      transition: all 0.2s;
+    }
+
+    .nav-links a:hover {
+      color: var(--text-dark);
+      background: rgba(255, 255, 255, 0.7);
+    }
+
+    .nav-cta {
+      padding: 10px 22px !important;
+      background: var(--text-dark) !important;
+      color: var(--white) !important;
+      border-radius: var(--radius-pill) !important;
+      box-shadow: 0 4px 14px rgba(30, 27, 75, 0.3) !important;
+      transition: transform 0.2s, box-shadow 0.2s !important;
+    }
+
+    .nav-cta:hover {
+      transform: translateY(-2px) !important;
+      box-shadow: 0 8px 20px rgba(30, 27, 75, 0.4) !important;
+    }
+
+    /* ─── HERO ─── */
+    .hero {
+      min-height: calc(100vh - 73px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 80px 5% 60px;
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.85);
+      border: 2px solid var(--clay-purple);
+      border-radius: var(--radius-pill);
+      padding: 7px 18px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--clay-purple);
+      margin-bottom: 28px;
+      box-shadow: 0 4px 12px rgba(167, 139, 250, 0.2);
+    }
+
+    .hero-title {
+      font-size: clamp(2.6rem, 6.5vw, 5rem);
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: -1px;
+      max-width: 860px;
+      margin-bottom: 20px;
+    }
+
+    .hero-title .highlight {
+      background: linear-gradient(135deg, var(--clay-coral), var(--clay-orange));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-pain {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 32px;
+    }
+
+    .pain-chip {
+      background: rgba(255, 255, 255, 0.85);
+      border: 2px solid rgba(0, 0, 0, 0.07);
+      border-radius: var(--radius-pill);
+      padding: 8px 16px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-mid);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .pain-chip span {
+      margin-right: 4px;
+    }
+
+    .hero-desc {
+      font-size: 1.1rem;
+      color: var(--text-mid);
+      max-width: 580px;
+      line-height: 1.75;
+      margin-bottom: 40px;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 16px 32px;
+      border-radius: var(--radius-pill);
+      background: linear-gradient(135deg, var(--clay-coral), var(--clay-orange));
+      color: white;
+      font-weight: 800;
+      font-size: 1.05rem;
+      text-decoration: none;
+      box-shadow: 0 6px 20px rgba(255, 107, 107, 0.45), inset 0 2px 4px rgba(255, 255, 255, 0.25);
+      transition: transform 0.2s, box-shadow 0.2s;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 12px 30px rgba(255, 107, 107, 0.55);
+    }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 16px 32px;
+      border-radius: var(--radius-pill);
+      background: rgba(255, 255, 255, 0.9);
+      color: var(--text-dark);
+      font-weight: 800;
+      font-size: 1.05rem;
+      text-decoration: none;
+      border: 2.5px solid rgba(30, 27, 75, 0.15);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08), inset 0 2px 4px rgba(255, 255, 255, 0.6);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn-secondary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+    }
+
+    .hero-stats {
+      display: flex;
+      gap: 20px;
+      margin-top: 56px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .stat-card {
+      background: rgba(255, 255, 255, 0.85);
+      border: 2.5px solid rgba(255, 255, 255, 0.9);
+      border-radius: 20px;
+      padding: 20px 28px;
+      text-align: center;
+      box-shadow: var(--shadow-clay);
+      backdrop-filter: blur(8px);
+      animation: floatCard 4s ease-in-out infinite;
+    }
+
+    .stat-card:nth-child(2) {
+      animation-delay: 0.8s;
+    }
+
+    .stat-card:nth-child(3) {
+      animation-delay: 1.6s;
+    }
+
+    .stat-number {
+      font-size: 2rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--clay-purple), var(--clay-blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .stat-label {
+      font-size: 0.82rem;
+      color: var(--text-mid);
+      font-weight: 700;
+      margin-top: 2px;
+    }
+
+    @keyframes floatCard {
+
+      0%,
+      100% {
+        transform: translateY(0)
+      }
+
+      50% {
+        transform: translateY(-8px)
+      }
+    }
+
+    /* ─── PAIN → SOLUTION SECTION ─── */
+    #painpoints {
+      padding: 100px 5%;
+      background: linear-gradient(135deg, rgba(255, 107, 107, 0.05), rgba(251, 146, 60, 0.05));
+    }
+
+    #painpoints .section-tag {
+      background: rgba(255, 107, 107, 0.12);
+      color: var(--clay-coral);
+    }
+
+    .ps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 20px;
+      margin-top: 48px;
+    }
+
+    .ps-card {
+      background: white;
+      border-radius: 22px;
+      padding: 28px;
+      box-shadow: var(--shadow-clay);
+      border: 2.5px solid rgba(255, 255, 255, 0.9);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      transition: transform 0.25s;
+    }
+
+    .ps-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .ps-before {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: #FFF1F1;
+      border-radius: 14px;
+      padding: 14px;
+    }
+
+    .ps-x {
+      font-size: 1.1rem;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .ps-before-text {
+      font-size: 0.88rem;
+      color: #9B1C1C;
+      font-weight: 700;
+      line-height: 1.5;
+    }
+
+    .ps-arrow {
+      text-align: center;
+      font-size: 1.3rem;
+      color: var(--clay-green);
+      font-weight: 900;
+    }
+
+    .ps-after {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: #F0FDF4;
+      border-radius: 14px;
+      padding: 14px;
+    }
+
+    .ps-check {
+      font-size: 1.1rem;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .ps-after-text {
+      font-size: 0.88rem;
+      color: #14532D;
+      font-weight: 700;
+      line-height: 1.5;
+    }
+
+    .ps-dept {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      border-radius: var(--radius-pill);
+      padding: 4px 12px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      width: fit-content;
+    }
+
+    .dept-factory {
+      background: rgba(96, 165, 250, 0.15);
+      color: #1D4ED8;
+    }
+
+    .dept-admin {
+      background: rgba(167, 139, 250, 0.15);
+      color: #6D28D9;
+    }
+
+    .dept-mgmt {
+      background: rgba(52, 211, 153, 0.15);
+      color: #065F46;
+    }
+
+    .dept-quality {
+      background: rgba(251, 146, 60, 0.15);
+      color: #92400E;
+    }
+
+    .dept-defense {
+      background: rgba(244, 114, 182, 0.15);
+      color: #9D174D;
+    }
+
+    /* ─── SECTION COMMON ─── */
+    .section-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: var(--radius-pill);
+      padding: 6px 14px;
+      font-size: 0.8rem;
+      font-weight: 800;
+      letter-spacing: .5px;
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 900;
+      line-height: 1.15;
+      margin-bottom: 16px;
+    }
+
+    .section-desc {
+      color: var(--text-mid);
+      font-size: 1.05rem;
+      line-height: 1.7;
+      max-width: 600px;
+    }
+
+    /* ─── TOOLS GRID ─── */
+    #tools {
+      padding: 100px 5%;
+    }
+
+    #tools .section-tag {
+      background: rgba(96, 165, 250, 0.15);
+      color: var(--clay-blue);
+    }
+
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+      gap: 28px;
+      margin-top: 52px;
+    }
+
+    .tool-card {
+      background: white;
+      border-radius: var(--radius-clay);
+      padding: 28px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-clay);
+      border: 2.5px solid rgba(255, 255, 255, 0.9);
+      transition: transform 0.25s, box-shadow 0.25s;
+      cursor: pointer;
+    }
+
+    .tool-card:hover {
+      transform: translateY(-6px) scale(1.01);
+      box-shadow: var(--shadow-clay-lg);
+    }
+
+    .tool-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 6px;
+      border-radius: var(--radius-clay) var(--radius-clay) 0 0;
+    }
+
+    .tool-card.c1::before {
+      background: linear-gradient(90deg, var(--clay-purple), var(--clay-blue));
+    }
+
+    .tool-card.c2::before {
+      background: linear-gradient(90deg, var(--clay-coral), var(--clay-orange));
+    }
+
+    .tool-card.c3::before {
+      background: linear-gradient(90deg, var(--clay-green), var(--clay-blue));
+    }
+
+    .tool-card.c4::before {
+      background: linear-gradient(90deg, var(--clay-pink), var(--clay-purple));
+    }
+
+    .tool-card.c5::before {
+      background: linear-gradient(90deg, var(--clay-yellow), var(--clay-orange));
+    }
+
+    .tool-card.c6::before {
+      background: linear-gradient(90deg, var(--clay-blue), var(--clay-green));
+    }
+
+    .tool-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), inset 0 2px 4px rgba(255, 255, 255, 0.6);
+    }
+
+    .c1 .tool-icon {
+      background: linear-gradient(135deg, #EDE9FE, #C4B5FD);
+    }
+
+    .c2 .tool-icon {
+      background: linear-gradient(135deg, #FEE2E2, #FECACA);
+    }
+
+    .c3 .tool-icon {
+      background: linear-gradient(135deg, #D1FAE5, #A7F3D0);
+    }
+
+    .c4 .tool-icon {
+      background: linear-gradient(135deg, #FCE7F3, #FBCFE8);
+    }
+
+    .c5 .tool-icon {
+      background: linear-gradient(135deg, #FEF3C7, #FDE68A);
+    }
+
+    .c6 .tool-icon {
+      background: linear-gradient(135deg, #DBEAFE, #BFDBFE);
+    }
+
+    .tool-dept-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .tool-title {
+      font-size: 1.05rem;
+      font-weight: 900;
+      margin-bottom: 6px;
+      line-height: 1.4;
+      color: var(--text-dark);
+    }
+
+    .tool-tagline {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--clay-coral);
+      margin-bottom: 10px;
+    }
+
+    .tool-desc {
+      font-size: 0.88rem;
+      color: var(--text-mid);
+      line-height: 1.65;
+      margin-bottom: 20px;
+    }
+
+    .tool-steps {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      margin-bottom: 20px;
+      background: var(--bg);
+      border-radius: 12px;
+      padding: 10px 14px;
+    }
+
+    .tool-step {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text-mid);
+    }
+
+    .tool-step-sep {
+      color: var(--clay-green);
+      font-weight: 900;
+      font-size: 0.9rem;
+    }
+
+    .tool-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .tool-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      border-radius: var(--radius-pill);
+      padding: 4px 12px;
+      font-size: 0.72rem;
+      font-weight: 800;
+    }
+
+    .status-live {
+      background: rgba(52, 211, 153, 0.15);
+      color: #047857;
+    }
+
+    .status-beta {
+      background: rgba(251, 146, 60, 0.15);
+      color: #92400E;
+    }
+
+    .status-new {
+      background: rgba(96, 165, 250, 0.15);
+      color: #1D4ED8;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+
+    .status-live .status-dot {
+      background: var(--clay-green);
+    }
+
+    .status-beta .status-dot {
+      background: var(--clay-orange);
+    }
+
+    .status-new .status-dot {
+      background: var(--clay-blue);
+    }
+
+    .tool-arrow {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      background: var(--text-dark);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      transition: transform 0.2s;
+      flex-shrink: 0;
+    }
+
+    .tool-card:hover .tool-arrow {
+      transform: translate(3px, -3px);
+    }
+
+    /* ─── WHO AM I ─── */
+    #about {
+      padding: 100px 5%;
+      background: linear-gradient(135deg, rgba(167, 139, 250, 0.07), rgba(96, 165, 250, 0.07));
+    }
+
+    #about .section-tag {
+      background: rgba(52, 211, 153, 0.15);
+      color: #047857;
+    }
+
+    .about-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+      margin-top: 52px;
+    }
+
+    .about-card {
+      background: white;
+      border-radius: var(--radius-clay);
+      padding: 36px;
+      box-shadow: var(--shadow-clay-lg);
+      border: 2.5px solid rgba(255, 255, 255, 0.9);
+    }
+
+    .about-avatar-row {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 24px;
+    }
+
+    .about-avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, var(--clay-purple), var(--clay-blue));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      box-shadow: 0 6px 18px rgba(167, 139, 250, 0.4), inset 0 2px 6px rgba(255, 255, 255, 0.3);
+    }
+
+    .about-name {
+      font-size: 1.3rem;
+      font-weight: 900;
+    }
+
+    .about-role {
+      font-size: 0.85rem;
+      color: var(--clay-purple);
+      font-weight: 700;
+      margin-top: 2px;
+    }
+
+    .about-dept {
+      font-size: 0.78rem;
+      color: var(--text-mid);
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    .about-badges {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .about-badge {
+      padding: 5px 12px;
+      border-radius: var(--radius-pill);
+      font-size: 0.75rem;
+      font-weight: 800;
+      background: rgba(167, 139, 250, 0.12);
+      color: var(--clay-purple);
+      border: 1.5px solid rgba(167, 139, 250, 0.25);
+    }
+
+    .about-bio {
+      font-size: 0.92rem;
+      color: var(--text-mid);
+      line-height: 1.75;
+    }
+
+    .about-bio strong {
+      color: var(--text-dark);
+    }
+
+    .about-points {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .about-point {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 18px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.8);
+      border: 2px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+      transition: transform 0.2s;
+    }
+
+    .about-point:hover {
+      transform: translateX(5px);
+    }
+
+    .ap-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1), inset 0 2px 4px rgba(255, 255, 255, 0.5);
+    }
+
+    .ap1 {
+      background: linear-gradient(135deg, #EDE9FE, #C4B5FD);
+    }
+
+    .ap2 {
+      background: linear-gradient(135deg, #D1FAE5, #A7F3D0);
+    }
+
+    .ap3 {
+      background: linear-gradient(135deg, #FEE2E2, #FECACA);
+    }
+
+    .ap-title {
+      font-weight: 800;
+      font-size: 0.95rem;
+      margin-bottom: 3px;
+    }
+
+    .ap-desc {
+      font-size: 0.82rem;
+      color: var(--text-mid);
+      line-height: 1.5;
+    }
+
+    /* ─── TESTIMONIALS ─── */
+    #voices {
+      padding: 100px 5%;
+    }
+
+    #voices .section-tag {
+      background: rgba(244, 114, 182, 0.15);
+      color: var(--clay-pink);
+    }
+
+    .voices-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+      margin-top: 52px;
+    }
+
+    .voice-card {
+      background: white;
+      border-radius: var(--radius-clay);
+      padding: 28px;
+      box-shadow: var(--shadow-clay);
+      border: 2.5px solid rgba(255, 255, 255, 0.9);
+      transition: transform 0.25s, box-shadow 0.25s;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .voice-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-clay-lg);
+    }
+
+    .v1 {
+      border-top: 5px solid var(--clay-purple);
+    }
+
+    .v2 {
+      border-top: 5px solid var(--clay-coral);
+    }
+
+    .v3 {
+      border-top: 5px solid var(--clay-green);
+    }
+
+    .v4 {
+      border-top: 5px solid var(--clay-yellow);
+    }
+
+    .voice-stars {
+      color: var(--clay-yellow);
+      font-size: 1rem;
+      letter-spacing: 2px;
+    }
+
+    .voice-text {
+      font-size: 0.92rem;
+      line-height: 1.75;
+      color: var(--text-mid);
+      font-style: italic;
+      flex: 1;
+    }
+
+    .voice-footer {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .v-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12), inset 0 2px 4px rgba(255, 255, 255, 0.4);
+    }
+
+    .va1 {
+      background: linear-gradient(135deg, var(--clay-purple), var(--clay-blue));
+    }
+
+    .va2 {
+      background: linear-gradient(135deg, var(--clay-coral), var(--clay-orange));
+    }
+
+    .va3 {
+      background: linear-gradient(135deg, var(--clay-green), var(--clay-blue));
+    }
+
+    .va4 {
+      background: linear-gradient(135deg, var(--clay-yellow), var(--clay-orange));
+    }
+
+    .v-name {
+      font-weight: 800;
+      font-size: 0.9rem;
+    }
+
+    .v-role {
+      font-size: 0.78rem;
+      color: var(--text-mid);
+    }
+
+    /* ─── CTA ─── */
+    #cta {
+      text-align: center;
+      padding: 100px 5%;
+      background: linear-gradient(135deg, rgba(167, 139, 250, 0.08), rgba(96, 165, 250, 0.08), rgba(52, 211, 153, 0.06));
+    }
+
+    .cta-card {
+      max-width: 760px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 36px;
+      padding: 64px 48px;
+      box-shadow: var(--shadow-clay-lg);
+      border: 3px solid rgba(255, 255, 255, 0.9);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-card::before {
+      content: '';
+      position: absolute;
+      top: -60px;
+      right: -60px;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--clay-purple), var(--clay-blue));
+      opacity: 0.08;
+    }
+
+    .cta-card::after {
+      content: '';
+      position: absolute;
+      bottom: -40px;
+      left: -40px;
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--clay-coral), var(--clay-orange));
+      opacity: 0.08;
+    }
+
+    .cta-emoji {
+      font-size: 3.5rem;
+      display: block;
+      margin-bottom: 20px;
+    }
+
+    .cta-title {
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      font-weight: 900;
+      margin-bottom: 16px;
+    }
+
+    .cta-desc {
+      color: var(--text-mid);
+      font-size: 1.05rem;
+      line-height: 1.75;
+      max-width: 480px;
+      margin: 0 auto 36px;
+    }
+
+    .cta-actions {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .cta-note {
+      margin-top: 20px;
+      font-size: 0.82rem;
+      color: var(--text-mid);
+    }
+
+    /* ─── FOOTER ─── */
+    footer {
+      background: var(--text-dark);
+      color: white;
+      padding: 48px 5% 32px;
+    }
+
+    .footer-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      text-align: center;
+    }
+
+    .footer-logo {
+      font-size: 1.3rem;
+      font-weight: 900;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .footer-links a {
+      color: rgba(255, 255, 255, 0.6);
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 600;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover {
+      color: white;
+    }
+
+    .footer-copy {
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.35);
+    }
+
+    /* ─── ANIMATIONS ─── */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+
+    .fade-up.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ─── ADMIN / LOGIN ─── */
+    .login-btn {
+      margin-left: 8px;
+      padding: 9px 18px;
+      border-radius: var(--radius-pill);
+      background: white;
+      color: var(--text-dark);
+      font-weight: 800;
+      font-size: 0.88rem;
+      border: 2px solid rgba(30, 27, 75, 0.18);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+    }
+
+    .login-btn:hover {
+      background: var(--text-dark);
+      color: white;
+      border-color: var(--text-dark);
+    }
+
+    .logout-btn {
+      margin-left: 8px;
+      padding: 9px 18px;
+      border-radius: var(--radius-pill);
+      background: rgba(239, 68, 68, 0.1);
+      color: #DC2626;
+      font-weight: 800;
+      font-size: 0.88rem;
+      border: 2px solid rgba(239, 68, 68, 0.25);
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .logout-btn:hover {
+      background: #DC2626;
+      color: white;
+    }
+
+    .admin-logged-in .logout-btn {
+      display: flex;
+    }
+
+    .admin-logged-in .login-btn {
+      display: none;
+    }
+
+    /* Login Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      background: rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(6px);
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal-box {
+      background: white;
+      border-radius: 28px;
+      padding: 44px 40px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.22);
+      border: 2.5px solid rgba(255, 255, 255, 0.9);
+      animation: modalIn 0.3s cubic-bezier(.22, 1, .36, 1);
+      position: relative;
+    }
+
+    @keyframes modalIn {
+      from {
+        transform: scale(0.88) translateY(20px);
+        opacity: 0
+      }
+
+      to {
+        transform: scale(1) translateY(0);
+        opacity: 1
+      }
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      background: #F3F4F6;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .modal-close:hover {
+      background: #E5E7EB;
+    }
+
+    .modal-icon {
+      font-size: 2.5rem;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    .modal-title {
+      font-size: 1.4rem;
+      font-weight: 900;
+      text-align: center;
+      margin-bottom: 6px;
+    }
+
+    .modal-sub {
+      font-size: 0.85rem;
+      color: var(--text-mid);
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .modal-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+
+    .modal-field label {
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: var(--text-dark);
+    }
+
+    .modal-field input {
+      padding: 12px 16px;
+      border-radius: 14px;
+      border: 2px solid #E5E7EB;
+      font-size: 0.95rem;
+      font-family: inherit;
+      outline: none;
+      transition: border 0.2s;
+    }
+
+    .modal-field input:focus {
+      border-color: var(--clay-purple);
+    }
+
+    .modal-error {
+      font-size: 0.8rem;
+      color: #DC2626;
+      font-weight: 700;
+      min-height: 18px;
+      margin-bottom: 8px;
+    }
+
+    .modal-submit {
+      width: 100%;
+      padding: 14px;
+      border-radius: var(--radius-pill);
+      background: linear-gradient(135deg, var(--clay-purple), var(--clay-blue));
+      color: white;
+      font-weight: 800;
+      font-size: 1rem;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 6px 18px rgba(167, 139, 250, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.2);
+      transition: transform 0.2s, box-shadow 0.2s;
+      font-family: inherit;
+    }
+
+    .modal-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(167, 139, 250, 0.5);
+    }
+
+    /* Admin Toolbar */
+    .admin-toolbar {
+      display: none;
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 500;
+      background: var(--text-dark);
+      border-radius: var(--radius-pill);
+      padding: 10px 20px;
+      gap: 12px;
+      align-items: center;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+      white-space: nowrap;
+    }
+
+    .admin-logged-in .admin-toolbar {
+      display: flex;
+    }
+
+    .admin-toolbar-label {
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: rgba(255, 255, 255, 0.55);
+      letter-spacing: .5px;
+    }
+
+    .admin-toolbar-sep {
+      width: 1px;
+      height: 20px;
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .atb-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: var(--radius-pill);
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.82rem;
+      font-weight: 800;
+      transition: all 0.2s;
+    }
+
+    .atb-btn.edit-mode {
+      background: var(--clay-yellow);
+      color: #78350F;
+    }
+
+    .atb-btn.save-mode {
+      background: var(--clay-green);
+      color: #064E3B;
+    }
+
+    .atb-btn.reset-mode {
+      background: rgba(239, 68, 68, 0.2);
+      color: #FCA5A5;
+    }
+
+    .atb-btn:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+    }
+
+    /* Editable highlight */
+    .is-editing [data-editable]:hover {
+      outline: 2px dashed rgba(167, 139, 250, 0.6);
+      outline-offset: 3px;
+      border-radius: 4px;
+      cursor: text;
+    }
+
+    .is-editing [data-editable]:focus {
+      outline: 2px solid var(--clay-purple);
+      outline-offset: 3px;
+      border-radius: 4px;
+    }
+
+    .edit-badge {
+      position: fixed;
+      top: 78px;
+      right: 16px;
+      z-index: 400;
+      background: var(--clay-purple);
+      color: white;
+      border-radius: var(--radius-pill);
+      padding: 6px 14px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      box-shadow: 0 4px 12px rgba(167, 139, 250, 0.4);
+      display: none;
+    }
+
+    .admin-logged-in.is-editing .edit-badge {
+      display: block;
+    }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 900px) {
+      .about-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .nav-links a:not(.nav-cta) {
+        display: none;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .hero-stats {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .cta-card {
+        padding: 40px 24px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="bg-blobs">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+    <div class="blob blob-4"></div>
+  </div>
+
+  <!-- NAVBAR -->
+  <nav>
+    <a href="#" class="nav-logo">
+      <div class="logo-badge">🏭</div>
+      SimHope AI 工具中心
+    </a>
+    <div class="nav-links">
+      <a href="#tools">工具總覽</a>
+      <a href="#about">關於這個平台</a>
+      <a href="#voices">同仁回饋</a>
+      <a href="#cta" class="nav-cta">找工具 →</a>
+      <button class="login-btn" id="loginBtn" onclick="openLoginModal()">🔐 管理員登入</button>
+      <button class="logout-btn" id="logoutBtn" onclick="doLogout()">👋 登出</button>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-eyebrow">
+      🏭 專為公司同仁設計的 AI 工具中心
+    </div>
+    <h1 class="hero-title">
+      日常痛點太多？<br />
+      這裡有<span class="highlight">現成的 AI 解法</span>
+    </h1>
+    <div class="hero-pain">
+      <span class="pain-chip"><span>📄</span>文件找半天</span>
+      <span class="pain-chip"><span>🌏</span>語言溝通卡關</span>
+      <span class="pain-chip"><span>📊</span>報表要手動填</span>
+      <span class="pain-chip"><span>🔍</span>SOP 翻了找不到</span>
+      <span class="pain-chip"><span>⏰</span>工時統計耗時</span>
+    </div>
+    <p class="hero-desc">
+      這些工具都是根據公司實際流程開發的，不需要懂 AI，打開就能用。<br />
+      目前收錄 <strong>6 個工具</strong>，持續新增中。
+    </p>
+    <div class="hero-actions">
+      <a href="#tools" class="btn-primary">🔧 馬上找工具</a>
+      <a href="#painpoints" class="btn-secondary">👀 看看解決什麼問題</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat-card">
+        <div class="stat-number" id="cnt-tools">0</div>
+        <div class="stat-label">可用工具</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="cnt-users">0+</div>
+        <div class="stat-label">同仁每週使用</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="cnt-hrs">0h</div>
+        <div class="stat-label">估計每週省下</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PAIN → SOLUTION -->
+  <section id="painpoints">
+    <div class="fade-up">
+      <div class="section-tag">😤 → 😌 解決真實痛點</div>
+      <h2 class="section-title">這些問題，<br />你每週遇到幾次？</h2>
+      <p class="section-desc">每個工具的出發點都是一個真實的工作痛點，不是為了用 AI 而用 AI。</p>
+    </div>
+    <div class="ps-grid fade-up">
+
+      <div class="ps-card">
+        <span class="ps-dept dept-factory">🏭 生產現場</span>
+        <div class="ps-before"><span class="ps-x">😓</span>
+          <div class="ps-before-text">泰籍員工溝通靠比手畫腳，品質問題說不清楚，主管也搞不定</div>
+        </div>
+        <div class="ps-arrow">↓</div>
+        <div class="ps-after"><span class="ps-check">✅</span>
+          <div class="ps-after-text">即時雙語翻譯，泰文中文一鍵切換，現場手機直接用</div>
+        </div>
+      </div>
+
+      <div class="ps-card">
+        <span class="ps-dept dept-admin">📋 行政/文書</span>
+        <div class="ps-before"><span class="ps-x">😓</span>
+          <div class="ps-before-text">合約文件幾十頁，看完要好幾小時，還不確定有沒有問題條款</div>
+        </div>
+        <div class="ps-arrow">↓</div>
+        <div class="ps-after"><span class="ps-check">✅</span>
+          <div class="ps-after-text">上傳合約，5 分鐘內 AI 標出所有異常條款與風險點</div>
+        </div>
+      </div>
+
+      <div class="ps-card">
+        <span class="ps-dept dept-mgmt">👔 主管/管理</span>
+        <div class="ps-before"><span class="ps-x">😓</span>
+          <div class="ps-before-text">工時用 LINE 回報，每次月底統計都要重新整理，錯誤一堆</div>
+        </div>
+        <div class="ps-arrow">↓</div>
+        <div class="ps-after"><span class="ps-check">✅</span>
+          <div class="ps-after-text">每人直接線上填，主管即時查看進度，月報一鍵匯出</div>
+        </div>
+      </div>
+
+      <div class="ps-card">
+        <span class="ps-dept dept-quality">🔧 品管/工程</span>
+        <div class="ps-before"><span class="ps-x">😓</span>
+          <div class="ps-before-text">外觀檢查靠人工目視，人一累就容易漏判，客訴不斷</div>
+        </div>
+        <div class="ps-arrow">↓</div>
+        <div class="ps-after"><span class="ps-check">✅</span>
+          <div class="ps-after-text">拍照上傳，AI 自動比對標準圖樣，標出瑕疵位置與類型</div>
+        </div>
+      </div>
+
+      <div class="ps-card">
+        <span class="ps-dept dept-admin">📋 行政/文書</span>
+        <div class="ps-before"><span class="ps-x">😓</span>
+          <div class="ps-before-text">產品說明書每次改規格就要重寫，翻譯成英文又要外包，費時費錢</div>
+        </div>
+        <div class="ps-arrow">↓</div>
+        <div class="ps-after"><span class="ps-check">✅</span>
+          <div class="ps-after-text">輸入規格，自動生成中英日三語說明書草稿，自己修改即可</div>
+        </div>
+      </div>
+
+      <div class="ps-card">
+        <span class="ps-dept dept-defense">🛡️ 國防/專案</span>
+        <div class="ps-before"><span class="ps-x">😓</span>
+          <div class="ps-before-text">內部 SOP、技術文件散落各處，問老師傅不一定問得到</div>
+        </div>
+        <div class="ps-arrow">↓</div>
+        <div class="ps-after"><span class="ps-check">✅</span>
+          <div class="ps-after-text">把文件全部上傳，建立私有知識庫，直接用中文問問題</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- TOOL CARDS -->
+  <section id="tools">
+    <div class="fade-up">
+      <div class="section-tag">🧰 工具總覽</div>
+      <h2 class="section-title" id="tools-heading">6 個工具，解決 6 種困擾</h2>
+      <p class="section-desc">每個工具都標示了適用部門與使用步驟，三步以內就能上手。</p>
+    </div>
+    <div class="tools-grid fade-up" id="toolsGrid">
+
+    </div>
+  </section>
+
+  <!-- WHO AM I -->
+  <section id="about">
+    <div class="about-layout fade-up">
+      <div>
+        <div class="section-tag">🙋 關於這個平台</div>
+        <h2 class="section-title">為什麼<br />有這個網站？</h2>
+        <p class="section-desc" style="margin-bottom:36px;">這不是外購的 AI 解決方案，是公司自己的人、根據公司的真實問題做出來的。</p>
+        <div class="about-points">
+          <div class="about-point">
+            <div class="ap-icon ap1">🎯</div>
+            <div>
+              <div class="ap-title">從痛點出發，不追流行</div>
+              <div class="ap-desc">每個工具背後都有具體的業務場景，不是為了「導入 AI」而做。</div>
+            </div>
+          </div>
+          <div class="about-point">
+            <div class="ap-icon ap2">🔒</div>
+            <div>
+              <div class="ap-title">公司資料不外流</div>
+              <div class="ap-desc">所有工具都在考量資料安全的前提下設計，敏感文件不會送出去給第三方訓練。</div>
+            </div>
+          </div>
+          <div class="about-point">
+            <div class="ap-icon ap3">📈</div>
+            <div>
+              <div class="ap-title">持續迭代，越用越好</div>
+              <div class="ap-desc">同仁的使用回饋會直接影響下一版的功能方向，工具會隨著公司需求成長。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="about-card">
+        <div class="about-avatar-row">
+          <div class="about-avatar">👨‍💼</div>
+          <div>
+            <div class="about-name">SimHope</div>
+            <div class="about-role">AI 導入負責人</div>
+            <div class="about-dept">電控部 · 壓鑄機 / 國防工業</div>
+          </div>
+        </div>
+        <div class="about-badges">
+          <span class="about-badge">壓鑄機生產</span>
+          <span class="about-badge">國防工業導入</span>
+          <span class="about-badge">流程優化</span>
+          <span class="about-badge">Google AI Studio</span>
+          <span class="about-badge">Gemini Canvas</span>
+        </div>
+        <p class="about-bio">
+          在傳統製造業工作，每天面對的都是<strong>實際的生產與管理問題</strong>。<br /><br />
+          這個平台收錄的是我用 AI 工具實際解決公司問題的成果——有些已經在用了，有些還在測試。<strong>不是展示技術，是解決你我的工作困擾。</strong><br /><br />
+          有工具想法或使用問題，歡迎直接找我。
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- VOICES -->
+  <section id="voices">
+    <div style="text-align:center;" class="fade-up">
+      <div class="section-tag">💬 同仁回饋</div>
+      <h2 class="section-title">用過的人說⋯⋯</h2>
+      <p class="section-desc" style="margin:0 auto;">真實的同仁心聲，沒有包裝過。</p>
+    </div>
+    <div class="voices-grid fade-up">
+
+      <div class="voice-card v1">
+        <div class="voice-stars">★★★★★</div>
+        <p class="voice-text">「翻譯工具真的很讚，以前要等組長來翻譯，現在我自己就能跟泰籍師傅說清楚品質要求，效率差很多。」</p>
+        <div class="voice-footer">
+          <div class="v-avatar va1">👷</div>
+          <div>
+            <div class="v-name">生產部領班</div>
+            <div class="v-role">壓鑄機生產線 · 使用翻譯工具</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="voice-card v2">
+        <div class="voice-stars">★★★★★</div>
+        <p class="voice-text">「合約審查工具讓我安心很多，以前合約都是自己看、自己猜，現在至少有個 AI 先幫我把關，再讓法務確認就好。」</p>
+        <div class="voice-footer">
+          <div class="v-avatar va2">📋</div>
+          <div>
+            <div class="v-name">採購部同仁</div>
+            <div class="v-role">國防零件採購 · 使用合約審查</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="voice-card v3">
+        <div class="voice-stars">★★★★★</div>
+        <p class="voice-text">「工時系統上線之後，我每個月底統計工時從半天縮到半小時。以前那種 Excel 加 LINE 截圖的方式真的很痛苦。」</p>
+        <div class="voice-footer">
+          <div class="v-avatar va3">👔</div>
+          <div>
+            <div class="v-name">電控部主管</div>
+            <div class="v-role">部門管理 · 使用工時日報系統</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="voice-card v4">
+        <div class="voice-stars">★★★★☆</div>
+        <p class="voice-text">「文件問答庫還在測試但已經很有用了，很多老師傅的邏輯都整理進去了，新人問問題可以先查這個，再問人。」</p>
+        <div class="voice-footer">
+          <div class="v-avatar va4">🔧</div>
+          <div>
+            <div class="v-name">工程部工程師</div>
+            <div class="v-role">國防工業專案 · 使用文件問答庫</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section id="cta">
+    <div class="cta-card fade-up">
+      <span class="cta-emoji">🤝</span>
+      <h2 class="cta-title">有工作上的困擾？<br />說出來，我來想辦法</h2>
+      <p class="cta-desc">如果你遇到的問題還沒有對應的工具，或是現有工具用起來哪裡不順，都歡迎直接找我討論。</p>
+      <div class="cta-actions">
+        <a href="#tools" class="btn-primary">🔧 找現有工具</a>
+        <a href="mailto:placeholder@company.com" class="btn-secondary">📬 提需求給我</a>
+      </div>
+      <p class="cta-note">💡 目前工具均免費提供給公司同仁使用・有問題找 SimHope</p>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-logo">🏭 SimHope AI 工具中心</div>
+      <div class="footer-links">
+        <a href="#tools">工具總覽</a>
+        <a href="#about">關於平台</a>
+        <a href="#voices">同仁回饋</a>
+        <a href="#cta">提需求</a>
+      </div>
+      <div class="footer-copy">© 2026 SimHope · 為公司同仁而建</div>
+    </div>
+  </footer>
+
+  <!-- Login Modal -->
+  <div class="modal-overlay" id="loginModal">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeLoginModal()">✕</button>
+      <div class="modal-icon">🔐</div>
+      <h2 class="modal-title">管理員登入</h2>
+      <p class="modal-sub">請輸入管理員帳號與密碼</p>
+      <div class="modal-field">
+        <label for="adminUser">帳號</label>
+        <input type="text" id="adminUser" placeholder="admin" autocomplete="username" />
+      </div>
+      <div class="modal-field">
+        <label for="adminPass">密碼</label>
+        <input type="password" id="adminPass" placeholder="••••••••" autocomplete="current-password" />
+      </div>
+      <div class="modal-error" id="loginError"></div>
+      <button class="modal-submit" onclick="doLogin()">登入</button>
+    </div>
+  </div>
+
+  <!-- Admin Toolbar -->
+  <div class="admin-toolbar" id="adminToolbar">
+    <span class="admin-toolbar-label">✏️ 管理員模式</span>
+    <div class="admin-toolbar-sep"></div>
+    <a href="admin.html" target="_blank" class="atb-btn edit-mode" style="text-decoration:none">⚙️ 進入後台</a>
+    <button class="atb-btn save-mode" onclick="saveContent()">💾 儲存文字</button>
+    <button class="atb-btn reset-mode" onclick="resetContent()">🗑️ 重置</button>
+  </div>
+
+  <!-- Edit mode badge -->
+  <div class="edit-badge" id="editBadge">✏️ 編輯模式中 — 點任意文字即可修改</div>
+
+  <script>
+    // Counter animation
+    function animateCounter(el, target, label = '') {
+      let start = 0;
+      const duration = 1800;
+      const step = ts => {
+        if (!start) start = ts;
+        const p = Math.min((ts - start) / duration, 1);
+        const ease = 1 - Math.pow(1 - p, 3);
+        el.textContent = Math.round(ease * target) + label;
+        if (p < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    }
+
+    // Intersection observer for fade-up
+    const fadeEls = document.querySelectorAll('.fade-up');
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); }
+      });
+    }, { threshold: 0.1 });
+    fadeEls.forEach(el => obs.observe(el));
+
+    // Stats counter
+    const statsObs = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting) {
+        animateCounter(document.getElementById('cnt-tools'), 6);
+        animateCounter(document.getElementById('cnt-users'), 12, '+');
+        animateCounter(document.getElementById('cnt-hrs'), 8, 'h');
+        statsObs.disconnect();
+      }
+    }, { threshold: 0.5 });
+    statsObs.observe(document.querySelector('.hero-stats'));
+
+    // ═══════════════════════════════════════════
+    // ADMIN SYSTEM
+    // ═══════════════════════════════════════════
+    const ADMIN_USER = 'simhope';
+    const ADMIN_PASS = 'simhope2026';
+    const STORAGE_KEY = 'simhope_content_v1';
+    let isEditing = false;
+
+    // Mark all editable text elements
+    const EDITABLE_SELECTORS = [
+      '.hero-title', '.hero-desc',
+      '.hero-eyebrow',
+      '.section-title', '.section-desc',
+      '.tool-title', '.tool-tagline', '.tool-desc',
+      '.ps-before-text', '.ps-after-text',
+      '.about-name', '.about-role', '.about-dept', '.about-bio',
+      '.ap-title', '.ap-desc',
+      '.voice-text', '.v-name', '.v-role',
+      '.cta-title', '.cta-desc', '.cta-note',
+      '.footer-logo', '.footer-copy',
+      '.about-point .ap-title', '.about-point .ap-desc'
+    ];
+
+    function markEditables() {
+      EDITABLE_SELECTORS.forEach(sel => {
+        document.querySelectorAll(sel).forEach(el => {
+          el.setAttribute('data-editable', '');
+          el.setAttribute('data-key', sel + '_' + [...document.querySelectorAll(sel)].indexOf(el));
+        });
+      });
+    }
+    markEditables();
+
+    // ── Load saved content ──
+    function loadContent() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (!saved) return;
+      try {
+        const data = JSON.parse(saved);
+        Object.entries(data).forEach(([key, val]) => {
+          const el = document.querySelector('[data-key="' + key + '"]');
+          if (el) el.innerHTML = val;
+        });
+      } catch (e) { }
+    }
+    loadContent();
+
+    // ── Save content ──
+    function saveContent() {
+      const data = {};
+      document.querySelectorAll('[data-editable]').forEach(el => {
+        data[el.getAttribute('data-key')] = el.innerHTML;
+      });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      showToast('💾 已儲存！');
+    }
+
+    // ── Reset content ──
+    function resetContent() {
+      if (!confirm('確定要重置所有內容回預設值嗎？')) return;
+      localStorage.removeItem(STORAGE_KEY);
+      location.reload();
+    }
+
+    // ── Toast ──
+    function showToast(msg) {
+      const t = document.createElement('div');
+      t.textContent = msg;
+      Object.assign(t.style, {
+        position: 'fixed', bottom: '90px', left: '50%', transform: 'translateX(-50%)',
+        background: 'var(--text-dark)', color: 'white',
+        padding: '10px 22px', borderRadius: '999px',
+        fontSize: '0.85rem', fontWeight: '800', zIndex: '9999',
+        boxShadow: '0 6px 20px rgba(0,0,0,0.25)',
+        transition: 'opacity 0.4s'
+      });
+      document.body.appendChild(t);
+      setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, 2000);
+    }
+
+    // ── Toggle edit mode ──
+    function toggleEditMode() {
+      isEditing = !isEditing;
+      document.body.classList.toggle('is-editing', isEditing);
+      document.querySelectorAll('[data-editable]').forEach(el => {
+        el.contentEditable = isEditing ? 'true' : 'false';
+      });
+      const btn = document.getElementById('editToggleBtn');
+      btn.textContent = isEditing ? '👁️ 結束編輯' : '✏️ 開始編輯';
+      if (!isEditing) saveContent();
+    }
+
+    // ── Login / Logout ──
+    function openLoginModal() {
+      document.getElementById('loginModal').classList.add('open');
+      document.getElementById('adminUser').focus();
+      document.getElementById('loginError').textContent = '';
+      document.getElementById('adminPass').value = '';
+    }
+    function closeLoginModal() {
+      document.getElementById('loginModal').classList.remove('open');
+    }
+    function doLogin() {
+      const u = document.getElementById('adminUser').value.trim();
+      const p = document.getElementById('adminPass').value;
+      if (u === ADMIN_USER && p === ADMIN_PASS) {
+        document.body.classList.add('admin-logged-in');
+        sessionStorage.setItem('admin_auth', '1');
+        closeLoginModal();
+        showToast('✅ 登入成功，歡迎回來！');
+      } else {
+        document.getElementById('loginError').textContent = '帳號或密碼錯誤，請再試一次。';
+        document.getElementById('adminPass').value = '';
+        document.getElementById('adminPass').focus();
+      }
+    }
+    function doLogout() {
+      if (isEditing) toggleEditMode();
+      document.body.classList.remove('admin-logged-in');
+      sessionStorage.removeItem('admin_auth');
+      showToast('👋 已登出');
+    }
+
+    // Keyboard: Enter in modal submits
+    document.getElementById('adminPass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+    document.getElementById('adminUser').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('adminPass').focus(); });
+    // Click outside modal to close
+    document.getElementById('loginModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeLoginModal(); });
+
+    // Restore session
+    if (sessionStorage.getItem('admin_auth') === '1') {
+      document.body.classList.add('admin-logged-in');
+    }
+
+    // ══════════════════════════════════════════
+    // DYNAMIC TOOLS RENDERING FROM DB
+    // ══════════════════════════════════════════
+    function renderTools() {
+      const grid = document.getElementById('toolsGrid');
+      if (!grid) return;
+      const tools = DB.getTools();
+      if (!tools.length) {
+        grid.innerHTML = '<p style="color:var(--text-mid);padding:40px;text-align:center">尚無工具，請至後台新增</p>';
+        return;
+      }
+      grid.innerHTML = tools.map(t => {
+        const dept = DB.DEPTS[t.dept] || DB.DEPTS.other;
+        const status = DB.STATUSES[t.status] || DB.STATUSES.live;
+        const steps = (t.steps || []).filter(Boolean);
+        const stepsHtml = steps.map((s, i) =>
+          `<span class="tool-step">${s}</span>${i < steps.length - 1 ? '<span class="tool-step-sep">→</span>' : ''}`
+        ).join('');
+        return `
+          <div class="tool-card ${t.color || 'c1'}" onclick="${t.url && t.url !== '#' ? `window.open('${t.url}','_blank')` : ''}">
+            <div class="tool-icon">${t.icon || '🛠️'}</div>
+            <div class="tool-dept-row">
+              <span class="ps-dept ${dept.cls}">${dept.label}</span>
+              <span class="tool-status status-${t.status}"><span class="status-dot"></span>${status.label}</span>
+            </div>
+            <h3 class="tool-title">${t.title}</h3>
+            <p class="tool-tagline">${t.tagline}</p>
+            <p class="tool-desc">${t.desc}</p>
+            <div class="tool-steps">${stepsHtml}</div>
+            <div class="tool-footer">
+              <div style="display:flex;gap:6px;flex-wrap:wrap">
+                ${(t.tags || []).map(tag => `<span style="font-size:.7rem;background:rgba(0,0,0,0.06);border-radius:999px;padding:2px 8px">${tag}</span>`).join('')}
+              </div>
+              <div class="tool-arrow">↗</div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    // Load site settings into Hero
+    function loadSiteSettings() {
+      const s = DB.getSite();
+      const heading = document.getElementById('tools-heading');
+      const toolCount = DB.getTools().length;
+      if (heading) heading.textContent = `${toolCount} 個工具，解決 ${toolCount} 種困擾`;
+
+      // Update Hero desc count dynamically
+      const heroDesc = document.querySelector('.hero-desc strong');
+      if (heroDesc) heroDesc.textContent = `${s.statTools} 個工具`;
+
+      // Update stat targets
+      const cntTools = document.getElementById('cnt-tools');
+      const cntUsers = document.getElementById('cnt-users');
+      const cntHrs = document.getElementById('cnt-hrs');
+      if (cntTools) cntTools._target = s.statTools || 6;
+      if (cntUsers) cntUsers._target = s.statUsers || 12;
+      if (cntHrs) cntHrs._target = s.statHours || 8;
+    }
+
+    // Run on load
+    loadSiteSettings();
+    renderTools();
+  </script>
+</body>
+
+</html>
