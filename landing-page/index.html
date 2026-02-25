@@ -1938,6 +1938,48 @@
     .edit-badge {
       display: none !important;
     }
+
+    /* Contact Modal */
+    .contact-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 16px;
+      background: #F9FAFB;
+      border-radius: 14px;
+      text-decoration: none;
+      color: inherit;
+      border: 2px solid transparent;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .contact-row:hover {
+      border-color: #6366F1;
+      background: #EEF2FF;
+    }
+
+    .contact-icon {
+      font-size: 1.4rem;
+      flex-shrink: 0;
+    }
+
+    .contact-label {
+      font-size: 0.7rem;
+      font-weight: 800;
+      color: #9CA3AF;
+      letter-spacing: .3px;
+    }
+
+    .contact-val {
+      font-size: 0.92rem;
+      font-weight: 800;
+      color: #1E1B4B;
+      margin-top: 1px;
+    }
+
+    .btn-secondary {
+      cursor: pointer;
+    }
   </style>
 </head>
 
@@ -2221,7 +2263,7 @@
         <p class="cta-desc">如果你遇到的問題還沒有對應的工具，或是現有工具用起來哪裡不順，都歡迎直接找我討論。</p>
         <div class="cta-actions">
           <a href="#tools" class="btn-primary">🔧 找現有工具</a>
-          <a href="mailto:placeholder@company.com" class="btn-secondary">📬 提需求給我</a>
+          <button class="btn-secondary" onclick="openContactModal()">📬 提需求給我</button>
         </div>
         <p class="cta-note">💡 目前工具均免費提供給公司同仁使用・有問題找 SimHope</p>
       </div>
@@ -2260,6 +2302,46 @@
       </div>
       <div class="modal-error" id="loginError"></div>
       <button class="modal-submit" onclick="doLogin()">登入</button>
+    </div>
+  </div>
+
+  <!-- Contact Modal -->
+  <div class="modal-overlay" id="contactModal">
+    <div class="modal-box" style="max-width:420px">
+      <button class="modal-close" onclick="closeContactModal()">✕</button>
+      <div class="modal-icon">📬</div>
+      <h2 class="modal-title">聯絡 Jason</h2>
+      <p class="modal-sub">有任何 AI 工具需求或問題，歡迎直接聯絡</p>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:20px">
+        <a href="tel:+886488858616" class="contact-row">
+          <span class="contact-icon">☎️</span>
+          <div>
+            <div class="contact-label">公司分機</div>
+            <div class="contact-val">(04) 8885861 #60</div>
+          </div>
+        </a>
+        <a href="tel:+886905584803" class="contact-row">
+          <span class="contact-icon">📱</span>
+          <div>
+            <div class="contact-label">手機</div>
+            <div class="contact-val">0905-584-803</div>
+          </div>
+        </a>
+        <a href="mailto:jasonlin@simhope.com.tw" class="contact-row">
+          <span class="contact-icon">📧</span>
+          <div>
+            <div class="contact-label">Email</div>
+            <div class="contact-val">jasonlin@simhope.com.tw</div>
+          </div>
+        </a>
+        <a href="https://line.me/ti/p/pWkL5_dvM5" target="_blank" class="contact-row">
+          <span class="contact-icon">💬</span>
+          <div>
+            <div class="contact-label">LINE</div>
+            <div class="contact-val">點此加 LINE 聯絡</div>
+          </div>
+        </a>
+      </div>
     </div>
   </div>
 
@@ -2562,6 +2644,13 @@
     function closeLoginModal() {
       document.getElementById('loginModal').classList.remove('open');
     }
+    function openContactModal() {
+      document.getElementById('contactModal').classList.add('open');
+    }
+    function closeContactModal() {
+      document.getElementById('contactModal').classList.remove('open');
+    }
+    document.getElementById('contactModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeContactModal(); });
     function doLogin() {
       const u = document.getElementById('adminUser').value.trim();
       const p = document.getElementById('adminPass').value;
