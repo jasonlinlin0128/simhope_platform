@@ -1441,17 +1441,26 @@
     }
 
     /* ─── ADMIN DRAWER ─── */
+    /* backdrop 只擋點擊，不霧化頁面 */
     .drawer-backdrop {
       display: none;
       position: fixed;
       inset: 0;
       z-index: 290;
-      background: rgba(0, 0, 0, 0.3);
-      backdrop-filter: blur(2px);
+      background: transparent;
     }
 
     .admin-logged-in .drawer-backdrop.open {
       display: block;
+    }
+
+    /* Push layout：drawer 開啟時頁面往左擠 */
+    #pageContent {
+      transition: padding-right 0.32s cubic-bezier(.22, 1, .36, 1);
+    }
+
+    body.drawer-open #pageContent {
+      padding-right: 420px;
     }
 
     .admin-drawer {
@@ -1934,302 +1943,305 @@
 
 <body>
 
-  <div class="bg-blobs">
-    <div class="blob blob-1"></div>
-    <div class="blob blob-2"></div>
-    <div class="blob blob-3"></div>
-    <div class="blob blob-4"></div>
-  </div>
-
-  <!-- NAVBAR -->
-  <nav>
-    <a href="#" class="nav-logo">
-      <div class="logo-badge">🏭</div>
-      SimHope AI 工具中心
-    </a>
-    <div class="nav-links">
-      <a href="#tools">工具總覽</a>
-      <a href="#about">關於這個平台</a>
-      <a href="#voices">同仁回饋</a>
-      <a href="#cta" class="nav-cta">找工具 →</a>
-      <button class="login-btn" id="loginBtn" onclick="openLoginModal()">🔐 管理員登入</button>
-      <button class="logout-btn" id="logoutBtn" onclick="doLogout()">👋 登出</button>
+  <div id="pageContent">
+    <div class="bg-blobs">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="blob blob-3"></div>
+      <div class="blob blob-4"></div>
     </div>
-  </nav>
 
-  <!-- HERO -->
-  <section class="hero">
-    <div class="hero-eyebrow">
-      🏭 專為公司同仁設計的 AI 工具中心
-    </div>
-    <h1 class="hero-title">
-      日常痛點太多？<br />
-      這裡有<span class="highlight">現成的 AI 解法</span>
-    </h1>
-    <div class="hero-pain">
-      <span class="pain-chip"><span>📄</span>文件找半天</span>
-      <span class="pain-chip"><span>🌏</span>語言溝通卡關</span>
-      <span class="pain-chip"><span>📊</span>報表要手動填</span>
-      <span class="pain-chip"><span>🔍</span>SOP 翻了找不到</span>
-      <span class="pain-chip"><span>⏰</span>工時統計耗時</span>
-    </div>
-    <p class="hero-desc">
-      這些工具都是根據公司實際流程開發的，不需要懂 AI，打開就能用。<br />
-      目前收錄 <strong>6 個工具</strong>，持續新增中。
-    </p>
-    <div class="hero-actions">
-      <a href="#tools" class="btn-primary">🔧 馬上找工具</a>
-      <a href="#painpoints" class="btn-secondary">👀 看看解決什麼問題</a>
-    </div>
-    <div class="hero-stats">
-      <div class="stat-card">
-        <div class="stat-number" id="cnt-tools">0</div>
-        <div class="stat-label">可用工具</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-number" id="cnt-users">0+</div>
-        <div class="stat-label">同仁每週使用</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-number" id="cnt-hrs">0h</div>
-        <div class="stat-label">估計每週省下</div>
-      </div>
-    </div>
-  </section>
-
-  <!-- PAIN → SOLUTION -->
-  <section id="painpoints">
-    <div class="fade-up">
-      <div class="section-tag">😤 → 😌 解決真實痛點</div>
-      <h2 class="section-title">這些問題，<br />你每週遇到幾次？</h2>
-      <p class="section-desc">每個工具的出發點都是一個真實的工作痛點，不是為了用 AI 而用 AI。</p>
-    </div>
-    <div class="ps-grid fade-up">
-
-      <div class="ps-card">
-        <span class="ps-dept dept-factory">🏭 生產現場</span>
-        <div class="ps-before"><span class="ps-x">😓</span>
-          <div class="ps-before-text">泰籍員工溝通靠比手畫腳，品質問題說不清楚，主管也搞不定</div>
-        </div>
-        <div class="ps-arrow">↓</div>
-        <div class="ps-after"><span class="ps-check">✅</span>
-          <div class="ps-after-text">即時雙語翻譯，泰文中文一鍵切換，現場手機直接用</div>
-        </div>
-      </div>
-
-      <div class="ps-card">
-        <span class="ps-dept dept-admin">📋 行政/文書</span>
-        <div class="ps-before"><span class="ps-x">😓</span>
-          <div class="ps-before-text">合約文件幾十頁，看完要好幾小時，還不確定有沒有問題條款</div>
-        </div>
-        <div class="ps-arrow">↓</div>
-        <div class="ps-after"><span class="ps-check">✅</span>
-          <div class="ps-after-text">上傳合約，5 分鐘內 AI 標出所有異常條款與風險點</div>
-        </div>
-      </div>
-
-      <div class="ps-card">
-        <span class="ps-dept dept-mgmt">👔 主管/管理</span>
-        <div class="ps-before"><span class="ps-x">😓</span>
-          <div class="ps-before-text">工時用 LINE 回報，每次月底統計都要重新整理，錯誤一堆</div>
-        </div>
-        <div class="ps-arrow">↓</div>
-        <div class="ps-after"><span class="ps-check">✅</span>
-          <div class="ps-after-text">每人直接線上填，主管即時查看進度，月報一鍵匯出</div>
-        </div>
-      </div>
-
-      <div class="ps-card">
-        <span class="ps-dept dept-quality">🔧 品管/工程</span>
-        <div class="ps-before"><span class="ps-x">😓</span>
-          <div class="ps-before-text">外觀檢查靠人工目視，人一累就容易漏判，客訴不斷</div>
-        </div>
-        <div class="ps-arrow">↓</div>
-        <div class="ps-after"><span class="ps-check">✅</span>
-          <div class="ps-after-text">拍照上傳，AI 自動比對標準圖樣，標出瑕疵位置與類型</div>
-        </div>
-      </div>
-
-      <div class="ps-card">
-        <span class="ps-dept dept-admin">📋 行政/文書</span>
-        <div class="ps-before"><span class="ps-x">😓</span>
-          <div class="ps-before-text">產品說明書每次改規格就要重寫，翻譯成英文又要外包，費時費錢</div>
-        </div>
-        <div class="ps-arrow">↓</div>
-        <div class="ps-after"><span class="ps-check">✅</span>
-          <div class="ps-after-text">輸入規格，自動生成中英日三語說明書草稿，自己修改即可</div>
-        </div>
-      </div>
-
-      <div class="ps-card">
-        <span class="ps-dept dept-defense">🛡️ 國防/專案</span>
-        <div class="ps-before"><span class="ps-x">😓</span>
-          <div class="ps-before-text">內部 SOP、技術文件散落各處，問老師傅不一定問得到</div>
-        </div>
-        <div class="ps-arrow">↓</div>
-        <div class="ps-after"><span class="ps-check">✅</span>
-          <div class="ps-after-text">把文件全部上傳，建立私有知識庫，直接用中文問問題</div>
-        </div>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- TOOL CARDS -->
-  <section id="tools">
-    <div class="fade-up">
-      <div class="section-tag">🧰 工具總覽</div>
-      <h2 class="section-title" id="tools-heading">6 個工具，解決 6 種困擾</h2>
-      <p class="section-desc">每個工具都標示了適用部門與使用步驟，三步以內就能上手。</p>
-    </div>
-    <div class="tools-grid fade-up" id="toolsGrid">
-
-    </div>
-  </section>
-
-  <!-- WHO AM I -->
-  <section id="about">
-    <div class="about-layout fade-up">
-      <div>
-        <div class="section-tag">🙋 關於這個平台</div>
-        <h2 class="section-title">為什麼<br />有這個網站？</h2>
-        <p class="section-desc" style="margin-bottom:36px;">這不是外購的 AI 解決方案，是公司自己的人、根據公司的真實問題做出來的。</p>
-        <div class="about-points">
-          <div class="about-point">
-            <div class="ap-icon ap1">🎯</div>
-            <div>
-              <div class="ap-title">從痛點出發，不追流行</div>
-              <div class="ap-desc">每個工具背後都有具體的業務場景，不是為了「導入 AI」而做。</div>
-            </div>
-          </div>
-          <div class="about-point">
-            <div class="ap-icon ap2">🔒</div>
-            <div>
-              <div class="ap-title">公司資料不外流</div>
-              <div class="ap-desc">所有工具都在考量資料安全的前提下設計，敏感文件不會送出去給第三方訓練。</div>
-            </div>
-          </div>
-          <div class="about-point">
-            <div class="ap-icon ap3">📈</div>
-            <div>
-              <div class="ap-title">持續迭代，越用越好</div>
-              <div class="ap-desc">同仁的使用回饋會直接影響下一版的功能方向，工具會隨著公司需求成長。</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="about-card">
-        <div class="about-avatar-row">
-          <div class="about-avatar">👨‍💼</div>
-          <div>
-            <div class="about-name">SimHope</div>
-            <div class="about-role">AI 導入負責人</div>
-            <div class="about-dept">電控部 · 壓鑄機 / 國防工業</div>
-          </div>
-        </div>
-        <div class="about-badges">
-          <span class="about-badge">壓鑄機生產</span>
-          <span class="about-badge">國防工業導入</span>
-          <span class="about-badge">流程優化</span>
-          <span class="about-badge">Google AI Studio</span>
-          <span class="about-badge">Gemini Canvas</span>
-        </div>
-        <p class="about-bio">
-          在傳統製造業工作，每天面對的都是<strong>實際的生產與管理問題</strong>。<br /><br />
-          這個平台收錄的是我用 AI 工具實際解決公司問題的成果——有些已經在用了，有些還在測試。<strong>不是展示技術，是解決你我的工作困擾。</strong><br /><br />
-          有工具想法或使用問題，歡迎直接找我。
-        </p>
-      </div>
-    </div>
-  </section>
-
-  <!-- VOICES -->
-  <section id="voices">
-    <div style="text-align:center;" class="fade-up">
-      <div class="section-tag">💬 同仁回饋</div>
-      <h2 class="section-title">用過的人說⋯⋯</h2>
-      <p class="section-desc" style="margin:0 auto;">真實的同仁心聲，沒有包裝過。</p>
-    </div>
-    <div class="voices-grid fade-up">
-
-      <div class="voice-card v1">
-        <div class="voice-stars">★★★★★</div>
-        <p class="voice-text">「翻譯工具真的很讚，以前要等組長來翻譯，現在我自己就能跟泰籍師傅說清楚品質要求，效率差很多。」</p>
-        <div class="voice-footer">
-          <div class="v-avatar va1">👷</div>
-          <div>
-            <div class="v-name">生產部領班</div>
-            <div class="v-role">壓鑄機生產線 · 使用翻譯工具</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="voice-card v2">
-        <div class="voice-stars">★★★★★</div>
-        <p class="voice-text">「合約審查工具讓我安心很多，以前合約都是自己看、自己猜，現在至少有個 AI 先幫我把關，再讓法務確認就好。」</p>
-        <div class="voice-footer">
-          <div class="v-avatar va2">📋</div>
-          <div>
-            <div class="v-name">採購部同仁</div>
-            <div class="v-role">國防零件採購 · 使用合約審查</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="voice-card v3">
-        <div class="voice-stars">★★★★★</div>
-        <p class="voice-text">「工時系統上線之後，我每個月底統計工時從半天縮到半小時。以前那種 Excel 加 LINE 截圖的方式真的很痛苦。」</p>
-        <div class="voice-footer">
-          <div class="v-avatar va3">👔</div>
-          <div>
-            <div class="v-name">電控部主管</div>
-            <div class="v-role">部門管理 · 使用工時日報系統</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="voice-card v4">
-        <div class="voice-stars">★★★★☆</div>
-        <p class="voice-text">「文件問答庫還在測試但已經很有用了，很多老師傅的邏輯都整理進去了，新人問問題可以先查這個，再問人。」</p>
-        <div class="voice-footer">
-          <div class="v-avatar va4">🔧</div>
-          <div>
-            <div class="v-name">工程部工程師</div>
-            <div class="v-role">國防工業專案 · 使用文件問答庫</div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- CTA -->
-  <section id="cta">
-    <div class="cta-card fade-up">
-      <span class="cta-emoji">🤝</span>
-      <h2 class="cta-title">有工作上的困擾？<br />說出來，我來想辦法</h2>
-      <p class="cta-desc">如果你遇到的問題還沒有對應的工具，或是現有工具用起來哪裡不順，都歡迎直接找我討論。</p>
-      <div class="cta-actions">
-        <a href="#tools" class="btn-primary">🔧 找現有工具</a>
-        <a href="mailto:placeholder@company.com" class="btn-secondary">📬 提需求給我</a>
-      </div>
-      <p class="cta-note">💡 目前工具均免費提供給公司同仁使用・有問題找 SimHope</p>
-    </div>
-  </section>
-
-  <!-- FOOTER -->
-  <footer>
-    <div class="footer-inner">
-      <div class="footer-logo">🏭 SimHope AI 工具中心</div>
-      <div class="footer-links">
+    <!-- NAVBAR -->
+    <nav>
+      <a href="#" class="nav-logo">
+        <div class="logo-badge">🏭</div>
+        SimHope AI 工具中心
+      </a>
+      <div class="nav-links">
         <a href="#tools">工具總覽</a>
-        <a href="#about">關於平台</a>
+        <a href="#about">關於這個平台</a>
         <a href="#voices">同仁回饋</a>
-        <a href="#cta">提需求</a>
+        <a href="#cta" class="nav-cta">找工具 →</a>
+        <button class="login-btn" id="loginBtn" onclick="openLoginModal()">🔐 管理員登入</button>
+        <button class="logout-btn" id="logoutBtn" onclick="doLogout()">👋 登出</button>
       </div>
-      <div class="footer-copy">© 2026 SimHope · 為公司同仁而建</div>
-    </div>
-  </footer>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-eyebrow" id="heroEyebrow">
+        🏭 專為公司同仁設計的 AI 工具中心
+      </div>
+      <h1 class="hero-title">
+        日常痛點太多？<br />
+        這裡有<span class="highlight">現成的 AI 解法</span>
+      </h1>
+      <div class="hero-pain" id="heroPainChips">
+        <span class="pain-chip"><span>📄</span>文件找半天</span>
+        <span class="pain-chip"><span>🌏</span>語言溝通卡關</span>
+        <span class="pain-chip"><span>📊</span>報表要手動填</span>
+        <span class="pain-chip"><span>🔍</span>SOP 翻了找不到</span>
+        <span class="pain-chip"><span>⏰</span>工時統計耗時</span>
+      </div>
+      <p class="hero-desc">
+        這些工具都是根據公司實際流程開發的，不需要懂 AI，打開就能用。<br />
+        目前收錄 <strong>6 個工具</strong>，持續新增中。
+      </p>
+      <div class="hero-actions">
+        <a href="#tools" class="btn-primary">🔧 馬上找工具</a>
+        <a href="#painpoints" class="btn-secondary">👀 看看解決什麼問題</a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat-card">
+          <div class="stat-number" id="cnt-tools">0</div>
+          <div class="stat-label">可用工具</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="cnt-users">0+</div>
+          <div class="stat-label">同仁每週使用</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="cnt-hrs">0h</div>
+          <div class="stat-label">估計每週省下</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAIN → SOLUTION -->
+    <section id="painpoints">
+      <div class="fade-up">
+        <div class="section-tag">😤 → 😌 解決真實痛點</div>
+        <h2 class="section-title">這些問題，<br />你每週遇到幾次？</h2>
+        <p class="section-desc">每個工具的出發點都是一個真實的工作痛點，不是為了用 AI 而用 AI。</p>
+      </div>
+      <div class="ps-grid fade-up">
+
+        <div class="ps-card">
+          <span class="ps-dept dept-factory">🏭 生產現場</span>
+          <div class="ps-before"><span class="ps-x">😓</span>
+            <div class="ps-before-text">泰籍員工溝通靠比手畫腳，品質問題說不清楚，主管也搞不定</div>
+          </div>
+          <div class="ps-arrow">↓</div>
+          <div class="ps-after"><span class="ps-check">✅</span>
+            <div class="ps-after-text">即時雙語翻譯，泰文中文一鍵切換，現場手機直接用</div>
+          </div>
+        </div>
+
+        <div class="ps-card">
+          <span class="ps-dept dept-admin">📋 行政/文書</span>
+          <div class="ps-before"><span class="ps-x">😓</span>
+            <div class="ps-before-text">合約文件幾十頁，看完要好幾小時，還不確定有沒有問題條款</div>
+          </div>
+          <div class="ps-arrow">↓</div>
+          <div class="ps-after"><span class="ps-check">✅</span>
+            <div class="ps-after-text">上傳合約，5 分鐘內 AI 標出所有異常條款與風險點</div>
+          </div>
+        </div>
+
+        <div class="ps-card">
+          <span class="ps-dept dept-mgmt">👔 主管/管理</span>
+          <div class="ps-before"><span class="ps-x">😓</span>
+            <div class="ps-before-text">工時用 LINE 回報，每次月底統計都要重新整理，錯誤一堆</div>
+          </div>
+          <div class="ps-arrow">↓</div>
+          <div class="ps-after"><span class="ps-check">✅</span>
+            <div class="ps-after-text">每人直接線上填，主管即時查看進度，月報一鍵匯出</div>
+          </div>
+        </div>
+
+        <div class="ps-card">
+          <span class="ps-dept dept-quality">🔧 品管/工程</span>
+          <div class="ps-before"><span class="ps-x">😓</span>
+            <div class="ps-before-text">外觀檢查靠人工目視，人一累就容易漏判，客訴不斷</div>
+          </div>
+          <div class="ps-arrow">↓</div>
+          <div class="ps-after"><span class="ps-check">✅</span>
+            <div class="ps-after-text">拍照上傳，AI 自動比對標準圖樣，標出瑕疵位置與類型</div>
+          </div>
+        </div>
+
+        <div class="ps-card">
+          <span class="ps-dept dept-admin">📋 行政/文書</span>
+          <div class="ps-before"><span class="ps-x">😓</span>
+            <div class="ps-before-text">產品說明書每次改規格就要重寫，翻譯成英文又要外包，費時費錢</div>
+          </div>
+          <div class="ps-arrow">↓</div>
+          <div class="ps-after"><span class="ps-check">✅</span>
+            <div class="ps-after-text">輸入規格，自動生成中英日三語說明書草稿，自己修改即可</div>
+          </div>
+        </div>
+
+        <div class="ps-card">
+          <span class="ps-dept dept-defense">🛡️ 國防/專案</span>
+          <div class="ps-before"><span class="ps-x">😓</span>
+            <div class="ps-before-text">內部 SOP、技術文件散落各處，問老師傅不一定問得到</div>
+          </div>
+          <div class="ps-arrow">↓</div>
+          <div class="ps-after"><span class="ps-check">✅</span>
+            <div class="ps-after-text">把文件全部上傳，建立私有知識庫，直接用中文問問題</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- TOOL CARDS -->
+    <section id="tools">
+      <div class="fade-up">
+        <div class="section-tag">🧰 工具總覽</div>
+        <h2 class="section-title" id="tools-heading">6 個工具，解決 6 種困擾</h2>
+        <p class="section-desc">每個工具都標示了適用部門與使用步驟，三步以內就能上手。</p>
+      </div>
+      <div class="tools-grid fade-up" id="toolsGrid">
+
+      </div>
+    </section>
+
+    <!-- WHO AM I -->
+    <section id="about">
+      <div class="about-layout fade-up">
+        <div>
+          <div class="section-tag">🙋 關於這個平台</div>
+          <h2 class="section-title">為什麼<br />有這個網站？</h2>
+          <p class="section-desc" style="margin-bottom:36px;">這不是外購的 AI 解決方案，是公司自己的人、根據公司的真實問題做出來的。</p>
+          <div class="about-points">
+            <div class="about-point">
+              <div class="ap-icon ap1">🎯</div>
+              <div>
+                <div class="ap-title">從痛點出發，不追流行</div>
+                <div class="ap-desc">每個工具背後都有具體的業務場景，不是為了「導入 AI」而做。</div>
+              </div>
+            </div>
+            <div class="about-point">
+              <div class="ap-icon ap2">🔒</div>
+              <div>
+                <div class="ap-title">公司資料不外流</div>
+                <div class="ap-desc">所有工具都在考量資料安全的前提下設計，敏感文件不會送出去給第三方訓練。</div>
+              </div>
+            </div>
+            <div class="about-point">
+              <div class="ap-icon ap3">📈</div>
+              <div>
+                <div class="ap-title">持續迭代，越用越好</div>
+                <div class="ap-desc">同仁的使用回饋會直接影響下一版的功能方向，工具會隨著公司需求成長。</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="about-card">
+          <div class="about-avatar-row">
+            <div class="about-avatar">👨‍💼</div>
+            <div>
+              <div class="about-name">SimHope</div>
+              <div class="about-role">AI 導入負責人</div>
+              <div class="about-dept">電控部 · 壓鑄機 / 國防工業</div>
+            </div>
+          </div>
+          <div class="about-badges">
+            <span class="about-badge">壓鑄機生產</span>
+            <span class="about-badge">國防工業導入</span>
+            <span class="about-badge">流程優化</span>
+            <span class="about-badge">Google AI Studio</span>
+            <span class="about-badge">Gemini Canvas</span>
+          </div>
+          <p class="about-bio">
+            在傳統製造業工作，每天面對的都是<strong>實際的生產與管理問題</strong>。<br /><br />
+            這個平台收錄的是我用 AI 工具實際解決公司問題的成果——有些已經在用了，有些還在測試。<strong>不是展示技術，是解決你我的工作困擾。</strong><br /><br />
+            有工具想法或使用問題，歡迎直接找我。
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- VOICES -->
+    <section id="voices">
+      <div style="text-align:center;" class="fade-up">
+        <div class="section-tag">💬 同仁回饋</div>
+        <h2 class="section-title">用過的人說⋯⋯</h2>
+        <p class="section-desc" style="margin:0 auto;">真實的同仁心聲，沒有包裝過。</p>
+      </div>
+      <div class="voices-grid fade-up">
+
+        <div class="voice-card v1">
+          <div class="voice-stars">★★★★★</div>
+          <p class="voice-text">「翻譯工具真的很讚，以前要等組長來翻譯，現在我自己就能跟泰籍師傅說清楚品質要求，效率差很多。」</p>
+          <div class="voice-footer">
+            <div class="v-avatar va1">👷</div>
+            <div>
+              <div class="v-name">生產部領班</div>
+              <div class="v-role">壓鑄機生產線 · 使用翻譯工具</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="voice-card v2">
+          <div class="voice-stars">★★★★★</div>
+          <p class="voice-text">「合約審查工具讓我安心很多，以前合約都是自己看、自己猜，現在至少有個 AI 先幫我把關，再讓法務確認就好。」</p>
+          <div class="voice-footer">
+            <div class="v-avatar va2">📋</div>
+            <div>
+              <div class="v-name">採購部同仁</div>
+              <div class="v-role">國防零件採購 · 使用合約審查</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="voice-card v3">
+          <div class="voice-stars">★★★★★</div>
+          <p class="voice-text">「工時系統上線之後，我每個月底統計工時從半天縮到半小時。以前那種 Excel 加 LINE 截圖的方式真的很痛苦。」</p>
+          <div class="voice-footer">
+            <div class="v-avatar va3">👔</div>
+            <div>
+              <div class="v-name">電控部主管</div>
+              <div class="v-role">部門管理 · 使用工時日報系統</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="voice-card v4">
+          <div class="voice-stars">★★★★☆</div>
+          <p class="voice-text">「文件問答庫還在測試但已經很有用了，很多老師傅的邏輯都整理進去了，新人問問題可以先查這個，再問人。」</p>
+          <div class="voice-footer">
+            <div class="v-avatar va4">🔧</div>
+            <div>
+              <div class="v-name">工程部工程師</div>
+              <div class="v-role">國防工業專案 · 使用文件問答庫</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section id="cta">
+      <div class="cta-card fade-up">
+        <span class="cta-emoji">🤝</span>
+        <h2 class="cta-title">有工作上的困擾？<br />說出來，我來想辦法</h2>
+        <p class="cta-desc">如果你遇到的問題還沒有對應的工具，或是現有工具用起來哪裡不順，都歡迎直接找我討論。</p>
+        <div class="cta-actions">
+          <a href="#tools" class="btn-primary">🔧 找現有工具</a>
+          <a href="mailto:placeholder@company.com" class="btn-secondary">📬 提需求給我</a>
+        </div>
+        <p class="cta-note">💡 目前工具均免費提供給公司同仁使用・有問題找 SimHope</p>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+      <div class="footer-inner">
+        <div class="footer-logo">🏭 SimHope AI 工具中心</div>
+        <div class="footer-links">
+          <a href="#tools">工具總覽</a>
+          <a href="#about">關於平台</a>
+          <a href="#voices">同仁回饋</a>
+          <a href="#cta">提需求</a>
+        </div>
+        <div class="footer-copy">© 2026 SimHope · 為公司同仁而建</div>
+      </div>
+    </footer>
+
+  </div><!-- /#pageContent -->
 
   <!-- Login Modal -->
   <div class="modal-overlay" id="loginModal">
@@ -2274,10 +2286,22 @@
       </div>
       <!-- TAB: HERO -->
       <div class="dtab-panel" id="dt-hero">
-        <div class="d-section">Hero 標題與說明</div>
+        <div class="d-section">Eyebrow 小標</div>
+        <div class="d-field"><label class="d-label">主標題上方小文字</label><input class="d-input" id="dh-eyebrow" type="text"
+            placeholder="🏭 專為公司同仁設計的 AI 工具中心" /></div>
+        <div class="d-section">Hero 主標題與說明</div>
         <div class="d-field"><label class="d-label">主標題</label><input class="d-input" id="dh-title" type="text" /></div>
         <div class="d-field"><label class="d-label">副標題 / 說明</label><textarea class="d-input d-input-area" id="dh-desc"
-            rows="3"></textarea></div>
+            rows="2"></textarea></div>
+        <div class="d-section">痛點 Chip 清單 <span style="font-size:.68rem;color:#9CA3AF">（主標題下方標籤）</span></div>
+        <div id="dh-chips-list" style="margin-bottom:8px"></div>
+        <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px">
+          <input class="d-input" id="dh-chip-emoji"
+            style="width:52px;font-size:1.2rem;text-align:center;padding:6px 4px" maxlength="2" placeholder="📌" />
+          <input class="d-input" id="dh-chip-text" style="flex:1" placeholder="新增痛點描述（Enter 確認）" maxlength="20" />
+          <button class="d-btn d-btn-primary d-btn-sm" onclick="addChip()">+</button>
+        </div>
+        <p style="font-size:.7rem;color:#9CA3AF;margin:0 0 10px">💡 不填 emoji 會自動依文字推薦</p>
         <div class="d-section">統計數字</div>
         <div class="d-row">
           <div class="d-field"><label class="d-label">可用工具數</label><input class="d-input" id="dh-tools" type="number"
@@ -2616,6 +2640,13 @@
       const toolCount = DB.getTools().length;
       if (heading) heading.textContent = `${toolCount} 個工具，解決 ${toolCount} 種困擾`;
 
+      // Eyebrow
+      const eyebrow = document.getElementById('heroEyebrow');
+      if (eyebrow && s.heroEyebrow) eyebrow.textContent = s.heroEyebrow;
+
+      // Pain chips
+      if (s.painChips && s.painChips.length) renderPainChips(s.painChips);
+
       // Update Hero desc count dynamically
       const heroDesc = document.querySelector('.hero-desc strong');
       if (heroDesc) heroDesc.textContent = `${s.statTools} 個工具`;
@@ -2643,11 +2674,13 @@
       const b = document.getElementById('drawerBackdrop');
       const isOpen = d.classList.toggle('open');
       b.classList.toggle('open', isOpen);
+      document.body.classList.toggle('drawer-open', isOpen);
       if (isOpen) { renderDrawerToolList(); loadDrawerHeroForm(); loadDrawerAboutForm(); }
     }
     function closeDrawer() {
       document.getElementById('adminDrawer').classList.remove('open');
       document.getElementById('drawerBackdrop').classList.remove('open');
+      document.body.classList.remove('drawer-open');
     }
 
     // ── Tab switching ──
@@ -2783,25 +2816,98 @@
     // ── Hero Form ──
     function loadDrawerHeroForm() {
       const s = DB.getSite();
+      document.getElementById('dh-eyebrow').value = s.heroEyebrow || '';
       document.getElementById('dh-title').value = s.heroTitle || '';
       document.getElementById('dh-desc').value = s.heroDesc || '';
       document.getElementById('dh-tools').value = s.statTools || 0;
       document.getElementById('dh-users').value = s.statUsers || 0;
       document.getElementById('dh-hours').value = s.statHours || 0;
       document.getElementById('dh-name').value = s.siteName || '';
+      renderChipsList(s.painChips || []);
     }
+
+    // auto-emoji by keyword
+    function autoEmoji(text) {
+      const map = [
+        [/文件|合約|說明書|報告|表單/, '📄'],
+        [/語言|翻譯|溝通|溝通/, '🌏'],
+        [/報表|國際化|備忘錄|表格/, '📊'],
+        [/SOP|搜尋|查找|查閱|知識/, '🔍'],
+        [/工時|時間|效率|進度/, '⏰'],
+        [/機器|機台|設備|生產/, '⚙️'],
+        [/員工|人員|管理|人力/, '👥'],
+        [/信箱|郵件|通知|訊息/, '📧'],
+        [/會議|德己花貳|活動|行程/, '📅'],
+        [/錢|費用|預算|成本/, '💰'],
+        [/安全|風險|异常|錯誤/, '⚠️'],
+        [/流程|作業|輸送|達成/, '🔄'],
+      ];
+      for (const [re, emoji] of map) if (re.test(text)) return emoji;
+      return '📌';
+    }
+
+    // render chips list inside drawer Hero tab
+    let drawerChips = [];
+    function renderChipsList(chips) {
+      drawerChips = [...chips];
+      const list = document.getElementById('dh-chips-list');
+      if (!list) return;
+      list.innerHTML = drawerChips.map((c, i) => `
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;background:#F3F4F6;border-radius:10px;padding:6px 10px">
+          <input class="d-input" value="${c.emoji}" maxlength="2" style="width:40px;font-size:1.1rem;text-align:center;padding:4px 2px;flex-shrink:0"
+            onchange="drawerChips[${i}].emoji=this.value" />
+          <input class="d-input" value="${c.text}" maxlength="20" style="flex:1;padding:4px 8px"
+            onchange="drawerChips[${i}].text=this.value" />
+          <button class="d-btn d-btn-danger d-btn-sm" onclick="removeChip(${i})"
+            style="padding:4px 8px">🗑️</button>
+        </div>`).join('');
+    }
+    function removeChip(i) { drawerChips.splice(i, 1); renderChipsList(drawerChips); }
+    function addChip() {
+      const textEl = document.getElementById('dh-chip-text');
+      const emojiEl = document.getElementById('dh-chip-emoji');
+      const text = textEl.value.trim();
+      if (!text) return;
+      const emoji = emojiEl.value.trim() || autoEmoji(text);
+      drawerChips.push({ emoji, text });
+      renderChipsList(drawerChips);
+      textEl.value = '';
+      emojiEl.value = '';
+    }
+    document.getElementById('dh-chip-text').addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); addChip(); }
+    });
+
+    // render pain chips on the Hero section
+    function renderPainChips(chips) {
+      const el = document.getElementById('heroPainChips');
+      if (!el) return;
+      el.innerHTML = chips.map(c => `<span class="pain-chip"><span>${c.emoji}</span>${c.text}</span>`).join('');
+    }
+
     function saveHeroDrawer() {
       const s = DB.getSite();
+      s.heroEyebrow = document.getElementById('dh-eyebrow').value.trim();
       s.heroTitle = document.getElementById('dh-title').value.trim();
       s.heroDesc = document.getElementById('dh-desc').value.trim();
       s.statTools = +document.getElementById('dh-tools').value;
       s.statUsers = +document.getElementById('dh-users').value;
       s.statHours = +document.getElementById('dh-hours').value;
       s.siteName = document.getElementById('dh-name').value.trim();
+      // collect chip edits from DOM inputs before saving
+      const items = document.querySelectorAll('#dh-chips-list > div');
+      drawerChips = [...items].map((row, i) => ({
+        emoji: row.querySelectorAll('input')[0].value.trim() || autoEmoji(row.querySelectorAll('input')[1].value),
+        text: row.querySelectorAll('input')[1].value.trim(),
+      })).filter(c => c.text);
+      s.painChips = drawerChips;
       DB.saveSite(s);
-      // Live update
-      const heroTitle = document.querySelector('.hero-title');
-      if (heroTitle && s.heroTitle) heroTitle.childNodes[0].textContent = s.heroTitle.split('？')[0] + '？';
+      // Live update eyebrow
+      const eyebrow = document.getElementById('heroEyebrow');
+      if (eyebrow) eyebrow.textContent = s.heroEyebrow;
+      // Live update chips
+      renderPainChips(s.painChips);
+      // Live update other hero elements
       const heroDesc = document.querySelector('.hero-desc');
       if (heroDesc && s.heroDesc) heroDesc.innerHTML = s.heroDesc + '<br />目前收錄 <strong>' + s.statTools + ' 個工具</strong>，持續新增中。';
       document.getElementById('cnt-tools').textContent = s.statTools;
