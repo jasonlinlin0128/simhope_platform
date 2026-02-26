@@ -3040,16 +3040,9 @@
         const cardClass = `tool-card ${t.color || 'c1'}${terminated ? ' is-terminated' : ''}`;
         let clickAttr = '';
         if (!terminated) {
-          const type = t.type || 'webapp';
-          if (type === 'webapp' && t.url && t.url !== '#') {
-            clickAttr = `onclick="window.open('${t.url}','_blank')"`;
-          } else if (type === 'download') {
-            clickAttr = `onclick="openDownloadModal('${t.id}')"`;
-          } else if (type === 'showcase') {
-            clickAttr = `onclick="location.href='tool-detail.html?id=${t.id}'"`;
-          }
+          clickAttr = `onclick="location.href='tool-detail.html?id=${t.id}'"`;
         }
-        const arrowIcon = terminated ? '♲' : (t.type === 'download' ? '↓' : t.type === 'showcase' ? '▶' : '↗');
+        const arrowIcon = terminated ? '♲' : '▶';
         return `
           <div class="${cardClass}" ${clickAttr}>
             <div class="tool-icon">${t.icon || '🛠️'}</div>
@@ -3157,7 +3150,7 @@
       grid.innerHTML = cards.map(c => {
         const dept = DB.DEPTS[c.dept] || DB.DEPTS.other;
         return `
-          <div class="ps-card">
+          <div class="ps-card" style="cursor:pointer" onclick="document.getElementById('tools').scrollIntoView({behavior:'smooth'})">
             <span class="ps-dept ${dept.cls}">${dept.label}</span>
             <div class="ps-before"><span class="ps-x">😓</span>
               <div class="ps-before-text">${c.before}</div>
