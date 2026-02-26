@@ -2676,8 +2676,27 @@
       </div>
       <!-- TAB: PAINS -->
       <div class="dtab-panel" id="dt-pains">
-        <button class="d-btn d-btn-primary d-btn-full" onclick="openPainModal(-1)" style="margin-bottom:12px">+
-          新增痛點卡片</button>
+        <div style="display:flex;gap:8px;margin-bottom:12px">
+          <button class="d-btn d-btn-primary" style="flex:1" onclick="openPainModal(-1)">+ 新增痛點卡片</button>
+          <button class="d-btn" id="aiGenBtn" style="flex:1;background:#6366F1;color:white"
+            onclick="aiGeneratePainCards()">
+            🤖 AI 自動產生
+          </button>
+        </div>
+        <div style="margin-bottom:12px">
+          <div style="display:flex;gap:6px;align-items:center">
+            <input class="d-input" id="geminiApiKey" type="password" placeholder="Gemini API Key（留空也可手動新增）"
+              style="flex:1;font-size:.78rem" />
+            <button class="d-btn d-btn-ghost d-btn-sm" onclick="toggleKeyVisibility()" title="顯示/隱藏"
+              style="font-size:.9rem">👁️</button>
+          </div>
+          <p style="font-size:.68rem;color:#9CA3AF;margin-top:4px">
+            💡 AI 會根據已上傳的工具資訊，自動推敲每個工具要解決的痛點
+          </p>
+        </div>
+        <div id="aiGenStatus"
+          style="display:none;padding:12px;background:#EEF2FF;border-radius:12px;margin-bottom:12px;font-size:.82rem;color:#4338CA">
+        </div>
         <div id="drawerPainList"></div>
       </div>
     </div>
@@ -3211,6 +3230,116 @@
       savePainCards(cards);
       closePainModal(); renderDrawerPainList(); renderPainCards();
       showToast(idx >= 0 ? '✅ 痛點卡片已更新' : '✅ 痛點卡片已新增');
+    }
+
+    // ══════════════════════════════════════════
+    // AI AUTO-GENERATE PAIN CARDS (Gemini API)
+    // ══════════════════════════════════════════
+    const GEMINI_KEY_LS = 'simhope_gemini_key';
+
+    // Restore saved key on load
+    (function () {
+      const saved = localStorage.getItem(GEMINI_KEY_LS);
+      const el = document.getElementById('geminiApiKey');
+      if (saved && el) el.value = saved;
+    })();
+
+    function toggleKeyVisibility() {
+      const el = document.getElementById('geminiApiKey');
+      el.type = el.type === 'password' ? 'text' : 'password';
+    }
+
+    async function aiGeneratePainCards() {
+      const apiKey = document.getElementById('geminiApiKey').value.trim();
+      if (!apiKey) { showToast('⚠️ 請先輸入 Gemini API Key'); return; }
+
+      // Save key for next time
+      localStorage.setItem(GEMINI_KEY_LS, apiKey);
+
+      const tools = DB.getTools().filter(t => t.status !== 'terminated');
+      if (!tools.length) { showToast('⚠️ 沒有可用的工具'); return; }
+
+      const btn = document.getElementById('aiGenBtn');
+      const statusEl = document.getElementById('aiGenStatus');
+      btn.disabled = true;
+      btn.textContent = '⏳ AI 產生中…';
+      statusEl.style.display = 'block';
+      statusEl.innerHTML = '🤖 正在分析 ' + tools.length + ' 個工具，推敲痛點中…';
+
+      // Build prompt
+      const toolsSummary = tools.map((t, i) => {
+        const dept = DB.DEPTS[t.dept]?.label || '其他';
+        return `${i + 1}. [${dept}] ${t.title} — ${t.tagline}\n   說明: ${t.desc}`;
+      }).join('\n');
+
+      const prompt = `你是一位熟悉台灣傳統製造業與工廠流程的 AI 顧問。
+
+以下是公司內部目前上架的 AI 工具清單：
+
+${toolsSummary}
+
+請根據每個工具的名稱、標語和說明，推敲這個工具是為了解決什麼「工作痛點」。
+
+為每個工具各產生一組：
+- before: 同仁原本遇到的痛點描述（口語化、具體、30-50字，用「…」結尾感覺很無奈）
+- after: 用了 AI 工具後的改善描述（正面、具體、30-50字）
+- dept: 最適用的部門代碼（只能是 factory / admin / mgmt / quality / defense 之一）
+
+回覆嚴格使用 JSON 陣列格式，不要 markdown，不要解釋：
+[{"dept":"factory","before":"...","after":"..."},...]`;
+
+      try {
+        const resp = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: { temperature: 0.7, maxOutputTokens: 4096 }
+            })
+          }
+        );
+
+        if (!resp.ok) {
+          const errData = await resp.json().catch(() => ({}));
+          throw new Error(errData.error?.message || `HTTP ${resp.status}`);
+        }
+
+        const data = await resp.json();
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+        // Parse JSON from response (strip markdown fences if any)
+        const jsonStr = text.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+        const generated = JSON.parse(jsonStr);
+
+        if (!Array.isArray(generated) || !generated.length) throw new Error('AI 回覆格式不正確');
+
+        // Add to pain cards
+        const existing = getPainCards();
+        const newCards = generated.map((g, i) => ({
+          id: 'pc_ai_' + Date.now() + '_' + i,
+          dept: ['factory', 'admin', 'mgmt', 'quality', 'defense'].includes(g.dept) ? g.dept : 'other',
+          before: g.before || '',
+          after: g.after || '',
+        })).filter(c => c.before && c.after);
+
+        // Replace all cards with AI-generated ones
+        savePainCards(newCards);
+
+        statusEl.innerHTML = `✅ 成功產生 ${newCards.length} 張痛點卡片！`;
+        renderDrawerPainList();
+        renderPainCards();
+        showToast(`🤖 AI 已產生 ${newCards.length} 張痛點卡片`);
+      } catch (err) {
+        console.error('AI generate error:', err);
+        statusEl.innerHTML = `❌ 產生失敗：${err.message}`;
+        showToast('❌ AI 產生失敗，請檢查 API Key 或重試');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🤖 AI 自動產生';
+        setTimeout(() => { statusEl.style.display = 'none'; }, 8000);
+      }
     }
 
     // Run on load
