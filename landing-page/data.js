@@ -5,7 +5,7 @@
 
 const DB = {
     KEYS: {
-        TOOLS: 'simhope_tools_v2',
+        TOOLS: 'simhope_tools_v3',
         SITE: 'simhope_site_v2',
         PAIN: 'simhope_pain_v2',
     },
