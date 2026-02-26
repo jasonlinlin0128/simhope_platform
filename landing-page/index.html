@@ -2368,75 +2368,7 @@
         <h2 class="section-title">這些問題，<br />你每週遇到幾次？</h2>
         <p class="section-desc">每個工具的出發點都是一個真實的工作痛點，不是為了用 AI 而用 AI。</p>
       </div>
-      <div class="ps-grid fade-up">
-
-        <div class="ps-card">
-          <span class="ps-dept dept-factory">🏭 生產現場</span>
-          <div class="ps-before"><span class="ps-x">😓</span>
-            <div class="ps-before-text">泰籍員工溝通靠比手畫腳，品質問題說不清楚，主管也搞不定</div>
-          </div>
-          <div class="ps-arrow">↓</div>
-          <div class="ps-after"><span class="ps-check">✅</span>
-            <div class="ps-after-text">即時雙語翻譯，泰文中文一鍵切換，現場手機直接用</div>
-          </div>
-        </div>
-
-        <div class="ps-card">
-          <span class="ps-dept dept-admin">📋 行政/文書</span>
-          <div class="ps-before"><span class="ps-x">😓</span>
-            <div class="ps-before-text">合約文件幾十頁，看完要好幾小時，還不確定有沒有問題條款</div>
-          </div>
-          <div class="ps-arrow">↓</div>
-          <div class="ps-after"><span class="ps-check">✅</span>
-            <div class="ps-after-text">上傳合約，5 分鐘內 AI 標出所有異常條款與風險點</div>
-          </div>
-        </div>
-
-        <div class="ps-card">
-          <span class="ps-dept dept-mgmt">👔 主管/管理</span>
-          <div class="ps-before"><span class="ps-x">😓</span>
-            <div class="ps-before-text">工時用 LINE 回報，每次月底統計都要重新整理，錯誤一堆</div>
-          </div>
-          <div class="ps-arrow">↓</div>
-          <div class="ps-after"><span class="ps-check">✅</span>
-            <div class="ps-after-text">每人直接線上填，主管即時查看進度，月報一鍵匯出</div>
-          </div>
-        </div>
-
-        <div class="ps-card">
-          <span class="ps-dept dept-quality">🔧 品管/工程</span>
-          <div class="ps-before"><span class="ps-x">😓</span>
-            <div class="ps-before-text">外觀檢查靠人工目視，人一累就容易漏判，客訴不斷</div>
-          </div>
-          <div class="ps-arrow">↓</div>
-          <div class="ps-after"><span class="ps-check">✅</span>
-            <div class="ps-after-text">拍照上傳，AI 自動比對標準圖樣，標出瑕疵位置與類型</div>
-          </div>
-        </div>
-
-        <div class="ps-card">
-          <span class="ps-dept dept-admin">📋 行政/文書</span>
-          <div class="ps-before"><span class="ps-x">😓</span>
-            <div class="ps-before-text">產品說明書每次改規格就要重寫，翻譯成英文又要外包，費時費錢</div>
-          </div>
-          <div class="ps-arrow">↓</div>
-          <div class="ps-after"><span class="ps-check">✅</span>
-            <div class="ps-after-text">輸入規格，自動生成中英日三語說明書草稿，自己修改即可</div>
-          </div>
-        </div>
-
-        <div class="ps-card">
-          <span class="ps-dept dept-defense">🛡️ 國防/專案</span>
-          <div class="ps-before"><span class="ps-x">😓</span>
-            <div class="ps-before-text">內部 SOP、技術文件散落各處，問老師傅不一定問得到</div>
-          </div>
-          <div class="ps-arrow">↓</div>
-          <div class="ps-after"><span class="ps-check">✅</span>
-            <div class="ps-after-text">把文件全部上傳，建立私有知識庫，直接用中文問問題</div>
-          </div>
-        </div>
-
-      </div>
+      <div class="ps-grid fade-up" id="psGrid"></div>
     </section>
 
     <!-- TOOL CARDS -->
@@ -2683,6 +2615,7 @@
     <div class="drawer-tabs">
       <button class="dtab active" id="dtab-tools" onclick="showDrawerTab('tools',this)">🧰 工具</button>
       <button class="dtab" id="dtab-hero" onclick="showDrawerTab('hero',this)">🏠 首頁</button>
+      <button class="dtab" id="dtab-pains" onclick="showDrawerTab('pains',this)">😤 痛點卡片</button>
       <button class="dtab" id="dtab-about" onclick="showDrawerTab('about',this)">👤 關於</button>
     </div>
     <div class="drawer-body">
@@ -2740,6 +2673,46 @@
         </div>
         <button class="d-btn d-btn-success d-btn-full" onclick="saveAboutDrawer()" style="margin-top:8px">💾
           儲存關於設定</button>
+      </div>
+      <!-- TAB: PAINS -->
+      <div class="dtab-panel" id="dt-pains">
+        <button class="d-btn d-btn-primary d-btn-full" onclick="openPainModal(-1)" style="margin-bottom:12px">+
+          新增痛點卡片</button>
+        <div id="drawerPainList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAIN CARD MODAL -->
+  <div class="d-modal-overlay" id="painModal">
+    <div class="d-modal">
+      <div class="d-modal-header">
+        <strong id="pm-title">新增痛點卡片</strong>
+        <button class="drawer-close" onclick="closePainModal()">✕</button>
+      </div>
+      <div class="d-modal-body">
+        <input type="hidden" id="pm-idx" />
+        <div class="d-field"><label class="d-label">適用部門</label>
+          <select class="d-input d-select" id="pm-dept">
+            <option value="factory">🏭 生產現場</option>
+            <option value="admin">📋 行政/文書</option>
+            <option value="mgmt">👔 主管/管理</option>
+            <option value="quality">🔧 品管/工程</option>
+            <option value="defense">🛡️ 國防/專案</option>
+          </select>
+        </div>
+        <div class="d-field"><label class="d-label">😣 痛點（Before）*</label>
+          <textarea class="d-input d-input-area" id="pm-before" rows="3" maxlength="100"
+            placeholder="描述同仁遇到的問題情境"></textarea>
+        </div>
+        <div class="d-field"><label class="d-label">✅ 解法（After）*</label>
+          <textarea class="d-input d-input-area" id="pm-after" rows="3" maxlength="100"
+            placeholder="AI 工具帶來的改變"></textarea>
+        </div>
+      </div>
+      <div class="d-modal-footer">
+        <button class="d-btn d-btn-ghost" onclick="closePainModal()">取消</button>
+        <button class="d-btn d-btn-primary" onclick="savePainModal()">💾 儲存</button>
       </div>
     </div>
   </div>
@@ -3123,6 +3096,7 @@
 
       // Pain chips
       if (s.painChips && s.painChips.length) renderPainChips(s.painChips);
+      renderPainCards();
 
       // Update Hero desc count dynamically
       const heroDesc = document.querySelector('.hero-desc strong');
@@ -3135,6 +3109,108 @@
       if (cntTools) cntTools._target = s.statTools || 6;
       if (cntUsers) cntUsers._target = s.statUsers || 12;
       if (cntHrs) cntHrs._target = s.statHours || 8;
+    }
+
+    // ══════════════════════════════════════════
+    // PAIN CARDS (dynamic)
+    // ══════════════════════════════════════════
+    function getPainCards() {
+      const s = DB.getSite();
+      return s.painCards || DB.DEFAULT_SITE.painCards || [];
+    }
+    function savePainCards(cards) {
+      const s = DB.getSite();
+      s.painCards = cards;
+      DB.saveSite(s);
+    }
+    function renderPainCards() {
+      const grid = document.getElementById('psGrid');
+      if (!grid) return;
+      const cards = getPainCards();
+      if (!cards.length) { grid.innerHTML = '<p style="color:var(--text-mid);padding:40px;text-align:center">尚無痛點卡片</p>'; return; }
+      grid.innerHTML = cards.map(c => {
+        const dept = DB.DEPTS[c.dept] || DB.DEPTS.other;
+        return `
+          <div class="ps-card">
+            <span class="ps-dept ${dept.cls}">${dept.label}</span>
+            <div class="ps-before"><span class="ps-x">😓</span>
+              <div class="ps-before-text">${c.before}</div>
+            </div>
+            <div class="ps-arrow">↓</div>
+            <div class="ps-after"><span class="ps-check">✅</span>
+              <div class="ps-after-text">${c.after}</div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    // ── Drawer Pain List ──
+    function renderDrawerPainList() {
+      const cards = getPainCards();
+      const list = document.getElementById('drawerPainList');
+      if (!list) return;
+      if (!cards.length) { list.innerHTML = '<p style="text-align:center;color:#9CA3AF;padding:20px 0;font-size:.85rem">尚無痛點卡片</p>'; return; }
+      list.innerHTML = cards.map((c, i) => {
+        const dept = DB.DEPTS[c.dept] || DB.DEPTS.other;
+        return `
+          <div class="d-tool-item">
+            <div class="d-tool-icon">😤</div>
+            <div class="d-tool-info">
+              <div class="d-tool-name" style="font-size:.8rem">${c.before.slice(0, 25)}…</div>
+              <div class="d-tool-sub">${dept.label}</div>
+            </div>
+            <div class="d-tool-actions">
+              <button class="d-btn d-btn-ghost d-btn-sm" onclick="movePainCard(${i},-1)" title="上移">↑</button>
+              <button class="d-btn d-btn-ghost d-btn-sm" onclick="movePainCard(${i},1)" title="下移">↓</button>
+              <button class="d-btn d-btn-ghost d-btn-sm" onclick="openPainModal(${i})">✏️</button>
+              <button class="d-btn d-btn-danger d-btn-sm" onclick="deletePainCard(${i})">🗑️</button>
+            </div>
+          </div>`;
+      }).join('');
+    }
+    function movePainCard(i, dir) {
+      const cards = getPainCards(); const j = i + dir;
+      if (j < 0 || j >= cards.length) return;
+      [cards[i], cards[j]] = [cards[j], cards[i]];
+      savePainCards(cards); renderDrawerPainList(); renderPainCards();
+    }
+    function deletePainCard(i) {
+      if (!confirm('刪除此痛點卡片？')) return;
+      const cards = getPainCards(); cards.splice(i, 1);
+      savePainCards(cards); renderDrawerPainList(); renderPainCards();
+      showToast('🗑️ 已刪除');
+    }
+
+    // ── Pain Modal ──
+    function openPainModal(idx) {
+      const cards = getPainCards();
+      const card = idx >= 0 ? cards[idx] : null;
+      document.getElementById('pm-title').textContent = card ? '編輯痛點卡片' : '新增痛點卡片';
+      document.getElementById('pm-idx').value = idx;
+      document.getElementById('pm-dept').value = card?.dept || 'factory';
+      document.getElementById('pm-before').value = card?.before || '';
+      document.getElementById('pm-after').value = card?.after || '';
+      document.getElementById('painModal').classList.add('open');
+    }
+    function closePainModal() { document.getElementById('painModal').classList.remove('open'); }
+    document.getElementById('painModal').addEventListener('click', e => { if (e.target === e.currentTarget) closePainModal(); });
+
+    function savePainModal() {
+      const idx = parseInt(document.getElementById('pm-idx').value);
+      const before = document.getElementById('pm-before').value.trim();
+      const after = document.getElementById('pm-after').value.trim();
+      if (!before || !after) { showToast('⚠️ 請填寫痛點與解法'); return; }
+      const entry = {
+        id: 'pc_' + Date.now(),
+        dept: document.getElementById('pm-dept').value,
+        before, after,
+      };
+      const cards = getPainCards();
+      if (idx >= 0 && idx < cards.length) { entry.id = cards[idx].id || entry.id; cards[idx] = entry; }
+      else { cards.push(entry); }
+      savePainCards(cards);
+      closePainModal(); renderDrawerPainList(); renderPainCards();
+      showToast(idx >= 0 ? '✅ 痛點卡片已更新' : '✅ 痛點卡片已新增');
     }
 
     // Run on load
@@ -3152,7 +3228,7 @@
       const isOpen = d.classList.toggle('open');
       b.classList.toggle('open', isOpen);
       document.body.classList.toggle('drawer-open', isOpen);
-      if (isOpen) { renderDrawerToolList(); loadDrawerHeroForm(); loadDrawerAboutForm(); }
+      if (isOpen) { renderDrawerToolList(); loadDrawerHeroForm(); loadDrawerAboutForm(); renderDrawerPainList(); }
     }
     function closeDrawer() {
       document.getElementById('adminDrawer').classList.remove('open');
@@ -3167,6 +3243,7 @@
       document.getElementById('dt-' + id).classList.add('active');
       btn.classList.add('active');
       if (id === 'hero') loadDrawerHeroForm();
+      if (id === 'pains') renderDrawerPainList();
       if (id === 'about') loadDrawerAboutForm();
     }
 
