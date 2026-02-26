@@ -2685,13 +2685,18 @@
         </div>
         <div style="margin-bottom:12px">
           <div style="display:flex;gap:6px;align-items:center">
-            <input class="d-input" id="geminiApiKey" type="password" placeholder="Gemini API Key（留空也可手動新增）"
+            <input class="d-input" id="geminiApiKey" type="password" placeholder="Gemini API Key"
               style="flex:1;font-size:.78rem" />
+            <select class="d-input d-select" id="geminiModel" style="width:auto;font-size:.72rem;padding:6px 8px">
+              <option value="gemini-2.0-flash-lite">2.0 Flash Lite</option>
+              <option value="gemini-2.0-flash">2.0 Flash</option>
+              <option value="gemini-1.5-flash">1.5 Flash</option>
+            </select>
             <button class="d-btn d-btn-ghost d-btn-sm" onclick="toggleKeyVisibility()" title="顯示/隱藏"
               style="font-size:.9rem">👁️</button>
           </div>
           <p style="font-size:.68rem;color:#9CA3AF;margin-top:4px">
-            💡 AI 會根據已上傳的工具資訊，自動推敲每個工具要解決的痛點
+            💡 AI 會根據工具資訊推敲痛點。若 Quota 超限，切換模型或等 60 秒
           </p>
         </div>
         <div id="aiGenStatus"
@@ -3290,7 +3295,7 @@ ${toolsSummary}
 
       try {
         const resp = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/${document.getElementById('geminiModel').value}:generateContent?key=${apiKey}`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
