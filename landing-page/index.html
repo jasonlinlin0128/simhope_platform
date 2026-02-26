@@ -740,6 +740,45 @@
       background: var(--clay-blue);
     }
 
+    .status-dev {
+      background: rgba(139, 92, 246, 0.15);
+      color: #5B21B6;
+    }
+
+    .status-dev .status-dot {
+      background: #8B5CF6;
+    }
+
+    .status-pending {
+      background: rgba(249, 115, 22, 0.12);
+      color: #9A3412;
+    }
+
+    .status-pending .status-dot {
+      background: #F97316;
+    }
+
+    .status-terminated {
+      background: rgba(156, 163, 175, 0.15);
+      color: #4B5563;
+    }
+
+    .status-terminated .status-dot {
+      background: #9CA3AF;
+    }
+
+    /* Terminated 卡片灰階化 */
+    .tool-card.is-terminated {
+      opacity: 0.6;
+      filter: grayscale(0.4);
+    }
+
+    .tool-card.is-terminated:hover {
+      transform: none;
+      box-shadow: var(--shadow-clay);
+      cursor: default;
+    }
+
     .tool-arrow {
       width: 36px;
       height: 36px;
@@ -2618,6 +2657,20 @@
     </div>
   </div>
 
+  <!-- Download Modal -->
+  <div class="modal-overlay" id="downloadModal">
+    <div class="modal-box" style="max-width:460px">
+      <button class="modal-close" onclick="closeDownloadModal()">✕</button>
+      <div class="modal-icon" id="dlModalIcon">⬇️</div>
+      <h2 class="modal-title" id="dlModalTitle">下載工具</h2>
+      <p class="modal-sub" id="dlModalSub">請選擇要下載的檔案</p>
+      <div id="dlFileList" style="display:flex;flex-direction:column;gap:10px;margin-top:20px"></div>
+      <p id="dlEmpty" style="display:none;text-align:center;color:#9CA3AF;padding:24px 0;font-size:.88rem">
+        📦 尚無放出的下載檔案，請洽詢 Jason
+      </p>
+    </div>
+  </div>
+
   <!-- ADMIN DRAWER BACKDROP -->
   <div class="drawer-backdrop" id="drawerBackdrop" onclick="closeDrawer()"></div>
 
@@ -2726,8 +2779,18 @@
               <option value="live">✅ 使用中</option>
               <option value="beta">🔶 測試中</option>
               <option value="new">🔵 新上線</option>
+              <option value="dev">🟣 開發中</option>
+              <option value="pending">🟠 待驗收</option>
+              <option value="terminated">⚫ 已終止</option>
             </select>
           </div>
+        </div>
+        <div class="d-field"><label class="d-label">工具類型</label>
+          <select class="d-input d-select" id="tdm-type">
+            <option value="webapp">🌐 網頁應用</option>
+            <option value="download">⬇️ 下載執行檔</option>
+            <option value="showcase">📖 Blog 展示頁</option>
+          </select>
         </div>
         <div class="d-field"><label class="d-label">工具連結 *</label><input class="d-input" id="tdm-url" type="url"
             placeholder="https://" /></div>
@@ -2974,8 +3037,22 @@
         const stepsHtml = steps.map((s, i) =>
           `<span class="tool-step">${s}</span>${i < steps.length - 1 ? '<span class="tool-step-sep">→</span>' : ''}`
         ).join('');
+        const terminated = t.status === 'terminated';
+        const cardClass = `tool-card ${t.color || 'c1'}${terminated ? ' is-terminated' : ''}`;
+        let clickAttr = '';
+        if (!terminated) {
+          const type = t.type || 'webapp';
+          if (type === 'webapp' && t.url && t.url !== '#') {
+            clickAttr = `onclick="window.open('${t.url}','_blank')"`;
+          } else if (type === 'download') {
+            clickAttr = `onclick="openDownloadModal('${t.id}')"`;
+          } else if (type === 'showcase') {
+            clickAttr = `onclick="location.href='tool-detail.html?id=${t.id}'"`;
+          }
+        }
+        const arrowIcon = terminated ? '♲' : (t.type === 'download' ? '↓' : t.type === 'showcase' ? '▶' : '↗');
         return `
-          <div class="tool-card ${t.color || 'c1'}" onclick="${t.url && t.url !== '#' ? `window.open('${t.url}','_blank')` : ''}">
+          <div class="${cardClass}" ${clickAttr}>
             <div class="tool-icon">${t.icon || '🛠️'}</div>
             <div class="tool-dept-row">
               <span class="ps-dept ${dept.cls}">${dept.label}</span>
@@ -2989,11 +3066,49 @@
               <div style="display:flex;gap:6px;flex-wrap:wrap">
                 ${(t.tags || []).map(tag => `<span style="font-size:.7rem;background:rgba(0,0,0,0.06);border-radius:999px;padding:2px 8px">${tag}</span>`).join('')}
               </div>
-              <div class="tool-arrow">↗</div>
+              <div class="tool-arrow">${arrowIcon}</div>
             </div>
           </div>`;
       }).join('');
     }
+
+    // ── Download Modal ──
+    function openDownloadModal(id) {
+      const tool = DB.getTools().find(t => t.id === id);
+      if (!tool) return;
+      document.getElementById('dlModalIcon').textContent = tool.icon || '⬇️';
+      document.getElementById('dlModalTitle').textContent = tool.title;
+      document.getElementById('dlModalSub').textContent = '請選擇要下載的檔案';
+      const files = tool.files || [];
+      const fileList = document.getElementById('dlFileList');
+      const empty = document.getElementById('dlEmpty');
+      if (!files.length) {
+        fileList.innerHTML = '';
+        empty.style.display = 'block';
+      } else {
+        empty.style.display = 'none';
+        fileList.innerHTML = files.map(f => `
+          <a href="${f.url}" download style="
+            display:flex;align-items:center;gap:12px;padding:14px 16px;
+            background:#F9FAFB;border:1.5px solid rgba(30,27,75,0.08);border-radius:14px;
+            text-decoration:none;color:var(--text-dark);transition:background 0.15s;
+          " onmouseover="this.style.background='#EEF2FF'" onmouseout="this.style.background='#F9FAFB'">
+            <span style="font-size:1.4rem">📦</span>
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:800;font-size:.9rem">${f.name}</div>
+              ${f.size ? `<div style="font-size:.75rem;color:#9CA3AF">${f.size}</div>` : ''}
+            </div>
+            <span style="font-size:1.2rem">⬇️</span>
+          </a>`).join('');
+      }
+      document.getElementById('downloadModal').classList.add('open');
+    }
+    function closeDownloadModal() {
+      document.getElementById('downloadModal').classList.remove('open');
+    }
+    document.getElementById('downloadModal').addEventListener('click', e => {
+      if (e.target === e.currentTarget) closeDownloadModal();
+    });
 
     // Load site settings into Hero
     function loadSiteSettings() {
@@ -3127,6 +3242,7 @@
       document.getElementById('tdm-desc').value = tool?.desc || '';
       document.getElementById('tdm-dept').value = tool?.dept || 'factory';
       document.getElementById('tdm-status').value = tool?.status || 'live';
+      document.getElementById('tdm-type').value = tool?.type || 'webapp';
       document.getElementById('tdm-url').value = tool?.url || '';
       document.getElementById('tdm-s1').value = tool?.steps?.[0] || '';
       document.getElementById('tdm-s2').value = tool?.steps?.[1] || '';
@@ -3163,7 +3279,8 @@
         title, tagline, desc,
         dept: document.getElementById('tdm-dept').value,
         status: document.getElementById('tdm-status').value,
-        url: url || '#', color: dColor,
+        type: document.getElementById('tdm-type').value || 'webapp',
+        url: url || '', color: dColor,
         steps: [s1, s2, s3], tags: [...dTags], order: 0,
       };
       const tools = DB.getTools();
