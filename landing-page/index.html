@@ -2686,14 +2686,12 @@
         <div style="margin-bottom:12px">
           <div style="display:flex;gap:6px;align-items:center">
             <input class="d-input" id="geminiApiKey" type="password" placeholder="Gemini API Key"
-              style="flex:1;font-size:.78rem" />
+              style="flex:1;font-size:.78rem" onblur="loadGeminiModels()" />
             <select class="d-input d-select" id="geminiModel" style="width:auto;font-size:.72rem;padding:6px 8px">
-              <option value="gemini-2.5-flash-lite-preview-06-17">2.5 Flash Lite</option>
-              <option value="gemini-2.0-flash">2.0 Flash</option>
-              <option value="gemini-2.0-flash-lite">2.0 Flash Lite</option>
-              <option value="gemini-2.5-flash">2.5 Flash</option>
-              <option value="gemini-2.5-pro">2.5 Pro</option>
+              <option value="">← 輸入 Key 後載入模型</option>
             </select>
+            <button class="d-btn d-btn-ghost d-btn-sm" onclick="loadGeminiModels()" title="載入可用模型"
+              style="font-size:.8rem">🔄</button>
             <button class="d-btn d-btn-ghost d-btn-sm" onclick="toggleKeyVisibility()" title="顯示/隱藏"
               style="font-size:.9rem">👁️</button>
           </div>
@@ -3256,9 +3254,50 @@
       el.type = el.type === 'password' ? 'text' : 'password';
     }
 
+    // ── Load available models from API ──
+    async function loadGeminiModels() {
+      const apiKey = document.getElementById('geminiApiKey').value.trim();
+      if (!apiKey) return;
+      localStorage.setItem(GEMINI_KEY_LS, apiKey);
+      const sel = document.getElementById('geminiModel');
+      sel.innerHTML = '<option value="">⬼ 載入中…</option>';
+      try {
+        const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const data = await resp.json();
+        const models = (data.models || [])
+          .filter(m => (m.supportedGenerationMethods || []).includes('generateContent'))
+          .map(m => ({ id: m.name.replace('models/', ''), name: m.displayName || m.name }))
+          .sort((a, b) => a.name.localeCompare(b.name));
+        if (!models.length) { sel.innerHTML = '<option value="">❌ 無可用模型</option>'; return; }
+        // Prefer flash models at top
+        const preferred = ['gemini-2.0-flash', 'gemini-2.0-flash-lite'];
+        models.sort((a, b) => {
+          const ai = preferred.indexOf(a.id), bi = preferred.indexOf(b.id);
+          if (ai >= 0 && bi >= 0) return ai - bi;
+          if (ai >= 0) return -1; if (bi >= 0) return 1;
+          return a.name.localeCompare(b.name);
+        });
+        sel.innerHTML = models.map(m => `<option value="${m.id}">${m.name}</option>`).join('');
+        showToast(`✅ 載入 ${models.length} 個可用模型`);
+      } catch (err) {
+        sel.innerHTML = '<option value="">❌ 載入失敗</option>';
+        showToast('❌ 無法載入模型：' + err.message);
+      }
+    }
+
+    // Auto-load models if key exists
+    (function () {
+      const saved = localStorage.getItem(GEMINI_KEY_LS);
+      const el = document.getElementById('geminiApiKey');
+      if (saved && el) { el.value = saved; setTimeout(loadGeminiModels, 500); }
+    })();
+
     async function aiGeneratePainCards() {
       const apiKey = document.getElementById('geminiApiKey').value.trim();
       if (!apiKey) { showToast('⚠️ 請先輸入 Gemini API Key'); return; }
+      const model = document.getElementById('geminiModel').value;
+      if (!model) { showToast('⚠️ 請先按 🔄 載入模型清單，再選一個模型'); return; }
 
       // Save key for next time
       localStorage.setItem(GEMINI_KEY_LS, apiKey);
