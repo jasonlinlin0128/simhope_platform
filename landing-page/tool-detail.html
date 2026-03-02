@@ -950,15 +950,12 @@
             document.title = '找不到工具 — SimHope';
             document.getElementById('mainTitle').textContent = '找不到此工具';
             document.getElementById('mainSummary').textContent = '請確認連結是否正確，或返回工具總覽。';
-        } else {
-            initPage(tool);
         }
 
-        // ── Blocks state ──
+        // ── Blocks state (MUST be before initPage) ──
         let blocks = [];
         if (tool) {
             const blog = tool.blog || {};
-            // Migrate old sections format → new blocks format
             if (blog.blocks && blog.blocks.length) {
                 blocks = blog.blocks;
             } else if (blog.sections && blog.sections.length) {
@@ -969,6 +966,7 @@
                     return { type: 'text', content: '' };
                 });
             }
+            initPage(tool);
         }
 
         function initPage(t) {
