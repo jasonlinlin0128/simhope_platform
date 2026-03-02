@@ -225,8 +225,7 @@ const FireDB = {
     // ── Migration helper ──
     async migrateDefaultData(defaultTools, defaultPainCards, adminUid) {
         const batch = db.batch();
-        const existingTools = await db.collection('tools').limit(1).get();
-        if (!existingTools.empty) return false; // already migrated
+        // 移除「如果已有資料就跳出」的檢查，允許強制覆蓋預設資料
 
         defaultTools.forEach((t, i) => {
             const ref = db.collection('tools').doc(t.id);
