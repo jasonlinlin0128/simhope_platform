@@ -3105,9 +3105,30 @@
     // Load site settings into Hero
     function loadSiteSettings() {
       const s = DB.getSite();
+      const tools = DB.getTools();
+
+      // ── 動態計算統計數字 ──
+      const activeTools = tools.filter(t => t.status !== 'terminated');
+      const liveTools = tools.filter(t => t.status === 'live' || t.status === 'beta');
+      const availableCount = activeTools.length;
+
+      // 同仁每週使用：live 工具每個約 3 人使用，beta 約 1 人
+      const weeklyUsers = tools.reduce((sum, t) => {
+        if (t.status === 'live') return sum + 3;
+        if (t.status === 'beta') return sum + 1;
+        return sum;
+      }, 0);
+
+      // 估計每週省下時數：live 工具每個省 1h，beta 省 0.5h
+      const weeklyHours = tools.reduce((sum, t) => {
+        if (t.status === 'live') return sum + 1;
+        if (t.status === 'beta') return sum + 0.5;
+        return sum;
+      }, 0);
+
+      // Tools heading
       const heading = document.getElementById('tools-heading');
-      const toolCount = DB.getTools().length;
-      if (heading) heading.textContent = `${toolCount} 個工具，解決 ${toolCount} 種困擾`;
+      if (heading) heading.textContent = `${availableCount} 個工具，解決 ${availableCount} 種困擾`;
 
       // Eyebrow
       const eyebrow = document.getElementById('heroEyebrow');
@@ -3119,15 +3140,15 @@
 
       // Update Hero desc count dynamically
       const heroDesc = document.querySelector('.hero-desc strong');
-      if (heroDesc) heroDesc.textContent = `${s.statTools} 個工具`;
+      if (heroDesc) heroDesc.textContent = `${availableCount} 個工具`;
 
-      // Update stat targets
+      // Update stat numbers directly
       const cntTools = document.getElementById('cnt-tools');
       const cntUsers = document.getElementById('cnt-users');
       const cntHrs = document.getElementById('cnt-hrs');
-      if (cntTools) cntTools._target = s.statTools || 6;
-      if (cntUsers) cntUsers._target = s.statUsers || 12;
-      if (cntHrs) cntHrs._target = s.statHours || 8;
+      if (cntTools) { cntTools.textContent = availableCount; cntTools._target = availableCount; }
+      if (cntUsers) { cntUsers.textContent = weeklyUsers + '+'; cntUsers._target = weeklyUsers; }
+      if (cntHrs) { cntHrs.textContent = weeklyHours + 'h'; cntHrs._target = weeklyHours; }
     }
 
     // ══════════════════════════════════════════
