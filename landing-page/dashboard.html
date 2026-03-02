@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏭</text></svg>" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard — SimHope AI 工具中心</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap"
+        rel="stylesheet" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        :root {
+            --accent: #6366F1;
+            --accent2: #8B5CF6;
+            --text-dark: #1E1B4B;
+            --text-mid: #6B7280;
+            --bg: linear-gradient(135deg, #E0E7FF 0%, #F0FDF4 40%, #FEF9C3 100%);
+            --white: #fff;
+            --radius: 16px;
+            --shadow: 0 6px 24px rgba(30, 27, 75, 0.06)
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            min-height: 100vh;
+            color: var(--text-dark)
+        }
+
+        /* Nav */
+        nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 5%;
+            background: rgba(255, 255, 255, 0.82);
+            backdrop-filter: blur(20px);
+            border-bottom: 1.5px solid rgba(30, 27, 75, 0.06);
+            position: sticky;
+            top: 0;
+            z-index: 100
+        }
+
+        .nav-logo {
+            font-weight: 900;
+            font-size: 1rem;
+            color: var(--text-dark);
+            text-decoration: none
+        }
+
+        .nav-right {
+            display: flex;
+            gap: 10px;
+            align-items: center
+        }
+
+        .nav-user {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: .82rem;
+            font-weight: 700
+        }
+
+        .nav-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .8rem;
+            font-weight: 900
+        }
+
+        .nav-btn {
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: .78rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all .15s;
+            border: none;
+            cursor: pointer;
+            font-family: inherit
+        }
+
+        .nav-btn-ghost {
+            background: none;
+            color: var(--text-mid)
+        }
+
+        .nav-btn-ghost:hover {
+            color: var(--accent)
+        }
+
+        /* Layout */
+        .dash-wrap {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 32px 5% 80px
+        }
+
+        /* Profile header */
+        .profile-header {
+            display: flex;
+            gap: 24px;
+            align-items: flex-start;
+            margin-bottom: 28px
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            font-weight: 900;
+            flex-shrink: 0
+        }
+
+        .profile-info {
+            flex: 1
+        }
+
+        .profile-name {
+            font-size: 1.5rem;
+            font-weight: 900
+        }
+
+        .profile-role-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: .7rem;
+            font-weight: 800;
+            margin-left: 8px
+        }
+
+        .role-admin {
+            background: rgba(239, 68, 68, 0.1);
+            color: #DC2626
+        }
+
+        .role-developer {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--accent)
+        }
+
+        .profile-email {
+            font-size: .82rem;
+            color: var(--text-mid);
+            margin-top: 2px
+        }
+
+        .profile-bio {
+            font-size: .85rem;
+            color: var(--text-dark);
+            margin-top: 6px
+        }
+
+        /* Stats row */
+        .stats-row {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px
+        }
+
+        .stat-box {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 16px 20px;
+            box-shadow: var(--shadow);
+            border: 1.5px solid rgba(255, 255, 255, 0.9);
+            flex: 1;
+            text-align: center
+        }
+
+        .stat-box-num {
+            font-size: 1.6rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text
+        }
+
+        .stat-box-label {
+            font-size: .72rem;
+            color: var(--text-mid);
+            font-weight: 700;
+            margin-top: 2px
+        }
+
+        /* Tabs */
+        .dash-tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid rgba(30, 27, 75, 0.06);
+            margin-bottom: 20px;
+            overflow-x: auto
+        }
+
+        .dash-tab {
+            padding: 10px 18px;
+            font-size: .82rem;
+            font-weight: 700;
+            color: var(--text-mid);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all .15s;
+            white-space: nowrap;
+            background: none;
+            border-top: none;
+            border-left: none;
+            border-right: none;
+            font-family: inherit
+        }
+
+        .dash-tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent)
+        }
+
+        .dash-tab:hover:not(.active) {
+            color: var(--text-dark)
+        }
+
+        .dash-tab .tab-count {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--accent);
+            padding: 1px 7px;
+            border-radius: 10px;
+            font-size: .68rem;
+            margin-left: 5px
+        }
+
+        .tab-count-warn {
+            background: rgba(245, 158, 11, 0.15) !important;
+            color: #D97706 !important
+        }
+
+        /* Tab content */
+        .tab-pane {
+            display: none
+        }
+
+        .tab-pane.active {
+            display: block
+        }
+
+        /* Cards list */
+        .card-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px
+        }
+
+        .item-card {
+            background: var(--white);
+            border-radius: 14px;
+            padding: 18px 20px;
+            box-shadow: var(--shadow);
+            border: 1.5px solid rgba(255, 255, 255, 0.9);
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+            transition: transform .15s
+        }
+
+        .item-card:hover {
+            transform: translateY(-2px)
+        }
+
+        .item-icon {
+            font-size: 1.6rem;
+            flex-shrink: 0;
+            width: 40px;
+            text-align: center
+        }
+
+        .item-body {
+            flex: 1;
+            min-width: 0
+        }
+
+        .item-title {
+            font-size: .92rem;
+            font-weight: 800
+        }
+
+        .item-sub {
+            font-size: .78rem;
+            color: var(--text-mid);
+            margin-top: 2px
+        }
+
+        .item-badges {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+            flex-wrap: wrap
+        }
+
+        .badge {
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: .68rem;
+            font-weight: 700
+        }
+
+        .badge-approved {
+            background: rgba(22, 163, 74, 0.1);
+            color: #16A34A
+        }
+
+        .badge-pending {
+            background: rgba(245, 158, 11, 0.1);
+            color: #D97706
+        }
+
+        .badge-rejected {
+            background: rgba(239, 68, 68, 0.1);
+            color: #DC2626
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+            align-items: center
+        }
+
+        .act-btn {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: .72rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all .15s;
+            border: 1.5px solid rgba(30, 27, 75, 0.08);
+            background: var(--white);
+            font-family: inherit
+        }
+
+        .act-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent)
+        }
+
+        .act-btn-approve {
+            border-color: #16A34A;
+            color: #16A34A
+        }
+
+        .act-btn-approve:hover {
+            background: #16A34A;
+            color: #fff
+        }
+
+        .act-btn-reject {
+            border-color: #DC2626;
+            color: #DC2626
+        }
+
+        .act-btn-reject:hover {
+            background: #DC2626;
+            color: #fff
+        }
+
+        /* Form */
+        .form-card {
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 28px;
+            box-shadow: var(--shadow);
+            border: 1.5px solid rgba(255, 255, 255, 0.9)
+        }
+
+        .form-card h3 {
+            font-size: 1.1rem;
+            font-weight: 900;
+            margin-bottom: 18px
+        }
+
+        .fg {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 14px
+        }
+
+        .fg label {
+            font-size: .72rem;
+            font-weight: 700;
+            color: var(--text-mid);
+            text-transform: uppercase;
+            letter-spacing: .4px
+        }
+
+        .fg input,
+        .fg select,
+        .fg textarea {
+            padding: 10px 14px;
+            border: 2px solid rgba(30, 27, 75, 0.1);
+            border-radius: 10px;
+            font-size: .85rem;
+            font-family: inherit;
+            outline: none;
+            transition: border .2s;
+            width: 100%
+        }
+
+        .fg input:focus,
+        .fg select:focus,
+        .fg textarea:focus {
+            border-color: var(--accent)
+        }
+
+        .fg textarea {
+            min-height: 80px;
+            resize: vertical
+        }
+
+        .fg-row {
+            display: flex;
+            gap: 12px
+        }
+
+        .fg-row .fg {
+            flex: 1
+        }
+
+        .submit-btn {
+            padding: 12px 28px;
+            border: none;
+            border-radius: 12px;
+            font-size: .9rem;
+            font-weight: 800;
+            font-family: inherit;
+            cursor: pointer;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: #fff;
+            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.25);
+            transition: all .2s
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px)
+        }
+
+        .submit-btn:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+            transform: none
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 20px;
+            color: var(--text-mid)
+        }
+
+        .empty-state-icon {
+            font-size: 2.5rem;
+            margin-bottom: 8px
+        }
+
+        .empty-state-text {
+            font-size: .9rem;
+            font-weight: 700
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--text-dark);
+            color: #fff;
+            padding: 10px 22px;
+            border-radius: 30px;
+            font-size: .85rem;
+            font-weight: 800;
+            z-index: 9999;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+            transition: opacity .4s
+        }
+
+        /* Users table (admin) */
+        .users-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 14px
+        }
+
+        .user-card {
+            background: var(--white);
+            border-radius: 14px;
+            padding: 18px;
+            box-shadow: var(--shadow);
+            border: 1.5px solid rgba(255, 255, 255, 0.9);
+            display: flex;
+            gap: 12px;
+            align-items: center
+        }
+
+        .user-card-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            flex-shrink: 0
+        }
+
+        .user-card-info {
+            flex: 1;
+            min-width: 0
+        }
+
+        .user-card-name {
+            font-weight: 800;
+            font-size: .88rem
+        }
+
+        .user-card-email {
+            font-size: .72rem;
+            color: var(--text-mid);
+            overflow: hidden;
+            text-overflow: ellipsis
+        }
+
+        .user-card-stats {
+            font-size: .68rem;
+            color: var(--text-mid);
+            margin-top: 4px
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-mid);
+            font-weight: 700
+        }
+
+        @media(max-width:600px) {
+            .profile-header {
+                flex-direction: column;
+                align-items: center;
+                text-align: center
+            }
+
+            .stats-row {
+                flex-wrap: wrap
+            }
+
+            .stat-box {
+                min-width: calc(50% - 8px)
+            }
+
+            .fg-row {
+                flex-direction: column;
+                gap: 0
+            }
+
+            .item-card {
+                flex-direction: column
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <a class="nav-logo" href="index.html">🏭 SimHope AI 工具中心</a>
+        <div class="nav-right">
+            <div class="nav-user" id="navUser"></div>
+            <a href="index.html" class="nav-btn nav-btn-ghost">← 回首頁</a>
+            <button class="nav-btn nav-btn-ghost" onclick="handleLogout()">登出</button>
+        </div>
+    </nav>
+
+    <div class="dash-wrap" id="dashWrap">
+        <div class="loading" id="loadingState">⏳ 載入中…</div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="data.js"></script>
+
+    <script>
+        let currentUser = null;
+        let currentProfile = null;
+        let myTools = [];
+        let myPainCards = [];
+        let pendingTools = [];
+        let pendingPainCards = [];
+        let allUsers = [];
+
+        async function handleLogout() {
+            await Auth.logout();
+            location.href = 'auth.html';
+        }
+
+        function showToast(msg) {
+            const t = document.createElement('div');
+            t.className = 'toast'; t.textContent = msg;
+            document.body.appendChild(t);
+            setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, 2200);
+        }
+
+        // ── Init ──
+        Auth.onAuthChange(async user => {
+            if (!user) { location.href = 'auth.html'; return; }
+            currentUser = user;
+            currentProfile = await Auth.getUserProfile(user.uid);
+            if (!currentProfile) {
+                // Profile doesn't exist yet, create it
+                await db.collection('users').doc(user.uid).set({
+                    email: user.email,
+                    displayName: user.displayName || user.email.split('@')[0],
+                    role: 'developer',
+                    avatarUrl: '',
+                    bio: '',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                currentProfile = await Auth.getUserProfile(user.uid);
+            }
+            initDashboard();
+        });
+
+        async function initDashboard() {
+            const isAdmin = currentProfile.role === 'admin';
+            const name = currentProfile.displayName || currentUser.displayName || currentUser.email;
+
+            // Nav user
+            document.getElementById('navUser').innerHTML = `
+                <div class="nav-avatar">${name.charAt(0).toUpperCase()}</div>
+                <span>${name}</span>
+            `;
+
+            // Load data
+            myTools = await FireDB.getToolsByAuthor(currentUser.uid);
+            myPainCards = await FireDB.getPainCardsByAuthor(currentUser.uid);
+            if (isAdmin) {
+                pendingTools = await FireDB.getPendingTools();
+                pendingPainCards = await FireDB.getPendingPainCards();
+                allUsers = await FireDB.getAllUsers();
+            }
+
+            renderDashboard();
+        }
+
+        function renderDashboard() {
+            const isAdmin = currentProfile.role === 'admin';
+            const name = currentProfile.displayName || currentUser.email;
+            const approvedTools = myTools.filter(t => t.approval === 'approved').length;
+            const pendingCount = myTools.filter(t => t.approval === 'pending').length;
+            const reviewCount = isAdmin ? (pendingTools.length + pendingPainCards.length) : 0;
+
+            const wrap = document.getElementById('dashWrap');
+            wrap.innerHTML = `
+                <!-- Profile Header -->
+                <div class="profile-header">
+                    <div class="profile-avatar">${name.charAt(0).toUpperCase()}</div>
+                    <div class="profile-info">
+                        <div class="profile-name">${name}
+                            <span class="profile-role-badge ${isAdmin ? 'role-admin' : 'role-developer'}">${isAdmin ? '🛡️ 管理員' : '👨‍💻 開發者'}</span>
+                        </div>
+                        <div class="profile-email">${currentProfile.email}</div>
+                        ${currentProfile.bio ? `<div class="profile-bio">${currentProfile.bio}</div>` : ''}
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="stats-row">
+                    <div class="stat-box"><div class="stat-box-num">${myTools.length}</div><div class="stat-box-label">提交工具</div></div>
+                    <div class="stat-box"><div class="stat-box-num">${approvedTools}</div><div class="stat-box-label">已上架</div></div>
+                    <div class="stat-box"><div class="stat-box-num">${pendingCount}</div><div class="stat-box-label">待審核</div></div>
+                    <div class="stat-box"><div class="stat-box-num">${myPainCards.length}</div><div class="stat-box-label">痛點卡片</div></div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="dash-tabs" id="dashTabs">
+                    <button class="dash-tab active" data-tab="my-tools">🔧 我的工具 <span class="tab-count">${myTools.length}</span></button>
+                    <button class="dash-tab" data-tab="my-pain">😤 我的痛點 <span class="tab-count">${myPainCards.length}</span></button>
+                    <button class="dash-tab" data-tab="new-tool">➕ 新增工具</button>
+                    <button class="dash-tab" data-tab="new-pain">➕ 新增痛點</button>
+                    ${isAdmin ? `<button class="dash-tab" data-tab="review">📋 審核佇列 <span class="tab-count tab-count-warn">${reviewCount}</span></button>` : ''}
+                    ${isAdmin ? `<button class="dash-tab" data-tab="all-users">👥 所有開發者 <span class="tab-count">${allUsers.length}</span></button>` : ''}
+                </div>
+
+                <!-- Tab Panes -->
+                <div class="tab-pane active" id="pane-my-tools">${renderMyTools()}</div>
+                <div class="tab-pane" id="pane-my-pain">${renderMyPainCards()}</div>
+                <div class="tab-pane" id="pane-new-tool">${renderNewToolForm()}</div>
+                <div class="tab-pane" id="pane-new-pain">${renderNewPainForm()}</div>
+                ${isAdmin ? `<div class="tab-pane" id="pane-review">${renderReviewQueue()}</div>` : ''}
+                ${isAdmin ? `<div class="tab-pane" id="pane-all-users">${renderAllUsers()}</div>` : ''}
+            `;
+
+            // Tab switching
+            wrap.querySelectorAll('.dash-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    wrap.querySelectorAll('.dash-tab').forEach(t => t.classList.remove('active'));
+                    wrap.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+                    tab.classList.add('active');
+                    document.getElementById('pane-' + tab.dataset.tab).classList.add('active');
+                });
+            });
+        }
+
+        // ── Render: My Tools ──
+        function renderMyTools() {
+            if (!myTools.length) return `<div class="empty-state"><div class="empty-state-icon">🔧</div><div class="empty-state-text">尚未提交任何工具</div></div>`;
+            return `<div class="card-list">${myTools.map(t => {
+                const badgeCls = { approved: 'badge-approved', pending: 'badge-pending', rejected: 'badge-rejected' }[t.approval] || 'badge-pending';
+                const badgeLabel = { approved: '✅ 已上架', pending: '⏳ 待審核', rejected: '❌ 未通過' }[t.approval] || '⏳ 待審核';
+                return `<div class="item-card">
+                    <div class="item-icon">${t.icon || '🛠️'}</div>
+                    <div class="item-body">
+                        <div class="item-title">${t.title || '無標題'}</div>
+                        <div class="item-sub">${t.tagline || t.desc || ''}</div>
+                        <div class="item-badges">
+                            <span class="badge ${badgeCls}">${badgeLabel}</span>
+                            ${t.rejectReason ? `<span class="badge badge-rejected">退回原因：${t.rejectReason}</span>` : ''}
+                        </div>
+                    </div>
+                </div>`;
+            }).join('')}</div>`;
+        }
+
+        // ── Render: My Pain Cards ──
+        function renderMyPainCards() {
+            if (!myPainCards.length) return `<div class="empty-state"><div class="empty-state-icon">😤</div><div class="empty-state-text">尚未提交任何痛點卡片</div></div>`;
+            return `<div class="card-list">${myPainCards.map(c => {
+                const badgeCls = { approved: 'badge-approved', pending: 'badge-pending', rejected: 'badge-rejected' }[c.approval] || 'badge-pending';
+                const badgeLabel = { approved: '✅ 已上架', pending: '⏳ 待審核', rejected: '❌ 未通過' }[c.approval] || '⏳ 待審核';
+                return `<div class="item-card">
+                    <div class="item-icon">😓</div>
+                    <div class="item-body">
+                        <div class="item-title">${c.before || ''}</div>
+                        <div class="item-sub">✅ ${c.after || ''}</div>
+                        <div class="item-badges"><span class="badge ${badgeCls}">${badgeLabel}</span></div>
+                    </div>
+                </div>`;
+            }).join('')}</div>`;
+        }
+
+        // ── Render: New Tool Form ──
+        function renderNewToolForm() {
+            const isAdmin = currentProfile.role === 'admin';
+            const depts = DB.DEPTS;
+            const statuses = DB.STATUSES;
+            return `<div class="form-card">
+                <h3>➕ 提交新工具</h3>
+                <form id="newToolForm" onsubmit="handleSubmitTool(event)">
+                    <div class="fg-row">
+                        <div class="fg"><label>工具名稱 *</label><input id="nt-title" required placeholder="例：現場即時翻譯" /></div>
+                        <div class="fg"><label>圖示 Emoji</label><input id="nt-icon" placeholder="🛠️" maxlength="4" /></div>
+                    </div>
+                    <div class="fg"><label>一句話介紹 *</label><input id="nt-tagline" required placeholder="泰文 ↔ 中文 ↔ 英文，三語即時切換" /></div>
+                    <div class="fg"><label>詳細描述 *</label><textarea id="nt-desc" required placeholder="說明這個工具解決什麼問題…"></textarea></div>
+                    <div class="fg-row">
+                        <div class="fg"><label>部門</label><select id="nt-dept">${Object.entries(depts).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('')}</select></div>
+                        <div class="fg"><label>類型</label><select id="nt-type"><option value="webapp">🌐 Web App</option><option value="download">⬇️ 下載工具</option><option value="showcase">📺 展示型</option></select></div>
+                        ${isAdmin ? `<div class="fg"><label>狀態</label><select id="nt-status">${Object.entries(statuses).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('')}</select></div>` : ''}
+                    </div>
+                    <div class="fg"><label>工具網址</label><input id="nt-url" placeholder="https://..." /></div>
+                    <div class="fg"><label>標籤（逗號分隔）</label><input id="nt-tags" placeholder="翻譯, 多語言, 現場使用" /></div>
+                    <div class="fg"><label>使用步驟（逗號分隔，最多三步）</label><input id="nt-steps" placeholder="選語言, 說話或打字, 看翻譯結果" /></div>
+                    <button class="submit-btn" type="submit" id="ntSubmit">${isAdmin ? '🚀 直接上架' : '📤 提交審核'}</button>
+                </form>
+            </div>`;
+        }
+
+        // ── Render: New Pain Card Form ──
+        function renderNewPainForm() {
+            const isAdmin = currentProfile.role === 'admin';
+            const depts = DB.DEPTS;
+            return `<div class="form-card">
+                <h3>➕ 提交新痛點卡片</h3>
+                <form id="newPainForm" onsubmit="handleSubmitPain(event)">
+                    <div class="fg"><label>部門</label><select id="np-dept">${Object.entries(depts).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('')}</select></div>
+                    <div class="fg"><label>😓 痛點描述（使用前） *</label><textarea id="np-before" required placeholder="例：泰籍員工溝通靠比手畫腳，品質問題說不清楚…"></textarea></div>
+                    <div class="fg"><label>✅ 解決後效益（使用後） *</label><textarea id="np-after" required placeholder="例：即時雙語翻譯，泰文中文一鍵切換…"></textarea></div>
+                    <button class="submit-btn" type="submit" id="npSubmit">${isAdmin ? '🚀 直接上架' : '📤 提交審核'}</button>
+                </form>
+            </div>`;
+        }
+
+        // ── Render: Review Queue (Admin) ──
+        function renderReviewQueue() {
+            const all = [
+                ...pendingTools.map(t => ({ ...t, _type: 'tool' })),
+                ...pendingPainCards.map(c => ({ ...c, _type: 'pain' }))
+            ];
+            if (!all.length) return `<div class="empty-state"><div class="empty-state-icon">✅</div><div class="empty-state-text">沒有待審核的項目</div></div>`;
+            return `<div class="card-list">${all.map(item => {
+                if (item._type === 'tool') {
+                    return `<div class="item-card">
+                        <div class="item-icon">${item.icon || '🛠️'}</div>
+                        <div class="item-body">
+                            <div class="item-title">${item.title}</div>
+                            <div class="item-sub">${item.tagline || item.desc || ''}</div>
+                            <div class="item-badges"><span class="badge badge-pending">⏳ 工具待審</span></div>
+                        </div>
+                        <div class="item-actions">
+                            <button class="act-btn act-btn-approve" onclick="approveItem('tool','${item.id}')">✅ 通過</button>
+                            <button class="act-btn act-btn-reject" onclick="rejectItem('tool','${item.id}')">❌ 退回</button>
+                        </div>
+                    </div>`;
+                } else {
+                    return `<div class="item-card">
+                        <div class="item-icon">😤</div>
+                        <div class="item-body">
+                            <div class="item-title">${item.before}</div>
+                            <div class="item-sub">✅ ${item.after}</div>
+                            <div class="item-badges"><span class="badge badge-pending">⏳ 痛點待審</span></div>
+                        </div>
+                        <div class="item-actions">
+                            <button class="act-btn act-btn-approve" onclick="approveItem('pain','${item.id}')">✅ 通過</button>
+                            <button class="act-btn act-btn-reject" onclick="rejectItem('pain','${item.id}')">❌ 退回</button>
+                        </div>
+                    </div>`;
+                }
+            }).join('')}</div>`;
+        }
+
+        // ── Render: All Users (Admin) ──
+        function renderAllUsers() {
+            if (!allUsers.length) return `<div class="empty-state"><div class="empty-state-icon">👥</div><div class="empty-state-text">尚無使用者</div></div>`;
+            return `<div class="users-grid">${allUsers.map(u => {
+                const name = u.displayName || u.email;
+                const roleLabel = u.role === 'admin' ? '🛡️ 管理員' : '👨‍💻 開發者';
+                return `<div class="user-card">
+                    <div class="user-card-avatar">${name.charAt(0).toUpperCase()}</div>
+                    <div class="user-card-info">
+                        <div class="user-card-name">${name} <span style="font-size:.65rem;color:var(--text-mid)">${roleLabel}</span></div>
+                        <div class="user-card-email">${u.email}</div>
+                    </div>
+                    ${u.role !== 'admin' ? `<button class="act-btn" onclick="promoteUser('${u.uid}')">升為管理員</button>` : ''}
+                </div>`;
+            }).join('')}</div>`;
+        }
+
+        // ── Handlers ──
+        async function handleSubmitTool(e) {
+            e.preventDefault();
+            const btn = document.getElementById('ntSubmit');
+            btn.disabled = true;
+            const isAdmin = currentProfile.role === 'admin';
+            const data = {
+                title: document.getElementById('nt-title').value.trim(),
+                icon: document.getElementById('nt-icon').value.trim() || '🛠️',
+                tagline: document.getElementById('nt-tagline').value.trim(),
+                desc: document.getElementById('nt-desc').value.trim(),
+                dept: document.getElementById('nt-dept').value,
+                type: document.getElementById('nt-type').value,
+                status: isAdmin ? (document.getElementById('nt-status')?.value || 'live') : 'dev',
+                url: document.getElementById('nt-url').value.trim() || '#',
+                tags: document.getElementById('nt-tags').value.split(',').map(s => s.trim()).filter(Boolean),
+                steps: document.getElementById('nt-steps').value.split(',').map(s => s.trim()).filter(Boolean),
+                color: 'c' + (Math.floor(Math.random() * 6) + 1),
+                blog: { summary: '', blocks: [] }
+            };
+            try {
+                if (isAdmin) {
+                    await FireDB.submitToolDirect(data, currentUser.uid);
+                    showToast('🚀 工具已直接上架！');
+                } else {
+                    await FireDB.submitTool(data, currentUser.uid);
+                    showToast('📤 工具已提交，等待管理員審核');
+                }
+                await initDashboard();
+            } catch (err) {
+                showToast('❌ 提交失敗：' + err.message);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function handleSubmitPain(e) {
+            e.preventDefault();
+            const btn = document.getElementById('npSubmit');
+            btn.disabled = true;
+            const isAdmin = currentProfile.role === 'admin';
+            const data = {
+                dept: document.getElementById('np-dept').value,
+                before: document.getElementById('np-before').value.trim(),
+                after: document.getElementById('np-after').value.trim()
+            };
+            try {
+                if (isAdmin) {
+                    await FireDB.submitPainCardDirect(data, currentUser.uid);
+                    showToast('🚀 痛點卡片已直接上架！');
+                } else {
+                    await FireDB.submitPainCard(data, currentUser.uid);
+                    showToast('📤 痛點卡片已提交，等待管理員審核');
+                }
+                await initDashboard();
+            } catch (err) {
+                showToast('❌ 提交失敗：' + err.message);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function approveItem(type, id) {
+            try {
+                if (type === 'tool') await FireDB.approveTool(id, currentUser.uid);
+                else await FireDB.approvePainCard(id, currentUser.uid);
+                showToast('✅ 已通過！');
+                await initDashboard();
+            } catch (err) { showToast('❌ 操作失敗：' + err.message); }
+        }
+
+        async function rejectItem(type, id) {
+            const reason = prompt('退回原因（選填）：');
+            try {
+                if (type === 'tool') await FireDB.rejectTool(id, currentUser.uid, reason);
+                else await FireDB.rejectPainCard(id, currentUser.uid, reason);
+                showToast('❌ 已退回');
+                await initDashboard();
+            } catch (err) { showToast('❌ 操作失敗：' + err.message); }
+        }
+
+        async function promoteUser(uid) {
+            if (!confirm('確定要將此使用者升為管理員？')) return;
+            try {
+                await FireDB.setUserRole(uid, 'admin');
+                showToast('✅ 已升為管理員');
+                await initDashboard();
+            } catch (err) { showToast('❌ 操作失敗：' + err.message); }
+        }
+    </script>
+</body>
+
+</html>
