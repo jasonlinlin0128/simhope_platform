@@ -2958,6 +2958,11 @@
   <!-- Edit mode badge -->
   <div class="edit-badge" id="editBadge">✏️ 編輯模式中 — 點任意文字即可修改</div>
 
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
   <script>
     // Counter animation
     function animateCounter(el, target, label = '') {
@@ -3146,7 +3151,8 @@
     function renderToolsSidebar() {
       const sb = document.getElementById('toolsSidebar');
       if (!sb) return;
-      const tools = DB.getTools();
+
+      const tools = window.allApprovedTools || [];
 
       // Count per category
       const deptCount = {}, statusCount = {}, typeCount = {};
@@ -3197,9 +3203,9 @@
     function renderTools() {
       const grid = document.getElementById('toolsGrid');
       if (!grid) return;
-      let tools = DB.getTools();
+      let tools = window.allApprovedTools || [];
       if (!tools.length) {
-        grid.innerHTML = '<p style="color:var(--text-mid);padding:40px;text-align:center">尚無工具，請至後台新增</p>';
+        grid.innerHTML = '<p style="color:var(--text-mid);padding:40px;text-align:center">尚無工具，請至開發者後台提交</p>';
         return;
       }
 
@@ -3289,10 +3295,13 @@
       if (e.target === e.currentTarget) closeDownloadModal();
     });
 
-    // Load site settings into Hero
-    function loadSiteSettings() {
+    // ── Load Settings & Dynamic Stats ──
+    async function loadSiteSettings() {
+      // 統一由 localStorage (DB) 取設定，或從 firebase (todo)
       const s = DB.getSite();
-      const tools = DB.getTools();
+      window.siteSettings = s; // Make site settings globally available
+
+      const tools = window.allApprovedTools || [];
 
       // ── 動態計算統計數字 ──
       const activeTools = tools.filter(t => t.status !== 'terminated');
@@ -3341,33 +3350,42 @@
     // ══════════════════════════════════════════
     // PAIN CARDS (dynamic)
     // ══════════════════════════════════════════
-    function getPainCards() {
-      const s = DB.getSite();
-      return s.painCards || DB.DEFAULT_SITE.painCards || [];
+    async function getPainCards() {
+      return window.allApprovedPainCards || [];
     }
-    function savePainCards(cards) {
-      const s = DB.getSite();
-      s.painCards = cards;
-      DB.saveSite(s);
+    async function savePainCards(cards) {
+      // This function might need to be updated to save to Firestore
+      // For now, it's a placeholder or might be removed if pain cards are managed differently
+      // const s = DB.getSite();
+      // s.painCards = cards;
+      // DB.saveSite(s);
+      console.warn("savePainCards needs to be implemented for Firestore.");
     }
-    function renderPainCards() {
-      const grid = document.getElementById('psGrid');
-      if (!grid) return;
-      const cards = getPainCards();
-      if (!cards.length) { grid.innerHTML = '<p style="color:var(--text-mid);padding:40px;text-align:center">尚無痛點卡片</p>'; return; }
-      grid.innerHTML = cards.map(c => {
+    // Render dynamic pain cards
+    async function renderPainCards() {
+      const wrapper = document.getElementById('psGrid');
+      if (!wrapper) return;
+      const painCards = await getPainCards(); // Fetch from Firestore
+      window.allApprovedPainCards = painCards; // Make pain cards globally available
+      const container = wrapper.querySelector('.ps-cards') || wrapper;
+      if (!painCards.length) {
+        container.innerHTML = '<p style="text-align:center;color:var(--text-mid);padding:40px">尚無痛點卡片，請至開發者後台提交</p>';
+        return;
+      }
+      container.innerHTML = painCards.map(c => {
         const dept = DB.DEPTS[c.dept] || DB.DEPTS.other;
         return `
-          <div class="ps-card" style="cursor:pointer" onclick="document.getElementById('tools').scrollIntoView({behavior:'smooth'})">
-            <span class="ps-dept ${dept.cls}">${dept.label}</span>
-            <div class="ps-before"><span class="ps-x">😓</span>
-              <div class="ps-before-text">${c.before}</div>
+          <div class="ps-card">
+            <div class="ps-header">
+              <span class="ps-dept ${dept.cls}">${dept.label}</span>
             </div>
-            <div class="ps-arrow">↓</div>
-            <div class="ps-after"><span class="ps-check">✅</span>
-              <div class="ps-after-text">${c.after}</div>
+            <div class="ps-body">
+              <div class="ps-before">😓 ${c.before}</div>
+              <div class="ps-arrow">↓</div>
+              <div class="ps-after">✅ ${c.after}</div>
             </div>
-          </div>`;
+          </div>
+        `;
       }).join('');
     }
 
@@ -3605,9 +3623,25 @@ ${toolsSummary}
     }
 
     // Run on load
-    loadSiteSettings();
-    renderToolsSidebar();
-    renderTools();
+    window.allApprovedTools = [];
+    window.allApprovedPainCards = [];
+
+    async function initFirebaseData() {
+      try {
+        window.allApprovedTools = await FireDB.getApprovedTools();
+        window.allApprovedPainCards = await FireDB.getApprovedPainCards();
+      } catch (e) {
+        console.error('Failed to load data from Firebase, falling back to local DB', e);
+        window.allApprovedTools = DB.getTools();
+        window.allApprovedPainCards = DB.getSite().painCards || [];
+      }
+      loadSiteSettings();
+      renderToolsSidebar();
+      renderTools();
+    }
+
+    // 初始化
+    initFirebaseData();
 
     // ══════════════════════════════════════════
     // ADMIN DRAWER SYSTEM
@@ -3896,6 +3930,21 @@ ${toolsSummary}
       showToast('💾 關於設定已儲存');
     }
 
+    // Optional: Global migration helper for admin
+    window.migrateDataToFirebase = async () => {
+      const user = await Auth.getCurrentUser();
+      if (!user) return alert('請先登入');
+      const profile = await Auth.getUserProfile(user.uid);
+      if (profile?.role !== 'admin') return alert('只有管理員才能遷移資料');
+
+      const success = await FireDB.migrateDefaultData(DB.getTools(), DB.getSite().painCards || [], user.uid);
+      if (success) {
+        alert('✅ 資料遷移成功！');
+        location.reload();
+      } else {
+        alert('🚫 資料庫已有資料，不執行遷移。');
+      }
+    };
   </script>
 </body>
 
