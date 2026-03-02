@@ -547,11 +547,124 @@
       color: var(--clay-blue);
     }
 
+    /* ── Tools section layout with sidebar ── */
+    .tools-layout {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 28px;
+      margin-top: 40px;
+      align-items: start;
+    }
+
+    @media (max-width: 900px) {
+      .tools-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .tools-sidebar {
+      position: sticky;
+      top: 80px;
+      background: white;
+      border-radius: var(--radius-clay);
+      box-shadow: var(--shadow-clay);
+      border: 2px solid rgba(255, 255, 255, 0.9);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    @media (max-width: 900px) {
+      .tools-sidebar {
+        position: static;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .tools-sidebar .filter-group {
+        flex: 1;
+        min-width: 140px;
+      }
+    }
+
+    .filter-group-title {
+      font-size: .72rem;
+      font-weight: 800;
+      color: var(--text-mid);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin-bottom: 8px;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .filter-chip {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: .8rem;
+      font-weight: 600;
+      transition: background .15s;
+      user-select: none;
+      color: var(--text-dark);
+    }
+
+    .filter-chip:hover {
+      background: rgba(99, 102, 241, 0.08);
+    }
+
+    .filter-chip input[type=checkbox] {
+      accent-color: var(--clay-purple);
+      width: 15px;
+      height: 15px;
+      cursor: pointer;
+    }
+
+    .filter-chip .fc-count {
+      margin-left: auto;
+      font-size: .68rem;
+      color: var(--text-mid);
+      font-weight: 700;
+    }
+
+    .filter-reset {
+      background: none;
+      border: 1.5px solid rgba(30, 27, 75, 0.1);
+      border-radius: 8px;
+      padding: 6px 0;
+      font-size: .75rem;
+      font-weight: 700;
+      color: var(--text-mid);
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .filter-reset:hover {
+      border-color: var(--clay-purple);
+      color: var(--clay-purple);
+    }
+
     .tools-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
-      gap: 28px;
-      margin-top: 52px;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 24px;
+    }
+
+    .tools-count {
+      grid-column: 1 / -1;
+      font-size: .82rem;
+      color: var(--text-mid);
+      font-weight: 700;
+      padding-bottom: 4px;
     }
 
     .tool-card {
@@ -2377,11 +2490,12 @@
     <section id="tools">
       <div class="fade-up">
         <div class="section-tag">🧰 工具總覽</div>
-        <h2 class="section-title" id="tools-heading">6 個工具，解決 6 種困擾</h2>
+        <h2 class="section-title" id="tools-heading">16 個工具，解決 16 種困擾</h2>
         <p class="section-desc">每個工具都標示了適用部門與使用步驟，三步以內就能上手。</p>
       </div>
-      <div class="tools-grid fade-up" id="toolsGrid">
-
+      <div class="tools-layout fade-up">
+        <aside class="tools-sidebar" id="toolsSidebar"></aside>
+        <div class="tools-grid" id="toolsGrid"></div>
       </div>
     </section>
 
@@ -3024,15 +3138,86 @@
     // ══════════════════════════════════════════
     // DYNAMIC TOOLS RENDERING FROM DB
     // ══════════════════════════════════════════
+    // ── Active filters ──
+    let activeFilters = { dept: [], status: [], type: [] };
+
+    function renderToolsSidebar() {
+      const sb = document.getElementById('toolsSidebar');
+      if (!sb) return;
+      const tools = DB.getTools();
+
+      // Count per category
+      const deptCount = {}, statusCount = {}, typeCount = {};
+      tools.forEach(t => {
+        deptCount[t.dept] = (deptCount[t.dept] || 0) + 1;
+        statusCount[t.status] = (statusCount[t.status] || 0) + 1;
+        typeCount[t.type] = (typeCount[t.type] || 0) + 1;
+      });
+
+      const TYPE_LABELS = { webapp: '🌐 Web App', download: '⬇️ 下載工具', showcase: '📺 展示型' };
+
+      function chipGroup(title, key, items) {
+        return `<div class="filter-group">
+          <div class="filter-group-title">${title}</div>
+          ${Object.entries(items).map(([k, cnt]) => {
+          const label = key === 'dept' ? (DB.DEPTS[k]?.label || k)
+            : key === 'status' ? (DB.STATUSES[k]?.label || k)
+              : (TYPE_LABELS[k] || k);
+          const checked = activeFilters[key].includes(k) ? 'checked' : '';
+          return `<label class="filter-chip">
+              <input type="checkbox" value="${k}" data-filter="${key}" ${checked} onchange="toggleFilter('${key}','${k}')">
+              <span>${label}</span>
+              <span class="fc-count">${cnt}</span>
+            </label>`;
+        }).join('')}
+        </div>`;
+      }
+
+      sb.innerHTML = chipGroup('部門', 'dept', deptCount)
+        + chipGroup('狀態', 'status', statusCount)
+        + chipGroup('類型', 'type', typeCount)
+        + `<button class="filter-reset" onclick="resetFilters()">✕ 清除篩選</button>`;
+    }
+
+    function toggleFilter(key, val) {
+      const idx = activeFilters[key].indexOf(val);
+      if (idx >= 0) activeFilters[key].splice(idx, 1);
+      else activeFilters[key].push(val);
+      renderTools();
+    }
+
+    function resetFilters() {
+      activeFilters = { dept: [], status: [], type: [] };
+      renderToolsSidebar();
+      renderTools();
+    }
+
     function renderTools() {
       const grid = document.getElementById('toolsGrid');
       if (!grid) return;
-      const tools = DB.getTools();
+      let tools = DB.getTools();
       if (!tools.length) {
         grid.innerHTML = '<p style="color:var(--text-mid);padding:40px;text-align:center">尚無工具，請至後台新增</p>';
         return;
       }
-      grid.innerHTML = tools.map(t => {
+
+      // Apply filters
+      const f = activeFilters;
+      const filtered = tools.filter(t => {
+        if (f.dept.length && !f.dept.includes(t.dept)) return false;
+        if (f.status.length && !f.status.includes(t.status)) return false;
+        if (f.type.length && !f.type.includes(t.type)) return false;
+        return true;
+      });
+
+      const countHtml = `<div class="tools-count">顯示 ${filtered.length} / ${tools.length} 個工具</div>`;
+
+      if (!filtered.length) {
+        grid.innerHTML = countHtml + '<p style="color:var(--text-mid);padding:40px;text-align:center">沒有符合條件的工具</p>';
+        return;
+      }
+
+      grid.innerHTML = countHtml + filtered.map(t => {
         const dept = DB.DEPTS[t.dept] || DB.DEPTS.other;
         const status = DB.STATUSES[t.status] || DB.STATUSES.live;
         const steps = (t.steps || []).filter(Boolean);
@@ -3041,11 +3226,8 @@
         ).join('');
         const terminated = t.status === 'terminated';
         const cardClass = `tool-card ${t.color || 'c1'}${terminated ? ' is-terminated' : ''}`;
-        let clickAttr = '';
-        if (!terminated) {
-          clickAttr = `onclick="location.href='tool-detail.html?id=${t.id}'"`;
-        }
-        const arrowIcon = terminated ? '♲' : '▶';
+        const clickAttr = `onclick="location.href='tool-detail.html?id=${t.id}'"`;
+        const arrowIcon = terminated ? '📖 查看歷程' : '▶';
         return `
           <div class="${cardClass}" ${clickAttr}>
             <div class="tool-icon">${t.icon || '🛠️'}</div>
@@ -3422,6 +3604,7 @@ ${toolsSummary}
 
     // Run on load
     loadSiteSettings();
+    renderToolsSidebar();
     renderTools();
 
     // ══════════════════════════════════════════
