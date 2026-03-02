@@ -966,7 +966,6 @@
                     return { type: 'text', content: '' };
                 });
             }
-            initPage(tool);
         }
 
         function initPage(t) {
@@ -1319,6 +1318,9 @@
         document.addEventListener('keydown', e => {
             if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); if (isAdmin) saveBlog(); }
         });
+
+        // ── INIT (must be AFTER all declarations) ──
+        if (tool) initPage(tool);
     </script>
 </body>
 
