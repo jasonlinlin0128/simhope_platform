@@ -10,7 +10,7 @@
     <script src="data.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
-        href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap"
         rel="stylesheet" />
     <style>
         *,
@@ -26,12 +26,8 @@
             --white: #ffffff;
             --text-dark: #1E1B4B;
             --text-mid: #6B7280;
-            --clay-yellow: #FFD166;
-            --clay-coral: #FF6B6B;
-            --clay-orange: #FB923C;
-            --clay-green: #34D399;
-            --clay-blue: #60A5FA;
-            --clay-purple: #A78BFA;
+            --accent: #6366F1;
+            --accent-light: #EEF2FF;
             --radius: 20px;
             --radius-sm: 12px;
             --radius-pill: 999px;
@@ -73,7 +69,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            font-size: 0.82rem;
+            font-size: .82rem;
             color: var(--text-mid);
         }
 
@@ -87,16 +83,16 @@
         }
 
         .breadcrumb-sep {
-            opacity: 0.5;
+            opacity: .5;
         }
 
         .breadcrumb-current {
             font-weight: 700;
             color: var(--text-dark);
-            white-space: nowrap;
+            max-width: 200px;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 200px;
+            white-space: nowrap;
         }
 
         /* ── Layout ── */
@@ -146,7 +142,7 @@
         }
 
         .sidebar-tagline {
-            font-size: 0.82rem;
+            font-size: .82rem;
             color: var(--text-mid);
             line-height: 1.55;
         }
@@ -162,7 +158,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            font-size: 0.82rem;
+            font-size: .82rem;
         }
 
         .sidebar-label {
@@ -175,14 +171,14 @@
             font-weight: 700;
         }
 
-        /* status badges */
+        /* status */
         .s-badge {
             display: inline-flex;
             align-items: center;
             gap: 5px;
             padding: 3px 10px;
             border-radius: var(--radius-pill);
-            font-size: 0.72rem;
+            font-size: .72rem;
             font-weight: 800;
         }
 
@@ -253,7 +249,7 @@
         }
 
         .tag-pill {
-            font-size: 0.7rem;
+            font-size: .7rem;
             background: rgba(30, 27, 75, 0.06);
             border-radius: var(--radius-pill);
             padding: 3px 10px;
@@ -275,15 +271,15 @@
             cursor: pointer;
             font-family: inherit;
             font-weight: 800;
-            font-size: 0.88rem;
-            transition: all 0.2s;
+            font-size: .88rem;
+            transition: all .2s;
             text-decoration: none;
             text-align: center;
             display: block;
         }
 
         .cta-btn-primary {
-            background: linear-gradient(135deg, var(--clay-coral), var(--clay-orange));
+            background: linear-gradient(135deg, #FF6B6B, #FB923C);
             color: white;
             box-shadow: 0 4px 14px rgba(255, 107, 107, 0.35);
         }
@@ -326,88 +322,385 @@
             line-height: 1.7;
         }
 
-        /* ── Blog Sections ── */
-        .sections-wrap {
+        /* ═══════════════════════════════
+           NOTION-STYLE BLOCK EDITOR
+           ═══════════════════════════════ */
+
+        .blocks-wrap {
             display: flex;
             flex-direction: column;
-            gap: 32px;
+            gap: 2px;
         }
 
-        .section-block {
-            background: var(--white);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            border: 1.5px solid rgba(30, 27, 75, 0.06);
-            overflow: hidden;
+        .block-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 4px;
+            position: relative;
+            min-height: 28px;
+            border-radius: 6px;
+            transition: background .15s;
         }
 
-        /* Text section */
-        .section-text {
-            padding: 28px 32px;
+        .block-row:hover {
+            background: rgba(30, 27, 75, 0.02);
         }
 
-        .section-text p {
-            font-size: 0.97rem;
-            line-height: 1.9;
-            color: #374151;
-            white-space: pre-wrap;
+        /* Drag handle + menu (admin only) */
+        .block-handle {
+            display: none;
+            opacity: 0;
+            width: 24px;
+            min-width: 24px;
+            padding-top: 4px;
+            cursor: grab;
+            font-size: .85rem;
+            text-align: center;
+            color: #C4C4C4;
+            transition: opacity .15s;
+            user-select: none;
+            flex-shrink: 0;
         }
 
-        .section-text p strong {
-            color: var(--text-dark);
+        .block-row:hover .block-handle {
+            opacity: 1;
         }
 
-        .section-text h2 {
-            font-size: 1.2rem;
-            font-weight: 800;
-            margin-bottom: 12px;
-            color: var(--text-dark);
-        }
-
-        .section-text h3 {
-            font-size: 1rem;
-            font-weight: 800;
-            margin-bottom: 8px;
-            color: var(--text-dark);
-        }
-
-        /* Image section */
-
-        .section-image img {
-            width: 100%;
+        body.admin-logged-in .block-handle {
             display: block;
-            max-height: 520px;
-            object-fit: contain;
-            background: #F9FAFB;
         }
 
-        .section-image figcaption {
-            padding: 12px 24px;
-            font-size: 0.8rem;
+        .block-handle:active {
+            cursor: grabbing;
+        }
+
+        .block-content {
+            flex: 1;
+            min-width: 0;
+            padding: 4px 2px;
+            outline: none;
+            word-break: break-word;
+            font-size: .97rem;
+            line-height: 1.7;
+            color: #374151;
+        }
+
+        .block-content:empty::before {
+            content: attr(data-ph);
+            color: #D1D5DB;
+            pointer-events: none;
+        }
+
+        .block-content:focus {
+            border-radius: 4px;
+        }
+
+        body.admin-logged-in .block-content[contenteditable="true"]:focus {
+            box-shadow: inset 0 0 0 1.5px rgba(99, 102, 241, 0.3);
+        }
+
+        /* Block type styles */
+        .block-h1 .block-content {
+            font-size: 1.8rem;
+            font-weight: 900;
+            line-height: 1.25;
+            padding: 12px 2px 6px;
+            color: var(--text-dark);
+        }
+
+        .block-h2 .block-content {
+            font-size: 1.35rem;
+            font-weight: 800;
+            line-height: 1.3;
+            padding: 10px 2px 4px;
+            color: var(--text-dark);
+        }
+
+        .block-h3 .block-content {
+            font-size: 1.1rem;
+            font-weight: 800;
+            line-height: 1.4;
+            padding: 8px 2px 3px;
+            color: var(--text-dark);
+        }
+
+        .block-bullet .block-content::before {
+            content: '•';
+            margin-right: 8px;
+            color: var(--text-mid);
+            pointer-events: none;
+        }
+
+        .block-bullet .block-content:empty::before {
+            content: attr(data-ph);
+        }
+
+        .block-numbered {
+            counter-increment: block-num;
+        }
+
+        .block-numbered .block-content::before {
+            content: counter(block-num) '.';
+            margin-right: 8px;
+            color: var(--text-mid);
+            font-weight: 700;
+            pointer-events: none;
+        }
+
+        .blocks-wrap {
+            counter-reset: block-num;
+        }
+
+        .block-divider {
+            padding: 12px 0;
+        }
+
+        .block-divider hr {
+            border: none;
+            border-top: 1.5px solid rgba(30, 27, 75, 0.08);
+        }
+
+        .block-code .block-content {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .85rem;
+            background: #1E1B4B;
+            color: #E2E8F0;
+            padding: 16px 20px;
+            border-radius: 10px;
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+
+        .block-callout {
+            background: var(--accent-light);
+            border-radius: 10px;
+            border-left: 4px solid var(--accent);
+            margin: 4px 0;
+        }
+
+        .block-callout .block-content {
+            padding: 14px 18px;
+        }
+
+        .block-image img {
+            max-width: 100%;
+            border-radius: 10px;
+            display: block;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            cursor: default;
+        }
+
+        .block-image .img-caption {
+            font-size: .8rem;
             color: var(--text-mid);
             text-align: center;
+            padding: 8px 0;
             font-style: italic;
         }
 
-        /* Video section */
-        .section-video {
-            padding: 24px;
-        }
-
-        .section-video iframe,
-        .section-video video {
+        .block-video iframe,
+        .block-video video {
             width: 100%;
-            border-radius: var(--radius-sm);
             aspect-ratio: 16/9;
             border: none;
+            border-radius: 10px;
             display: block;
         }
 
-        .section-video-caption {
-            margin-top: 10px;
-            font-size: 0.8rem;
+        .block-video .vid-caption {
+            font-size: .8rem;
             color: var(--text-mid);
             text-align: center;
+            padding: 8px 0;
+        }
+
+        .block-table table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: .88rem;
+        }
+
+        .block-table th,
+        .block-table td {
+            border: 1px solid rgba(30, 27, 75, 0.1);
+            padding: 8px 12px;
+            text-align: left;
+        }
+
+        .block-table th {
+            background: rgba(30, 27, 75, 0.04);
+            font-weight: 800;
+        }
+
+        /* ── Slash Menu ── */
+        .slash-menu {
+            position: fixed;
+            z-index: 500;
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(30, 27, 75, 0.08);
+            width: 260px;
+            max-height: 360px;
+            overflow-y: auto;
+            display: none;
+            padding: 6px;
+        }
+
+        .slash-menu.open {
+            display: block;
+        }
+
+        .slash-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background .1s;
+            font-size: .85rem;
+        }
+
+        .slash-item:hover,
+        .slash-item.active {
+            background: var(--accent-light);
+        }
+
+        .slash-item-icon {
+            font-size: 1.2rem;
+            width: 28px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .slash-item-label {
+            font-weight: 700;
+        }
+
+        .slash-item-desc {
+            font-size: .72rem;
+            color: var(--text-mid);
+        }
+
+        .slash-section {
+            font-size: .68rem;
+            font-weight: 800;
+            color: var(--text-mid);
+            padding: 10px 12px 4px;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+
+        /* ── Add Block Button (between blocks, admin only) ── */
+        .add-block-btn {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 28px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity .15s;
+            color: #C4C4C4;
+            font-size: .8rem;
+        }
+
+        body.admin-logged-in .add-block-btn {
+            display: flex;
+        }
+
+        .add-block-btn:hover {
+            opacity: 1 !important;
+            color: var(--accent);
+        }
+
+        .block-row:hover+.add-block-btn,
+        .add-block-btn:hover {
+            opacity: .6;
+        }
+
+        /* ── Block Actions (admin hover menu) ── */
+        .block-actions {
+            display: none;
+            position: absolute;
+            right: -4px;
+            top: 2px;
+            gap: 2px;
+            z-index: 10;
+        }
+
+        body.admin-logged-in .block-row:hover .block-actions {
+            display: flex;
+        }
+
+        .ba-btn {
+            width: 26px;
+            height: 26px;
+            border: none;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: .7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background .1s;
+        }
+
+        .ba-btn:hover {
+            background: rgba(99, 102, 241, 0.15);
+            color: var(--accent);
+        }
+
+        /* Admin bar */
+        .admin-bar {
+            display: none;
+            background: #1E1B4B;
+            color: white;
+            padding: 12px 5%;
+            font-size: .85rem;
+            font-weight: 700;
+            gap: 12px;
+            align-items: center;
+            position: sticky;
+            top: 57px;
+            z-index: 90;
+        }
+
+        body.admin-logged-in .admin-bar {
+            display: flex;
+        }
+
+        .admin-bar-title {
+            flex: 1;
+        }
+
+        .ab-btn {
+            padding: 7px 16px;
+            border-radius: var(--radius-pill);
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 800;
+            font-size: .78rem;
+            background: rgba(255, 255, 255, .15);
+            color: white;
+            transition: background .2s;
+        }
+
+        .ab-btn:hover {
+            background: rgba(255, 255, 255, .25);
+        }
+
+        .ab-btn-primary {
+            background: #6366F1;
+        }
+
+        .ab-btn-primary:hover {
+            background: #4F46E5;
         }
 
         /* Empty state */
@@ -432,162 +725,78 @@
         }
 
         .empty-blog-sub {
-            font-size: 0.88rem;
+            font-size: .88rem;
             color: var(--text-mid);
             line-height: 1.6;
         }
 
-        /* Admin: Edit Blog */
-        .admin-bar {
-            display: none;
-            background: #1E1B4B;
-            color: white;
-            padding: 12px 5%;
-            font-size: 0.85rem;
-            font-weight: 700;
-            gap: 12px;
-            align-items: center;
-            position: sticky;
-            top: 57px;
-            z-index: 90;
+        /* CTA block */
+        .cta-block {
+            text-align: center;
+            padding: 32px 0;
         }
 
-        body.admin-logged-in .admin-bar {
-            display: flex;
-        }
-
-        .admin-bar-title {
-            flex: 1;
-        }
-
-        .ab-btn {
-            padding: 7px 16px;
-            border-radius: var(--radius-pill);
-            border: none;
-            cursor: pointer;
-            font-family: inherit;
-            font-weight: 800;
-            font-size: 0.78rem;
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
-            transition: background 0.2s;
-        }
-
-        .ab-btn:hover {
-            background: rgba(255, 255, 255, 0.25);
-        }
-
-        .ab-btn-primary {
-            background: #6366F1;
-        }
-
-        .ab-btn-primary:hover {
-            background: #4F46E5;
-        }
-
-        /* Section editor */
-        .section-editor {
-            display: none;
-            flex-direction: column;
-            gap: 16px;
-            padding: 24px;
-            background: #F8F9FC;
-            border-top: 1px solid rgba(30, 27, 75, 0.08);
-        }
-
-        body.admin-logged-in .section-editor {
-            display: flex;
-        }
-
-        .se-row {
-            display: flex;
-            gap: 8px;
-            align-items: flex-start;
-        }
-
-        .se-input,
-        .se-select,
-        .se-textarea {
-            font-family: inherit;
-            font-size: 0.85rem;
-            border: 1.5px solid rgba(30, 27, 75, 0.12);
-            border-radius: 10px;
-            padding: 8px 12px;
-            background: white;
-            width: 100%;
-            outline: none;
-            transition: border 0.2s;
-        }
-
-        .se-input:focus,
-        .se-select:focus,
-        .se-textarea:focus {
-            border-color: #6366F1;
-        }
-
-        .se-textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        .se-btn {
-            padding: 8px 16px;
-            border-radius: 10px;
-            border: none;
-            cursor: pointer;
-            font-family: inherit;
-            font-weight: 800;
-            font-size: 0.78rem;
-            white-space: nowrap;
-            transition: all 0.15s;
-        }
-
-        .se-btn-add {
-            background: #6366F1;
-            color: white;
-        }
-
-        .se-btn-add:hover {
-            background: #4F46E5;
-        }
-
-        .se-btn-rm {
-            background: #FEE2E2;
-            color: #991B1B;
-        }
-
-        .se-btn-rm:hover {
-            background: #FECACA;
-        }
-
-        .se-btn-save {
-            background: #10B981;
-            color: white;
-            padding: 10px 24px;
-        }
-
-        .se-btn-save:hover {
-            background: #059669;
-        }
-
-        .add-section-bar {
-            display: none;
+        .cta-block a {
+            display: inline-flex;
             align-items: center;
             gap: 10px;
-            flex-wrap: wrap;
-            padding: 16px 24px 20px;
-        }
-
-        body.admin-logged-in .add-section-bar {
-            display: flex;
-        }
-
-        .add-section-label {
-            font-size: 0.8rem;
+            padding: 16px 36px;
+            border-radius: 14px;
+            font-size: 1rem;
             font-weight: 800;
-            color: var(--text-mid);
+            background: linear-gradient(135deg, #6366F1, #8B5CF6);
+            color: white;
+            text-decoration: none;
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
+            transition: transform .2s, box-shadow .2s;
         }
 
+        .cta-block a:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(99, 102, 241, 0.4);
+        }
+
+        /* Download files */
+        .dl-section {
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1.5px solid rgba(30, 27, 75, 0.06);
+            padding: 24px;
+            margin-top: 16px;
+        }
+
+        .dl-section h2 {
+            font-size: 1.2rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+        }
+
+        .dl-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .dl-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px 20px;
+            background: #F9FAFB;
+            border: 1.5px solid rgba(30, 27, 75, 0.08);
+            border-radius: 14px;
+            text-decoration: none;
+            color: #1E1B4B;
+            transition: background .15s, border-color .15s;
+        }
+
+        .dl-item:hover {
+            background: var(--accent-light);
+            border-color: var(--accent);
+        }
+
+        /* Toast */
         .toast {
             position: fixed;
             bottom: 24px;
@@ -597,17 +806,16 @@
             color: white;
             padding: 10px 22px;
             border-radius: var(--radius-pill);
-            font-size: 0.85rem;
+            font-size: .85rem;
             font-weight: 800;
             z-index: 9999;
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
-            transition: opacity 0.4s;
+            transition: opacity .4s;
         }
     </style>
 </head>
 
 <body>
-
     <nav>
         <a class="nav-logo" href="index.html">🏭 SimHope AI 工具中心</a>
         <div class="breadcrumb">
@@ -617,15 +825,13 @@
         </div>
     </nav>
 
-    <!-- Admin bar (only visible when logged in) -->
     <div class="admin-bar" id="adminBar">
         <span class="admin-bar-title" id="adminBarTitle">✏️ 編輯模式</span>
-        <button class="ab-btn ab-btn-primary" id="saveBlogBtn" onclick="saveBlog()">💾 儲存 Blog</button>
-        <button class="ab-btn" onclick="window.location.href='index.html'">← 回首頁</button>
+        <button class="ab-btn ab-btn-primary" onclick="saveBlog()">💾 儲存</button>
+        <button class="ab-btn" onclick="location.href='index.html'">← 回首頁</button>
     </div>
 
     <div class="page-wrap">
-        <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-hero">
                 <div class="sidebar-icon" id="sbIcon">…</div>
@@ -633,42 +839,112 @@
                 <div class="sidebar-tagline" id="sbTagline"></div>
             </div>
             <div class="sidebar-body">
-                <div class="sidebar-row">
-                    <span class="sidebar-label">部門</span>
-                    <span class="sidebar-val" id="sbDept"></span>
-                </div>
-                <div class="sidebar-row">
-                    <span class="sidebar-label">狀態</span>
-                    <span id="sbStatus"></span>
-                </div>
+                <div class="sidebar-row"><span class="sidebar-label">部門</span><span class="sidebar-val"
+                        id="sbDept"></span></div>
+                <div class="sidebar-row"><span class="sidebar-label">狀態</span><span id="sbStatus"></span></div>
                 <div class="sidebar-tags" id="sbTags"></div>
             </div>
             <div class="sidebar-cta" id="sbCta"></div>
         </aside>
 
-        <!-- Main -->
         <main class="main-content">
             <div class="content-header">
                 <h1 id="mainTitle">載入中…</h1>
                 <p class="content-summary" id="mainSummary"></p>
             </div>
-            <div class="sections-wrap" id="sectionsWrap"></div>
-
-            <!-- Add section bar (admin only) -->
-            <div class="add-section-bar" id="addSectionBar">
-                <span class="add-section-label">新增區塊：</span>
-                <button class="se-btn se-btn-add" onclick="addSection('text')">📝 文字段落</button>
-                <button class="se-btn se-btn-add" onclick="addSection('image')">🖼️ 圖片</button>
-                <button class="se-btn se-btn-add" onclick="addSection('video')">🎬 影片</button>
-            </div>
+            <div class="blocks-wrap" id="blocksWrap"></div>
+            <div id="ctaArea"></div>
+            <div id="dlArea"></div>
         </main>
     </div>
 
+    <!-- Slash Menu -->
+    <div class="slash-menu" id="slashMenu">
+        <div class="slash-section">基本</div>
+        <div class="slash-item" data-type="text"><span class="slash-item-icon">📝</span>
+            <div>
+                <div class="slash-item-label">段落文字</div>
+                <div class="slash-item-desc">一般內文段落</div>
+            </div>
+        </div>
+        <div class="slash-item" data-type="h1"><span class="slash-item-icon">H1</span>
+            <div>
+                <div class="slash-item-label">大標題</div>
+                <div class="slash-item-desc">章節主標題</div>
+            </div>
+        </div>
+        <div class="slash-item" data-type="h2"><span class="slash-item-icon">H2</span>
+            <div>
+                <div class="slash-item-label">中標題</div>
+                <div class="slash-item-desc">子標題</div>
+            </div>
+        </div>
+        <div class="slash-item" data-type="h3"><span class="slash-item-icon">H3</span>
+            <div>
+                <div class="slash-item-label">小標題</div>
+                <div class="slash-item-desc">段落標題</div>
+            </div>
+        </div>
+        <div class="slash-section">列表</div>
+        <div class="slash-item" data-type="bullet"><span class="slash-item-icon">•</span>
+            <div>
+                <div class="slash-item-label">無序清單</div>
+                <div class="slash-item-desc">項目符號清單</div>
+            </div>
+        </div>
+        <div class="slash-item" data-type="numbered"><span class="slash-item-icon">1.</span>
+            <div>
+                <div class="slash-item-label">有序清單</div>
+                <div class="slash-item-desc">編號清單</div>
+            </div>
+        </div>
+        <div class="slash-section">媒體</div>
+        <div class="slash-item" data-type="image"><span class="slash-item-icon">🖼️</span>
+            <div>
+                <div class="slash-item-label">圖片</div>
+                <div class="slash-item-desc">貼上圖片網址</div>
+            </div>
+        </div>
+        <div class="slash-item" data-type="video"><span class="slash-item-icon">🎬</span>
+            <div>
+                <div class="slash-item-label">影片</div>
+                <div class="slash-item-desc">YouTube 或影片連結</div>
+            </div>
+        </div>
+        <div class="slash-section">進階</div>
+        <div class="slash-item" data-type="code"><span class="slash-item-icon">{ }</span>
+            <div>
+                <div class="slash-item-label">程式碼</div>
+                <div class="slash-item-desc">程式碼區塊</div>
+            </div>
+        </div>
+        <div class="slash-item" data-type="callout"><span class="slash-item-icon">💡</span>
+            <div>
+                <div class="slash-item-label">提示框</div>
+                <div class="slash-item-desc">重點提示或備註</div>
+            </div>
+        </div>
+        <div class="slash-item" data-type="divider"><span class="slash-item-icon">—</span>
+            <div>
+                <div class="slash-item-label">分隔線</div>
+                <div class="slash-item-desc">視覺分隔</div>
+            </div>
+        </div>
+        <div class="slash-item" data-type="table"><span class="slash-item-icon">📊</span>
+            <div>
+                <div class="slash-item-label">表格</div>
+                <div class="slash-item-desc">3×3 表格</div>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // ── Get tool from URL ──
+        // ── Get tool ──
         const params = new URLSearchParams(location.search);
         const toolId = params.get('id');
         const tool = toolId ? DB.getTools().find(t => t.id === toolId) : null;
+        const isAdmin = sessionStorage.getItem('admin_auth') === '1';
+        if (isAdmin) document.body.classList.add('admin-logged-in');
 
         if (!tool) {
             document.title = '找不到工具 — SimHope';
@@ -678,241 +954,359 @@
             initPage(tool);
         }
 
+        // ── Blocks state ──
+        let blocks = [];
+        if (tool) {
+            const blog = tool.blog || {};
+            // Migrate old sections format → new blocks format
+            if (blog.blocks && blog.blocks.length) {
+                blocks = blog.blocks;
+            } else if (blog.sections && blog.sections.length) {
+                blocks = blog.sections.map(s => {
+                    if (s.type === 'text') return { type: 'text', content: s.content || '' };
+                    if (s.type === 'image') return { type: 'image', url: s.url || '', caption: s.caption || '' };
+                    if (s.type === 'video') return { type: 'video', url: s.url || '', caption: s.caption || '' };
+                    return { type: 'text', content: '' };
+                });
+            }
+        }
+
         function initPage(t) {
             document.title = t.title + ' — SimHope AI 工具中心';
             document.getElementById('breadcrumbTitle').textContent = t.title;
-            document.getElementById('adminBarTitle').textContent = '✏️ 編輯 Blog：' + t.title;
+            document.getElementById('adminBarTitle').textContent = '✏️ 編輯：' + t.title;
 
             // Sidebar
             document.getElementById('sbIcon').textContent = t.icon || '🛠️';
             document.getElementById('sbTitle').textContent = t.title;
             document.getElementById('sbTagline').textContent = t.tagline;
-
             const dept = DB.DEPTS[t.dept] || DB.DEPTS.other;
             document.getElementById('sbDept').textContent = dept.label;
-
-            const statusCls = { live: 's-live', beta: 's-beta', new: 's-new', dev: 's-dev', pending: 's-pending', terminated: 's-terminated' };
-            const statusLabel = DB.STATUSES[t.status]?.label || t.status;
-            document.getElementById('sbStatus').innerHTML =
-                `<span class="s-badge ${statusCls[t.status] || 's-live'}"><span class="s-dot"></span>${statusLabel}</span>`;
-
-            document.getElementById('sbTags').innerHTML =
-                (t.tags || []).map(tag => `<span class="tag-pill">${tag}</span>`).join('');
+            const sCls = { live: 's-live', beta: 's-beta', new: 's-new', dev: 's-dev', pending: 's-pending', terminated: 's-terminated' };
+            const sLabel = DB.STATUSES[t.status]?.label || t.status;
+            document.getElementById('sbStatus').innerHTML = `<span class="s-badge ${sCls[t.status] || 's-live'}"><span class="s-dot"></span>${sLabel}</span>`;
+            document.getElementById('sbTags').innerHTML = (t.tags || []).map(tag => `<span class="tag-pill">${tag}</span>`).join('');
 
             // CTA buttons
             const cta = document.getElementById('sbCta');
             if (t.type === 'webapp' && t.url && t.url !== '#' && t.status !== 'terminated') {
                 cta.innerHTML = `<a class="cta-btn cta-btn-primary" href="${t.url}" target="_blank">🚀 前往使用</a>`;
-            } else if (t.type === 'download' && t.files && t.files.length > 0) {
-                cta.innerHTML = `<button class="cta-btn cta-btn-primary" onclick="scrollToDownloads()">⬇️ 下載工具</button>`;
             }
             cta.innerHTML += `<a class="cta-btn cta-btn-secondary" href="index.html">← 回工具總覽</a>`;
 
             // Main
             document.getElementById('mainTitle').textContent = t.title;
-            document.getElementById('mainSummary').textContent = t.blog?.summary || t.desc || '';
+            const summaryEl = document.getElementById('mainSummary');
+            summaryEl.textContent = t.blog?.summary || t.desc || '';
+            if (isAdmin) { summaryEl.contentEditable = 'true'; summaryEl.style.outline = '1.5px dashed var(--accent)'; summaryEl.style.borderRadius = '4px'; summaryEl.title = '點擊編輯摘要'; }
 
-            renderSections((t.blog || {}).sections || []);
+            renderBlocks();
 
-            // Dynamic CTA + download files in main content
-            const sectionsWrap = document.getElementById('sectionsWrap');
-
-            // Add webapp CTA
+            // CTA in main
             if (t.type === 'webapp' && t.url && t.url !== '#' && t.status !== 'terminated') {
-                sectionsWrap.insertAdjacentHTML('beforeend', `
-                  <div class="section-block" style="text-align:center;padding:32px 0">
-                    <a href="${t.url}" target="_blank" style="
-                      display:inline-flex;align-items:center;gap:10px;
-                      padding:16px 36px;border-radius:14px;font-size:1rem;font-weight:800;
-                      background:linear-gradient(135deg,#6366F1,#8B5CF6);color:white;
-                      text-decoration:none;box-shadow:0 8px 24px rgba(99,102,241,0.3);
-                      transition:transform 0.2s,box-shadow 0.2s;
-                    " onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 12px 32px rgba(99,102,241,0.4)'"
-                       onmouseout="this.style.transform='';this.style.boxShadow='0 8px 24px rgba(99,102,241,0.3)'">
-                      🚀 前往使用工具
-                    </a>
-                  </div>`);
+                document.getElementById('ctaArea').innerHTML = `<div class="cta-block"><a href="${t.url}" target="_blank">🚀 前往使用工具</a></div>`;
             }
-
-            // Add download files section
-            if (t.type === 'download' && t.files && t.files.length > 0) {
-                const filesHtml = t.files.map(f => `
-                  <a href="${f.url}" download style="
-                    display:flex;align-items:center;gap:14px;padding:16px 20px;
-                    background:#F9FAFB;border:1.5px solid rgba(30,27,75,0.08);border-radius:14px;
-                    text-decoration:none;color:#1E1B4B;transition:background 0.15s,border-color 0.15s;
-                  " onmouseover="this.style.background='#EEF2FF';this.style.borderColor='#6366F1'"
-                     onmouseout="this.style.background='#F9FAFB';this.style.borderColor='rgba(30,27,75,0.08)'">
-                    <span style="font-size:1.5rem">📦</span>
-                    <div>
-                      <div style="font-weight:700;font-size:.92rem">${f.name || '下載檔案'}</div>
-                      ${f.size ? `<div style="font-size:.75rem;color:#9CA3AF">${f.size}</div>` : ''}
-                    </div>
-                    <span style="margin-left:auto;font-size:1.2rem;color:#6366F1">⬇️</span>
-                  </a>`).join('');
-                sectionsWrap.insertAdjacentHTML('beforeend', `
-                  <div class="section-block" id="downloads-section">
-                    <h2 style="font-size:1.2rem;font-weight:800;margin-bottom:16px">📦 下載檔案</h2>
-                    <div style="display:flex;flex-direction:column;gap:10px">${filesHtml}</div>
-                  </div>`);
+            // Download files
+            if (t.type === 'download' && t.files && t.files.length) {
+                document.getElementById('dlArea').innerHTML = `<div class="dl-section"><h2>📦 下載檔案</h2><div class="dl-list">${t.files.map(f => `<a class="dl-item" href="${f.url}" download><span style="font-size:1.5rem">📦</span><div><div style="font-weight:700">${f.name || '下載檔案'}</div>${f.size ? `<div style="font-size:.75rem;color:#9CA3AF">${f.size}</div>` : ''}</div><span style="margin-left:auto;font-size:1.2rem;color:var(--accent)">⬇️</span></a>`).join('')}</div></div>`;
             }
         }
 
-        // ── Section Rendering ──
-        let currentSections = tool ? [...((tool.blog || {}).sections || [])] : [];
+        // ═══════════════════════════════
+        // BLOCK RENDERING
+        // ═══════════════════════════════
 
-        function renderSections(sections) {
-            const wrap = document.getElementById('sectionsWrap');
-            if (!sections.length) {
-                wrap.innerHTML = `
-        <div class="empty-blog">
-          <div class="empty-blog-icon">📝</div>
-          <div class="empty-blog-title">尚無內容</div>
-          <div class="empty-blog-sub">管理員可從下方新增文字、圖片或影片區塊</div>
-        </div>`;
+        const BLOCK_PH = {
+            text: "輸入文字，或按 / 插入區塊…",
+            h1: "大標題", h2: "中標題", h3: "小標題",
+            bullet: "清單項目", numbered: "清單項目",
+            code: "輸入程式碼…",
+            callout: "輸入提示內容…",
+            image: "", video: "", divider: "", table: ""
+        };
+
+        function renderBlocks() {
+            const wrap = document.getElementById('blocksWrap');
+            if (!blocks.length && !isAdmin) {
+                wrap.innerHTML = `<div class="empty-blog"><div class="empty-blog-icon">📝</div><div class="empty-blog-title">尚無內容</div><div class="empty-blog-sub">管理員可在此編輯內容</div></div>`;
+                return;
+            }
+            let html = '';
+            if (isAdmin && !blocks.length) {
+                // Show a starter block
+                blocks.push({ type: 'text', content: '' });
+            }
+            blocks.forEach((b, i) => {
+                html += renderBlockRow(b, i);
+                if (isAdmin) html += `<button class="add-block-btn" onclick="insertBlockAt(${i + 1})" title="新增區塊">＋</button>`;
+            });
+            wrap.innerHTML = html;
+
+            // Attach contenteditable events
+            if (isAdmin) {
+                wrap.querySelectorAll('.block-content[contenteditable]').forEach(el => {
+                    el.addEventListener('keydown', handleBlockKeydown);
+                    el.addEventListener('input', handleBlockInput);
+                });
+            }
+        }
+
+        function renderBlockRow(b, i) {
+            const cls = `block-row block-${b.type}`;
+            const handle = `<div class="block-handle" draggable="true" ondragstart="dragBlock(event,${i})">⠿</div>`;
+            const actions = `<div class="block-actions">
+                ${i > 0 ? `<button class="ba-btn" onclick="moveBlock(${i},-1)" title="上移">↑</button>` : ''}
+                ${i < blocks.length - 1 ? `<button class="ba-btn" onclick="moveBlock(${i},1)" title="下移">↓</button>` : ''}
+                <button class="ba-btn" onclick="deleteBlock(${i})" title="刪除">🗑</button>
+            </div>`;
+
+            let content = '';
+            if (b.type === 'divider') {
+                content = `<div class="block-content" style="flex:1"><hr/></div>`;
+            } else if (b.type === 'image') {
+                content = `<div class="block-content" style="padding:8px 0">
+                    ${b.url ? `<img src="${b.url}" alt="${b.caption || ''}" style="max-width:100%;border-radius:10px;display:block;box-shadow:0 2px 12px rgba(0,0,0,0.08)"/>` : ''}
+                    ${isAdmin ? `<input class="img-url-input" data-idx="${i}" value="${b.url || ''}" placeholder="貼上圖片網址" style="width:100%;margin-top:8px;padding:6px 10px;font-size:.8rem;border:1.5px solid rgba(30,27,75,0.1);border-radius:8px;font-family:inherit;outline:none" onchange="updateImageUrl(${i},this.value)"/>` : ''}
+                    ${b.caption ? `<div class="img-caption">${b.caption}</div>` : ''}
+                    ${isAdmin ? `<input data-idx="${i}" value="${b.caption || ''}" placeholder="圖片說明（選填）" style="width:100%;margin-top:4px;padding:4px 10px;font-size:.75rem;border:1px solid rgba(30,27,75,0.08);border-radius:6px;font-family:inherit;outline:none;color:var(--text-mid)" onchange="updateImageCaption(${i},this.value)"/>` : ''}
+                </div>`;
+            } else if (b.type === 'video') {
+                const embed = buildVideoEmbed(b.url || '');
+                content = `<div class="block-content" style="padding:8px 0">
+                    ${embed}
+                    ${isAdmin ? `<input data-idx="${i}" value="${b.url || ''}" placeholder="YouTube 連結 或 影片 URL" style="width:100%;margin-top:8px;padding:6px 10px;font-size:.8rem;border:1.5px solid rgba(30,27,75,0.1);border-radius:8px;font-family:inherit;outline:none" onchange="updateVideoUrl(${i},this.value)"/>` : ''}
+                    ${b.caption ? `<div class="vid-caption">${b.caption}</div>` : ''}
+                </div>`;
+            } else if (b.type === 'table') {
+                const rows = b.rows || [['', '', ''], ['', '', ''], ['', '', '']];
+                const tableHtml = `<table>${rows.map((r, ri) => `<tr>${r.map((c, ci) => `<${ri === 0 ? 'th' : 'td'} ${isAdmin ? `contenteditable="true" onblur="updateTableCell(${i},${ri},${ci},this.textContent)"` : ''} style="min-width:60px">${c}</${ri === 0 ? 'th' : 'td'}>`).join('')}</tr>`).join('')}</table>`;
+                content = `<div class="block-content block-table" style="padding:8px 0;overflow-x:auto">${tableHtml}${isAdmin ? `<div style="display:flex;gap:6px;margin-top:8px"><button class="ba-btn" onclick="addTableRow(${i})" style="width:auto;padding:4px 10px;font-size:.7rem">+ 行</button><button class="ba-btn" onclick="addTableCol(${i})" style="width:auto;padding:4px 10px;font-size:.7rem">+ 列</button></div>` : ''}</div>`;
             } else {
-                wrap.innerHTML = sections.map((s, i) => renderSection(s, i)).join('');
+                // text, h1, h2, h3, bullet, numbered, code, callout
+                const editable = isAdmin ? `contenteditable="true"` : '';
+                const ph = BLOCK_PH[b.type] || '';
+                content = `<div class="block-content" ${editable} data-idx="${i}" data-ph="${ph}">${escHtml(b.content || '')}</div>`;
             }
+
+            return `<div class="${cls}" data-idx="${i}" ondragover="event.preventDefault()" ondrop="dropBlock(event,${i})">${handle}${content}${actions}</div>`;
         }
 
-        function renderSection(s, i) {
-            const adminEdit = `
-      <div class="section-editor">
-        ${buildEditor(s, i)}
-      </div>`;
-
-            if (s.type === 'text') {
-                const html = parseInlineMarkdown(s.content || '');
-                return `<div class="section-block">
-        <div class="section-text">${html}</div>
-        ${adminEdit}
-      </div>`;
-            }
-            if (s.type === 'image') {
-                return `<div class="section-block">
-        <figure class="section-image">
-          <img src="${s.url || ''}" alt="${s.caption || ''}" />
-          ${s.caption ? `<figcaption>${s.caption}</figcaption>` : ''}
-        </figure>
-        ${adminEdit}
-      </div>`;
-            }
-            if (s.type === 'video') {
-                const embedHtml = buildVideoEmbed(s.url || '');
-                return `<div class="section-block">
-        <div class="section-video">
-          ${embedHtml}
-          ${s.caption ? `<div class="section-video-caption">${s.caption}</div>` : ''}
-        </div>
-        ${adminEdit}
-      </div>`;
-            }
-            return '';
-        }
-
-        function buildEditor(s, i) {
-            if (s.type === 'text') return `
-      <div class="se-row">
-        <textarea class="se-textarea" id="se-content-${i}" placeholder="輸入段落內容（支援 **粗體**、# 標題、## 小標）">${s.content || ''}</textarea>
-      </div>
-      <div class="se-row">
-        <button class="se-btn se-btn-save" onclick="updateSection(${i})">✓ 更新</button>
-        <button class="se-btn se-btn-rm"   onclick="removeSection(${i})">🗑️ 刪除</button>
-        ${i > 0 ? `<button class="se-btn" onclick="moveSection(${i},-1)">↑ 上移</button>` : ''}
-        ${i < currentSections.length - 1 ? `<button class="se-btn" onclick="moveSection(${i},1)">↓ 下移</button>` : ''}
-      </div>`;
-            if (s.type === 'image') return `
-      <div class="se-row">
-        <input class="se-input" id="se-url-${i}" placeholder="圖片 URL（/downloads/xxx.jpg 或外部連結）" value="${s.url || ''}" />
-      </div>
-      <div class="se-row">
-        <input class="se-input" id="se-cap-${i}" placeholder="圖片說明文字（選填）" value="${s.caption || ''}" />
-      </div>
-      <div class="se-row">
-        <button class="se-btn se-btn-save" onclick="updateSection(${i})">✓ 更新</button>
-        <button class="se-btn se-btn-rm"   onclick="removeSection(${i})">🗑️ 刪除</button>
-        ${i > 0 ? `<button class="se-btn" onclick="moveSection(${i},-1)">↑ 上移</button>` : ''}
-        ${i < currentSections.length - 1 ? `<button class="se-btn" onclick="moveSection(${i},1)">↓ 下移</button>` : ''}
-      </div>`;
-            if (s.type === 'video') return `
-      <div class="se-row">
-        <input class="se-input" id="se-url-${i}" placeholder="YouTube 連結 或 /downloads/xxx.mp4" value="${s.url || ''}" />
-      </div>
-      <div class="se-row">
-        <input class="se-input" id="se-cap-${i}" placeholder="影片說明（選填）" value="${s.caption || ''}" />
-      </div>
-      <div class="se-row">
-        <button class="se-btn se-btn-save" onclick="updateSection(${i})">✓ 更新</button>
-        <button class="se-btn se-btn-rm"   onclick="removeSection(${i})">🗑️ 刪除</button>
-        ${i > 0 ? `<button class="se-btn" onclick="moveSection(${i},-1)">↑ 上移</button>` : ''}
-        ${i < currentSections.length - 1 ? `<button class="se-btn" onclick="moveSection(${i},1)">↓ 下移</button>` : ''}
-      </div>`;
-            return '';
-        }
+        function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
         function buildVideoEmbed(url) {
-            // YouTube
-            const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([A-Za-z0-9_-]{11})/);
-            if (ytMatch) return `<iframe src="https://www.youtube.com/embed/${ytMatch[1]}" allowfullscreen></iframe>`;
-            // Local video
+            const yt = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([A-Za-z0-9_-]{11})/);
+            if (yt) return `<iframe src="https://www.youtube.com/embed/${yt[1]}" allowfullscreen></iframe>`;
             if (url) return `<video controls src="${url}"></video>`;
-            return `<div style="background:#F3F4F6;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;border-radius:12px;color:#9CA3AF;font-size:.9rem;">尚未設定影片連結</div>`;
+            return `<div style="background:#F3F4F6;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;border-radius:12px;color:#9CA3AF;font-size:.9rem">尚未設定影片連結</div>`;
         }
 
-        function parseInlineMarkdown(text) {
-            return text
-                .split('\n')
-                .map(line => {
-                    if (/^### /.test(line)) return '<h3>' + line.slice(4) + '</h3>';
-                    if (/^## /.test(line)) return '<h2>' + line.slice(3) + '</h2>';
-                    if (/^# /.test(line)) return '<h2>' + line.slice(2) + '</h2>';
-                    line = line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-                    return line ? '<p>' + line + '</p>' : '<br/>';
-                })
-                .join('');
+        // ═══════════════════════════════
+        // BLOCK CRUD
+        // ═══════════════════════════════
+
+        function insertBlockAt(idx, type = 'text') {
+            const newBlock = { type, content: '' };
+            if (type === 'table') newBlock.rows = [['欄位1', '欄位2', '欄位3'], ['', '', ''], ['', '', '']];
+            if (type === 'image') { newBlock.url = ''; newBlock.caption = ''; }
+            if (type === 'video') { newBlock.url = ''; newBlock.caption = ''; }
+            blocks.splice(idx, 0, newBlock);
+            renderBlocks();
+            // Focus new block
+            setTimeout(() => {
+                const el = document.querySelector(`.block-row[data-idx="${idx}"] .block-content[contenteditable]`);
+                if (el) el.focus();
+            }, 50);
         }
 
-        // ── Section CRUD ──
-        function addSection(type) {
-            currentSections.push({ type, content: '', url: '', caption: '' });
-            renderSections(currentSections);
+        function deleteBlock(i) {
+            blocks.splice(i, 1);
+            renderBlocks();
         }
 
-        function updateSection(i) {
-            const s = currentSections[i];
-            if (s.type === 'text') s.content = document.getElementById(`se-content-${i}`)?.value || '';
-            if (s.type === 'image' || s.type === 'video') {
-                s.url = document.getElementById(`se-url-${i}`)?.value || '';
-                s.caption = document.getElementById(`se-cap-${i}`)?.value || '';
-            }
-            renderSections(currentSections);
-            showToast('✅ 區塊已更新（記得按「儲存 Blog」）');
-        }
-
-        function removeSection(i) {
-            if (!confirm('刪除此區塊？')) return;
-            currentSections.splice(i, 1);
-            renderSections(currentSections);
-        }
-
-        function moveSection(i, dir) {
+        function moveBlock(i, dir) {
             const j = i + dir;
-            if (j < 0 || j >= currentSections.length) return;
-            [currentSections[i], currentSections[j]] = [currentSections[j], currentSections[i]];
-            renderSections(currentSections);
+            if (j < 0 || j >= blocks.length) return;
+            [blocks[i], blocks[j]] = [blocks[j], blocks[i]];
+            renderBlocks();
         }
 
-        // ── Save Blog ──
+        function updateImageUrl(i, val) { blocks[i].url = val; renderBlocks(); }
+        function updateImageCaption(i, val) { blocks[i].caption = val; }
+        function updateVideoUrl(i, val) { blocks[i].url = val; renderBlocks(); }
+        function updateTableCell(i, ri, ci, val) { if (blocks[i].rows) blocks[i].rows[ri][ci] = val; }
+        function addTableRow(i) { const cols = blocks[i].rows[0].length; blocks[i].rows.push(Array(cols).fill('')); renderBlocks(); }
+        function addTableCol(i) { blocks[i].rows.forEach(r => r.push('')); renderBlocks(); }
+
+        // ── Drag & Drop ──
+        let dragIdx = -1;
+        function dragBlock(e, i) { dragIdx = i; e.dataTransfer.effectAllowed = 'move'; }
+        function dropBlock(e, i) {
+            e.preventDefault();
+            if (dragIdx < 0 || dragIdx === i) return;
+            const [moved] = blocks.splice(dragIdx, 1);
+            blocks.splice(i, 0, moved);
+            dragIdx = -1;
+            renderBlocks();
+        }
+
+        // ═══════════════════════════════
+        // KEYBOARD HANDLING
+        // ═══════════════════════════════
+
+        function syncBlockContent(el) {
+            const idx = parseInt(el.dataset.idx);
+            if (!isNaN(idx) && blocks[idx]) blocks[idx].content = el.textContent;
+        }
+
+        function handleBlockInput(e) {
+            const el = e.target;
+            syncBlockContent(el);
+        }
+
+        function handleBlockKeydown(e) {
+            const el = e.target;
+            const idx = parseInt(el.dataset.idx);
+
+            // Enter → new block below
+            if (e.key === 'Enter' && !e.shiftKey) {
+                if (blocks[idx]?.type === 'code') return; // allow newlines in code
+                e.preventDefault();
+                syncBlockContent(el);
+                insertBlockAt(idx + 1, blocks[idx]?.type === 'bullet' ? 'bullet' : blocks[idx]?.type === 'numbered' ? 'numbered' : 'text');
+            }
+
+            // Backspace on empty → delete block
+            if (e.key === 'Backspace' && el.textContent === '' && blocks.length > 1) {
+                e.preventDefault();
+                deleteBlock(idx);
+                // Focus previous block
+                setTimeout(() => {
+                    const prev = document.querySelector(`.block-row[data-idx="${Math.max(0, idx - 1)}"] .block-content[contenteditable]`);
+                    if (prev) prev.focus();
+                }, 50);
+            }
+
+            // ArrowUp at start → focus previous
+            if (e.key === 'ArrowUp' && idx > 0) {
+                const sel = window.getSelection();
+                if (sel.anchorOffset === 0) {
+                    e.preventDefault();
+                    const prev = document.querySelector(`.block-row[data-idx="${idx - 1}"] .block-content[contenteditable]`);
+                    if (prev) prev.focus();
+                }
+            }
+            // ArrowDown at end → focus next
+            if (e.key === 'ArrowDown' && idx < blocks.length - 1) {
+                const sel = window.getSelection();
+                if (sel.anchorOffset >= el.textContent.length) {
+                    e.preventDefault();
+                    const next = document.querySelector(`.block-row[data-idx="${idx + 1}"] .block-content[contenteditable]`);
+                    if (next) next.focus();
+                }
+            }
+        }
+
+        // ═══════════════════════════════
+        // SLASH COMMAND MENU
+        // ═══════════════════════════════
+
+        const slashMenu = document.getElementById('slashMenu');
+        let slashTarget = null;
+        let slashActiveIdx = 0;
+
+        document.addEventListener('input', e => {
+            if (!isAdmin) return;
+            const el = e.target;
+            if (!el.classList.contains('block-content') || !el.hasAttribute('contenteditable')) return;
+            const text = el.textContent;
+            if (text === '/') {
+                const rect = el.getBoundingClientRect();
+                slashMenu.style.left = rect.left + 'px';
+                slashMenu.style.top = (rect.bottom + 4) + 'px';
+                slashMenu.classList.add('open');
+                slashTarget = el;
+                slashActiveIdx = 0;
+                filterSlashItems('');
+            } else if (text.startsWith('/') && slashMenu.classList.contains('open')) {
+                filterSlashItems(text.slice(1));
+            } else {
+                closeSlashMenu();
+            }
+        });
+
+        function filterSlashItems(q) {
+            const items = slashMenu.querySelectorAll('.slash-item');
+            let visCount = 0;
+            items.forEach(it => {
+                const label = it.querySelector('.slash-item-label').textContent.toLowerCase();
+                const match = !q || label.includes(q.toLowerCase());
+                it.style.display = match ? 'flex' : 'none';
+                if (match) visCount++;
+            });
+            if (!visCount) closeSlashMenu();
+        }
+
+        slashMenu.addEventListener('click', e => {
+            const item = e.target.closest('.slash-item');
+            if (!item) return;
+            selectSlashItem(item.dataset.type);
+        });
+
+        document.addEventListener('keydown', e => {
+            if (!slashMenu.classList.contains('open')) return;
+            if (e.key === 'Escape') { closeSlashMenu(); e.preventDefault(); return; }
+            const items = [...slashMenu.querySelectorAll('.slash-item')].filter(i => i.style.display !== 'none');
+            if (e.key === 'ArrowDown') { e.preventDefault(); slashActiveIdx = Math.min(slashActiveIdx + 1, items.length - 1); highlightSlashItem(items); }
+            if (e.key === 'ArrowUp') { e.preventDefault(); slashActiveIdx = Math.max(slashActiveIdx - 1, 0); highlightSlashItem(items); }
+            if (e.key === 'Enter') { e.preventDefault(); if (items[slashActiveIdx]) selectSlashItem(items[slashActiveIdx].dataset.type); }
+        });
+
+        function highlightSlashItem(items) {
+            items.forEach((it, i) => it.classList.toggle('active', i === slashActiveIdx));
+        }
+
+        function selectSlashItem(type) {
+            if (!slashTarget) return;
+            const idx = parseInt(slashTarget.dataset.idx);
+            closeSlashMenu();
+            // Convert current block to selected type
+            blocks[idx] = { type, content: '' };
+            if (type === 'table') blocks[idx].rows = [['欄位1', '欄位2', '欄位3'], ['', '', ''], ['', '', '']];
+            if (type === 'image') { blocks[idx].url = ''; blocks[idx].caption = ''; }
+            if (type === 'video') { blocks[idx].url = ''; blocks[idx].caption = ''; }
+            renderBlocks();
+            setTimeout(() => {
+                const el = document.querySelector(`.block-row[data-idx="${idx}"] .block-content[contenteditable]`);
+                if (el) el.focus();
+            }, 50);
+        }
+
+        function closeSlashMenu() {
+            slashMenu.classList.remove('open');
+            slashTarget = null;
+        }
+
+        // Close slash menu on outside click
+        document.addEventListener('click', e => {
+            if (!slashMenu.contains(e.target)) closeSlashMenu();
+        });
+
+        // ═══════════════════════════════
+        // SAVE
+        // ═══════════════════════════════
+
         function saveBlog() {
             if (!tool) return;
+            // Sync all contenteditable blocks
+            document.querySelectorAll('.block-content[contenteditable]').forEach(el => syncBlockContent(el));
             const tools = DB.getTools();
             const idx = tools.findIndex(t => t.id === tool.id);
             if (idx < 0) return;
-            if (!tools[idx].blog) tools[idx].blog = { summary: '', sections: [] };
-            tools[idx].blog.sections = currentSections;
+            if (!tools[idx].blog) tools[idx].blog = {};
+            tools[idx].blog.blocks = blocks;
             tools[idx].blog.summary = document.getElementById('mainSummary')?.textContent || '';
             DB.saveTools(tools);
-            showToast('💾 Blog 已儲存！');
+            showToast('💾 已儲存！');
         }
 
         // ── Toast ──
@@ -923,19 +1317,10 @@
             setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, 2200);
         }
 
-        // ── Auth check ──
-        if (sessionStorage.getItem('admin_auth') === '1') {
-            document.body.classList.add('admin-logged-in');
-        }
-
-        // ── Summary editable for admin ──
-        const summaryEl = document.getElementById('mainSummary');
-        if (summaryEl && sessionStorage.getItem('admin_auth') === '1') {
-            summaryEl.contentEditable = 'true';
-            summaryEl.style.outline = '1.5px dashed #6366F1';
-            summaryEl.style.borderRadius = '4px';
-            summaryEl.title = '點此編輯前言摘要';
-        }
+        // ── Keyboard shortcut: Ctrl+S ──
+        document.addEventListener('keydown', e => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); if (isAdmin) saveBlog(); }
+        });
     </script>
 </body>
 
