@@ -2866,12 +2866,15 @@
     }, { threshold: 0.1 });
     fadeEls.forEach(el => obs.observe(el));
 
-    // Stats counter
+    // Stats counter (uses _target set by loadSiteSettings)
     const statsObs = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting) {
-        animateCounter(document.getElementById('cnt-tools'), 6);
-        animateCounter(document.getElementById('cnt-users'), 12, '+');
-        animateCounter(document.getElementById('cnt-hrs'), 8, 'h');
+        const ct = document.getElementById('cnt-tools');
+        const cu = document.getElementById('cnt-users');
+        const ch = document.getElementById('cnt-hrs');
+        animateCounter(ct, ct._target || 16);
+        animateCounter(cu, cu._target || 29, '+');
+        animateCounter(ch, ch._target || 10, 'h');
         statsObs.disconnect();
       }
     }, { threshold: 0.5 });
