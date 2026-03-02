@@ -1061,17 +1061,31 @@
             if (b.type === 'divider') {
                 content = `<div class="block-content" style="flex:1"><hr/></div>`;
             } else if (b.type === 'image') {
+                const hasImg = b.url && b.url.length > 0;
                 content = `<div class="block-content" style="padding:8px 0">
-                    ${b.url ? `<img src="${b.url}" alt="${b.caption || ''}" style="max-width:100%;border-radius:10px;display:block;box-shadow:0 2px 12px rgba(0,0,0,0.08)"/>` : ''}
-                    ${isAdmin ? `<input class="img-url-input" data-idx="${i}" value="${b.url || ''}" placeholder="貼上圖片網址" style="width:100%;margin-top:8px;padding:6px 10px;font-size:.8rem;border:1.5px solid rgba(30,27,75,0.1);border-radius:8px;font-family:inherit;outline:none" onchange="updateImageUrl(${i},this.value)"/>` : ''}
-                    ${b.caption ? `<div class="img-caption">${b.caption}</div>` : ''}
-                    ${isAdmin ? `<input data-idx="${i}" value="${b.caption || ''}" placeholder="圖片說明（選填）" style="width:100%;margin-top:4px;padding:4px 10px;font-size:.75rem;border:1px solid rgba(30,27,75,0.08);border-radius:6px;font-family:inherit;outline:none;color:var(--text-mid)" onchange="updateImageCaption(${i},this.value)"/>` : ''}
+                    ${hasImg ? `<img src="${b.url}" alt="${b.caption || ''}" style="max-width:100%;border-radius:10px;display:block;box-shadow:0 2px 12px rgba(0,0,0,0.08)"/>` : ''}
+                    ${isAdmin ? `<div style="display:flex;gap:8px;align-items:center;margin-top:8px">
+                        <label style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:var(--accent);color:white;border-radius:10px;cursor:pointer;font-size:.82rem;font-weight:700;transition:opacity .2s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+                            📷 ${hasImg ? '更換圖片' : '上傳圖片'}
+                            <input type="file" accept="image/*" style="display:none" onchange="handleFileUpload(${i},'image',this)"/>
+                        </label>
+                        <span style="color:var(--text-mid);font-size:.72rem">或</span>
+                        <input value="${b.url && !b.url.startsWith('data:') ? b.url : ''}" placeholder="貼上圖片網址" style="flex:1;padding:6px 10px;font-size:.78rem;border:1.5px solid rgba(30,27,75,0.1);border-radius:8px;font-family:inherit;outline:none" onchange="updateImageUrl(${i},this.value)"/>
+                    </div>` : ''}
+                    ${isAdmin ? `<input value="${b.caption || ''}" placeholder="圖片說明（選填）" style="width:100%;margin-top:6px;padding:4px 10px;font-size:.75rem;border:1px solid rgba(30,27,75,0.08);border-radius:6px;font-family:inherit;outline:none;color:var(--text-mid)" onchange="updateImageCaption(${i},this.value)"/>` : (b.caption ? `<div class="img-caption">${b.caption}</div>` : '')}
                 </div>`;
             } else if (b.type === 'video') {
                 const embed = buildVideoEmbed(b.url || '');
                 content = `<div class="block-content" style="padding:8px 0">
                     ${embed}
-                    ${isAdmin ? `<input data-idx="${i}" value="${b.url || ''}" placeholder="YouTube 連結 或 影片 URL" style="width:100%;margin-top:8px;padding:6px 10px;font-size:.8rem;border:1.5px solid rgba(30,27,75,0.1);border-radius:8px;font-family:inherit;outline:none" onchange="updateVideoUrl(${i},this.value)"/>` : ''}
+                    ${isAdmin ? `<div style="display:flex;gap:8px;align-items:center;margin-top:8px">
+                        <label style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#8B5CF6;color:white;border-radius:10px;cursor:pointer;font-size:.82rem;font-weight:700;transition:opacity .2s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+                            🎬 上傳影片
+                            <input type="file" accept="video/*" style="display:none" onchange="handleFileUpload(${i},'video',this)"/>
+                        </label>
+                        <span style="color:var(--text-mid);font-size:.72rem">或</span>
+                        <input value="${b.url && !b.url.startsWith('data:') ? b.url : ''}" placeholder="YouTube 連結 或影片 URL" style="flex:1;padding:6px 10px;font-size:.78rem;border:1.5px solid rgba(30,27,75,0.1);border-radius:8px;font-family:inherit;outline:none" onchange="updateVideoUrl(${i},this.value)"/>
+                    </div>` : ''}
                     ${b.caption ? `<div class="vid-caption">${b.caption}</div>` : ''}
                 </div>`;
             } else if (b.type === 'table') {
@@ -1130,6 +1144,23 @@
         function updateImageUrl(i, val) { blocks[i].url = val; renderBlocks(); }
         function updateImageCaption(i, val) { blocks[i].caption = val; }
         function updateVideoUrl(i, val) { blocks[i].url = val; renderBlocks(); }
+
+        function handleFileUpload(blockIdx, type, inputEl) {
+            const file = inputEl.files[0];
+            if (!file) return;
+            const maxMB = type === 'video' ? 10 : 3;
+            if (file.size > maxMB * 1024 * 1024) {
+                showToast(`⚠️ 檔案太大，${type === 'video' ? '影片' : '圖片'}最大 ${maxMB}MB`);
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = () => {
+                blocks[blockIdx].url = reader.result;
+                renderBlocks();
+                showToast(`✅ ${type === 'video' ? '影片' : '圖片'}已上傳（記得按「儲存」）`);
+            };
+            reader.readAsDataURL(file);
+        }
         function updateTableCell(i, ri, ci, val) { if (blocks[i].rows) blocks[i].rows[ri][ci] = val; }
         function addTableRow(i) { const cols = blocks[i].rows[0].length; blocks[i].rows.push(Array(cols).fill('')); renderBlocks(); }
         function addTableCol(i) { blocks[i].rows.forEach(r => r.push('')); renderBlocks(); }
