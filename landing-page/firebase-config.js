@@ -72,23 +72,31 @@ const Auth = {
 const FireDB = {
     // ── Tools ──
     async getApprovedTools() {
-        const snap = await db.collection('tools').where('approval', '==', 'approved').orderBy('order').get();
-        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const snap = await db.collection('tools').where('approval', '==', 'approved').get();
+        return snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (a.order || 0) - (b.order || 0));
     },
 
     async getToolsByAuthor(uid) {
-        const snap = await db.collection('tools').where('authorUid', '==', uid).orderBy('submittedAt', 'desc').get();
-        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const snap = await db.collection('tools').where('authorUid', '==', uid).get();
+        return snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => {
+            const ta = a.submittedAt?.toMillis?.() || 0;
+            const tb = b.submittedAt?.toMillis?.() || 0;
+            return tb - ta;
+        });
     },
 
     async getPendingTools() {
-        const snap = await db.collection('tools').where('approval', '==', 'pending').orderBy('submittedAt', 'desc').get();
-        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const snap = await db.collection('tools').where('approval', '==', 'pending').get();
+        return snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => {
+            const ta = a.submittedAt?.toMillis?.() || 0;
+            const tb = b.submittedAt?.toMillis?.() || 0;
+            return tb - ta;
+        });
     },
 
     async getAllTools() {
-        const snap = await db.collection('tools').orderBy('order').get();
-        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const snap = await db.collection('tools').get();
+        return snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (a.order || 0) - (b.order || 0));
     },
 
     async submitTool(toolData, authorUid) {
@@ -143,17 +151,17 @@ const FireDB = {
 
     // ── Pain Cards ──
     async getApprovedPainCards() {
-        const snap = await db.collection('painCards').where('approval', '==', 'approved').orderBy('submittedAt', 'desc').get();
+        const snap = await db.collection('painCards').where('approval', '==', 'approved').get();
         return snap.docs.map(d => ({ id: d.id, ...d.data() }));
     },
 
     async getPainCardsByAuthor(uid) {
-        const snap = await db.collection('painCards').where('authorUid', '==', uid).orderBy('submittedAt', 'desc').get();
+        const snap = await db.collection('painCards').where('authorUid', '==', uid).get();
         return snap.docs.map(d => ({ id: d.id, ...d.data() }));
     },
 
     async getPendingPainCards() {
-        const snap = await db.collection('painCards').where('approval', '==', 'pending').orderBy('submittedAt', 'desc').get();
+        const snap = await db.collection('painCards').where('approval', '==', 'pending').get();
         return snap.docs.map(d => ({ id: d.id, ...d.data() }));
     },
 
@@ -202,7 +210,7 @@ const FireDB = {
 
     // ── Users ──
     async getAllUsers() {
-        const snap = await db.collection('users').orderBy('createdAt', 'desc').get();
+        const snap = await db.collection('users').get();
         return snap.docs.map(d => ({ uid: d.id, ...d.data() }));
     },
 
