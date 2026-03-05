@@ -716,6 +716,7 @@
                     ${isAdmin ? `<button class="dash-tab" data-tab="review">📋 審核佇列 <span class="tab-count tab-count-warn">${reviewCount}</span></button>` : ''}
                     ${isAdmin ? `<button class="dash-tab" data-tab="manage-all">⚙️ 管理所有項目 <span class="tab-count">${allToolsAdmin.length + allPainCardsAdmin.length}</span></button>` : ''}
                     ${isAdmin ? `<button class="dash-tab" data-tab="all-users">👥 所有開發者 <span class="tab-count">${allUsers.length}</span></button>` : ''}
+                    ${isAdmin ? `<button class="dash-tab" data-tab="add-dev">➕ 新增開發者</button>` : ''}
                 </div>
 
                 <!-- Tab Panes -->
@@ -726,6 +727,7 @@
                 ${isAdmin ? `<div class="tab-pane" id="pane-review">${renderReviewQueue()}</div>` : ''}
                 ${isAdmin ? `<div class="tab-pane" id="pane-manage-all">${renderManageAll()}</div>` : ''}
                 ${isAdmin ? `<div class="tab-pane" id="pane-all-users">${renderAllUsers()}</div>` : ''}
+                ${isAdmin ? `<div class="tab-pane" id="pane-add-dev">${renderAddDeveloper()}</div>` : ''}
             `;
 
             // Tab switching
@@ -854,6 +856,38 @@
                     </div>`;
                 }
             }).join('')}</div>`;
+        }
+
+        // ── Render: Add Developer (Admin) ──
+        function renderAddDeveloper() {
+            return `<div class="form-card">
+                <h3>➕ 新增開發者帳號</h3>
+                <p style="font-size:.82rem;color:var(--text-mid);margin-bottom:18px">管理員直接建立開發者帳號，指定密碼後通知對方登入。</p>
+                <form id="addDevForm" onsubmit="handleAddDeveloper(event)">
+                    <div class="fg">
+                        <label>顯示名稱 *</label>
+                        <input id="ad-name" required placeholder="例：辺山考庄" />
+                    </div>
+                    <div class="fg">
+                        <label>Email *</label>
+                        <input id="ad-email" type="email" required placeholder="user@simhope.com.tw" />
+                    </div>
+                    <div class="fg-row">
+                        <div class="fg">
+                            <label>初始密碼 *</label>
+                            <input id="ad-pass" type="password" required minlength="6" placeholder="至少6個字元" />
+                        </div>
+                        <div class="fg">
+                            <label>角色</label>
+                            <select id="ad-role">
+                                <option value="developer">👨‍💻 開發者</option>
+                                <option value="admin">🛡️ 管理員</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="submit-btn" type="submit" id="adSubmit">+ 建立帳號</button>
+                </form>
+            </div>`;
         }
 
         // ── Render: Manage All (Admin) ──
@@ -1035,7 +1069,6 @@
         async function revokeAccess(uid) {
             if (!confirm('確定要移除此張開發者的權限？他將無法登入 Dashboard。')) return;
             try {
-                // 將 role 設為 null / 移除權限（保留帳號，劫奪登入權）
                 await firebase.firestore().collection('users').doc(uid).update({ role: 'revoked' });
                 showToast('⛔ 已移除開發者權限');
                 await initDashboard();
@@ -1044,6 +1077,66 @@
 
         async function promoteUser(uid) {
             await setUserRole(uid, 'admin');
+        }
+
+        // ── Add Developer (Admin) ──
+        async function handleAddDeveloper(e) {
+            e.preventDefault();
+            const btn = document.getElementById('adSubmit');
+            btn.disabled = true;
+            btn.textContent = '建立中...';
+
+            const name = document.getElementById('ad-name').value.trim();
+            const email = document.getElementById('ad-email').value.trim();
+            const pass = document.getElementById('ad-pass').value;
+            const role = document.getElementById('ad-role').value;
+
+            // 使用 Firebase REST API 建立帳號（不影響目前管理員 session）
+            const apiKey = firebase.app().options.apiKey;
+            try {
+                const res = await fetch(
+                    `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${apiKey}`,
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, password: pass, returnSecureToken: false })
+                    }
+                );
+                const data = await res.json();
+                if (data.error) throw new Error(data.error.message);
+
+                const newUid = data.localId;
+                // 建立 Firestore user doc
+                await firebase.firestore().collection('users').doc(newUid).set({
+                    email,
+                    displayName: name,
+                    role,
+                    avatarUrl: '',
+                    bio: '',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                // 更新 displayName（via REST）
+                await fetch(
+                    `https://identitytoolkit.googleapis.com/v1/accounts:update?key=${apiKey}`,
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ idToken: data.idToken, displayName: name })
+                    }
+                );
+
+                const roleLabel = role === 'admin' ? '管理員' : '開發者';
+                showToast(`✅ ${roleLabel}帳號「${name}」已建立！`);
+                document.getElementById('addDevForm').reset();
+                await initDashboard();
+            } catch (err) {
+                const msg = err.message === 'EMAIL_EXISTS' ? 'Email 已被使用' : err.message;
+                showToast('❌ 建立失敗：' + msg);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '+ 建立帳號';
+            }
         }
     </script>
 </body>
