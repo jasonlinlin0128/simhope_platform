@@ -105,6 +105,33 @@
       animation: float1 9s ease-in-out infinite reverse;
     }
 
+    .blob-5 {
+      width: 450px;
+      height: 450px;
+      top: 55%;
+      left: -5%;
+      background: var(--clay-coral);
+      animation: float2 11s ease-in-out infinite;
+    }
+
+    .blob-6 {
+      width: 380px;
+      height: 380px;
+      top: 72%;
+      right: 15%;
+      background: var(--clay-pink);
+      animation: float3 13s ease-in-out infinite reverse;
+    }
+
+    .blob-7 {
+      width: 500px;
+      height: 500px;
+      top: 90%;
+      left: 40%;
+      background: var(--clay-orange);
+      animation: float1 15s ease-in-out infinite;
+    }
+
     @keyframes float1 {
 
       0%,
@@ -393,7 +420,6 @@
     /* ─── PAIN → SOLUTION SECTION ─── */
     #painpoints {
       padding: 100px 5%;
-      background: linear-gradient(135deg, rgba(255, 107, 107, 0.05), rgba(251, 146, 60, 0.05));
     }
 
     #painpoints .section-tag {
@@ -945,7 +971,6 @@
     /* ─── WHO AM I ─── */
     #about {
       padding: 100px 5%;
-      background: linear-gradient(135deg, rgba(167, 139, 250, 0.07), rgba(96, 165, 250, 0.07));
     }
 
     #about .section-tag {
@@ -2447,6 +2472,9 @@
       <div class="blob blob-2"></div>
       <div class="blob blob-3"></div>
       <div class="blob blob-4"></div>
+      <div class="blob blob-5"></div>
+      <div class="blob blob-6"></div>
+      <div class="blob blob-7"></div>
     </div>
 
     <!-- NAVBAR -->
@@ -2982,10 +3010,13 @@
 
       // 每個 blob 不同的反應強度和速度，製造視差
       const config = [
-        { strength: 0.08, speed: 0.8 },   // blob-1 (purple) 緩慢大範圍
-        { strength: 0.12, speed: 1.0 },   // blob-2 (blue) 中速
-        { strength: 0.06, speed: 0.6 },   // blob-3 (yellow) 最慢
-        { strength: 0.10, speed: 0.9 },   // blob-4 (green) 中偏快
+        { strength: 0.08, speed: 0.8 },   // blob-1 (purple)
+        { strength: 0.12, speed: 1.0 },   // blob-2 (blue)
+        { strength: 0.06, speed: 0.6 },   // blob-3 (yellow)
+        { strength: 0.10, speed: 0.9 },   // blob-4 (green)
+        { strength: 0.09, speed: 0.7 },   // blob-5 (coral)
+        { strength: 0.11, speed: 0.85 },  // blob-6 (pink)
+        { strength: 0.07, speed: 0.65 },  // blob-7 (orange)
       ];
 
       // 用 quickTo 創建平滑跟隨器
