@@ -619,6 +619,8 @@
         let pendingTools = [];
         let pendingPainCards = [];
         let allUsers = [];
+        let allToolsAdmin = [];
+        let allPainCardsAdmin = [];
 
         async function handleLogout() {
             await Auth.logout();
@@ -669,6 +671,8 @@
                 pendingTools = await FireDB.getPendingTools();
                 pendingPainCards = await FireDB.getPendingPainCards();
                 allUsers = await FireDB.getAllUsers();
+                allToolsAdmin = await FireDB.getAllTools();
+                allPainCardsAdmin = await FireDB.getApprovedPainCards();
             }
 
             renderDashboard();
@@ -710,6 +714,7 @@
                     <button class="dash-tab" data-tab="new-tool">➕ 新增工具</button>
                     <button class="dash-tab" data-tab="new-pain">➕ 新增痛點</button>
                     ${isAdmin ? `<button class="dash-tab" data-tab="review">📋 審核佇列 <span class="tab-count tab-count-warn">${reviewCount}</span></button>` : ''}
+                    ${isAdmin ? `<button class="dash-tab" data-tab="manage-all">⚙️ 管理所有項目 <span class="tab-count">${allToolsAdmin.length + allPainCardsAdmin.length}</span></button>` : ''}
                     ${isAdmin ? `<button class="dash-tab" data-tab="all-users">👥 所有開發者 <span class="tab-count">${allUsers.length}</span></button>` : ''}
                 </div>
 
@@ -719,6 +724,7 @@
                 <div class="tab-pane" id="pane-new-tool">${renderNewToolForm()}</div>
                 <div class="tab-pane" id="pane-new-pain">${renderNewPainForm()}</div>
                 ${isAdmin ? `<div class="tab-pane" id="pane-review">${renderReviewQueue()}</div>` : ''}
+                ${isAdmin ? `<div class="tab-pane" id="pane-manage-all">${renderManageAll()}</div>` : ''}
                 ${isAdmin ? `<div class="tab-pane" id="pane-all-users">${renderAllUsers()}</div>` : ''}
             `;
 
@@ -850,19 +856,67 @@
             }).join('')}</div>`;
         }
 
+        // ── Render: Manage All (Admin) ──
+        function renderManageAll() {
+            const tools = allToolsAdmin;
+            const pains = allPainCardsAdmin;
+            if (!tools.length && !pains.length) return `<div class="empty-state"><div class="empty-state-icon">⚙️</div><div class="empty-state-text">尚無任何已上架的工具或痛點</div></div>`;
+            return `
+                <h3 style="font-size:.88rem;font-weight:900;color:var(--text-mid);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px">🔧 工具列表 (${tools.length})</h3>
+                <div class="card-list" style="margin-bottom:24px">${tools.map(t => {
+                const statusBadge = { live: '✅ 上線', beta: '🟡 湋試中', evaluating: '🔵 評估中', dev: '🔨 開發中', terminated: '❌ 已停止' }[t.status] || t.status;
+                return `<div class="item-card">
+                        <div class="item-icon">${t.icon || '🛠️'}</div>
+                        <div class="item-body">
+                            <div class="item-title">${t.title || '無標題'}</div>
+                            <div class="item-sub">${t.tagline || t.desc || ''}</div>
+                            <div class="item-badges">
+                                <span class="badge badge-approved">✅ 已上架</span>
+                                <span class="badge" style="background:rgba(30,27,75,0.06);color:var(--text-mid)">${statusBadge}</span>
+                            </div>
+                        </div>
+                        <div class="item-actions">
+                            <button class="act-btn" onclick="changeToolStatus('${t.id}', 'terminated')" title="下架" style="border-color:#D97706;color:#D97706">🔕 下架</button>
+                            <button class="act-btn act-btn-reject" onclick="deleteItem('tool','${t.id}')" title="刪除">🗑️ 刪除</button>
+                        </div>
+                    </div>`;
+            }).join('')}</div>
+                <h3 style="font-size:.88rem;font-weight:900;color:var(--text-mid);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px">🤕 痛點卡片 (${pains.length})</h3>
+                <div class="card-list">${pains.map(c => {
+                return `<div class="item-card">
+                        <div class="item-icon">😓</div>
+                        <div class="item-body">
+                            <div class="item-title">${c.before || ''}</div>
+                            <div class="item-sub">✅ ${c.after || ''}</div>
+                            <div class="item-badges"><span class="badge badge-approved">✅ 已上架</span></div>
+                        </div>
+                        <div class="item-actions">
+                            <button class="act-btn act-btn-reject" onclick="deleteItem('pain','${c.id}')" title="刪除">🗑️ 刪除</button>
+                        </div>
+                    </div>`;
+            }).join('')}</div>
+            `;
+        }
+
         // ── Render: All Users (Admin) ──
         function renderAllUsers() {
             if (!allUsers.length) return `<div class="empty-state"><div class="empty-state-icon">👥</div><div class="empty-state-text">尚無使用者</div></div>`;
             return `<div class="users-grid">${allUsers.map(u => {
                 const name = u.displayName || u.email;
-                const roleLabel = u.role === 'admin' ? '🛡️ 管理員' : '👨‍💻 開發者';
+                const isAdmin = u.role === 'admin';
+                const isSelf = u.uid === currentUser.uid;
+                const roleLabel = isAdmin ? '🛡️ 管理員' : '👨‍💻 開發者';
                 return `<div class="user-card">
                     <div class="user-card-avatar">${name.charAt(0).toUpperCase()}</div>
                     <div class="user-card-info">
-                        <div class="user-card-name">${name} <span style="font-size:.65rem;color:var(--text-mid)">${roleLabel}</span></div>
+                        <div class="user-card-name">${name} <span style="font-size:.65rem;color:var(--text-mid)">${roleLabel}</span>${isSelf ? ' <span style="font-size:.58rem;color:#6366F1;font-weight:700">(You)</span>' : ''}</div>
                         <div class="user-card-email">${u.email}</div>
                     </div>
-                    ${u.role !== 'admin' ? `<button class="act-btn" onclick="promoteUser('${u.uid}')">升為管理員</button>` : ''}
+                    <div style="display:flex;flex-direction:column;gap:6px">
+                        ${!isAdmin && !isSelf ? `<button class="act-btn act-btn-approve" onclick="setUserRole('${u.uid}', 'admin')">⬆️ 升管理員</button>` : ''}
+                        ${isAdmin && !isSelf ? `<button class="act-btn" onclick="setUserRole('${u.uid}', 'developer')" style="border-color:#D97706;color:#D97706">⬇️ 降為開發者</button>` : ''}
+                        ${!isAdmin && !isSelf ? `<button class="act-btn act-btn-reject" onclick="revokeAccess('${u.uid}')">⛔ 移除權限</button>` : ''}
+                    </div>
                 </div>`;
             }).join('')}</div>`;
         }
@@ -948,13 +1002,48 @@
             } catch (err) { showToast('❌ 操作失敗：' + err.message); }
         }
 
-        async function promoteUser(uid) {
-            if (!confirm('確定要將此使用者升為管理員？')) return;
+        async function changeToolStatus(toolId, newStatus) {
+            const label = newStatus === 'terminated' ? '下架' : '上架';
+            if (!confirm(`確定要將此工具「${label}」？`)) return;
             try {
-                await FireDB.setUserRole(uid, 'admin');
-                showToast('✅ 已升為管理員');
+                await FireDB.updateTool(toolId, { status: newStatus });
+                showToast(`✅ 工具已${label}`);
                 await initDashboard();
             } catch (err) { showToast('❌ 操作失敗：' + err.message); }
+        }
+
+        async function deleteItem(type, id) {
+            if (!confirm(`確定要尠7刪除？此操作無法復原。`)) return;
+            try {
+                if (type === 'tool') await FireDB.deleteTool(id);
+                else await FireDB.deletePainCard(id);
+                showToast('🗑️ 已刪除');
+                await initDashboard();
+            } catch (err) { showToast('❌ 操作失敗：' + err.message); }
+        }
+
+        async function setUserRole(uid, role) {
+            const label = role === 'admin' ? '管理員' : '開發者';
+            if (!confirm(`確定要將此使用者設為「${label}」？`)) return;
+            try {
+                await FireDB.setUserRole(uid, role);
+                showToast(`✅ 已設為${label}`);
+                await initDashboard();
+            } catch (err) { showToast('❌ 操作失敗：' + err.message); }
+        }
+
+        async function revokeAccess(uid) {
+            if (!confirm('確定要移除此張開發者的權限？他將無法登入 Dashboard。')) return;
+            try {
+                // 將 role 設為 null / 移除權限（保留帳號，劫奪登入權）
+                await firebase.firestore().collection('users').doc(uid).update({ role: 'revoked' });
+                showToast('⛔ 已移除開發者權限');
+                await initDashboard();
+            } catch (err) { showToast('❌ 操作失敗：' + err.message); }
+        }
+
+        async function promoteUser(uid) {
+            await setUserRole(uid, 'admin');
         }
     </script>
 </body>
