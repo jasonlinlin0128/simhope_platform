@@ -952,36 +952,12 @@
             // ── Content ──
             const wrap = document.getElementById('dashWrap');
             wrap.innerHTML = `
-                <!-- Profile Header -->
-                <div class="profile-header">
-                    <div class="profile-avatar">${name.charAt(0).toUpperCase()}</div>
-                    <div class="profile-info">
-                        <div class="profile-name">${name}
-                            <span class="profile-role-badge ${isAdmin ? 'role-admin' : 'role-developer'}">${isAdmin ? '🛡️ 管理員' : '👨‍💻 開發者'}</span>
-                        </div>
-                        <div class="profile-email">${currentProfile.email}</div>
-                        ${currentProfile.bio ? `<div class="profile-bio">${currentProfile.bio}</div>` : ''}
-                    </div>
-                </div>
-
                 <!-- Stats -->
                 <div class="stats-row">
                     <div class="stat-box"><div class="stat-box-num">${myTools.length}</div><div class="stat-box-label">提交工具</div></div>
                     <div class="stat-box"><div class="stat-box-num">${approvedTools}</div><div class="stat-box-label">已上架</div></div>
                     <div class="stat-box"><div class="stat-box-num">${pendingCount}</div><div class="stat-box-label">待審核</div></div>
                     <div class="stat-box"><div class="stat-box-num">${myPainCards.length}</div><div class="stat-box-label">痛點卡片</div></div>
-                </div>
-
-                <!-- Tabs -->
-                <div class="dash-tabs" id="dashTabs">
-                    <button class="dash-tab active" data-tab="my-tools">🔧 我的工具 <span class="tab-count">${myTools.length}</span></button>
-                    <button class="dash-tab" data-tab="my-pain">😤 我的痛點 <span class="tab-count">${myPainCards.length}</span></button>
-                    <button class="dash-tab" data-tab="new-tool">➕ 新增工具</button>
-                    <button class="dash-tab" data-tab="new-pain">➕ 新增痛點</button>
-                    ${isAdmin ? `<button class="dash-tab" data-tab="review">📋 審核佇列 <span class="tab-count tab-count-warn">${reviewCount}</span></button>` : ''}
-                    ${isAdmin ? `<button class="dash-tab" data-tab="manage-all">⚙️ 管理所有項目 <span class="tab-count">${allToolsAdmin.length + allPainCardsAdmin.length}</span></button>` : ''}
-                    ${isAdmin ? `<button class="dash-tab" data-tab="all-users">👥 所有開發者 <span class="tab-count">${allUsers.length}</span></button>` : ''}
-                    ${isAdmin ? `<button class="dash-tab" data-tab="add-dev">➕ 新增開發者</button>` : ''}
                 </div>
 
                 <!-- Tab Panes -->
@@ -994,16 +970,6 @@
                 ${isAdmin ? `<div class="tab-pane" id="pane-all-users">${renderAllUsers()}</div>` : ''}
                 ${isAdmin ? `<div class="tab-pane" id="pane-add-dev">${renderAddDeveloper()}</div>` : ''}
             `;
-
-            // Tab switching
-            wrap.querySelectorAll('.dash-tab').forEach(tab => {
-                tab.addEventListener('click', () => {
-                    wrap.querySelectorAll('.dash-tab').forEach(t => t.classList.remove('active'));
-                    wrap.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-                    tab.classList.add('active');
-                    document.getElementById('pane-' + tab.dataset.tab).classList.add('active');
-                });
-            });
         }
 
         // ── Render: My Tools ──
