@@ -66,6 +66,7 @@
       border-radius: 50%;
       filter: blur(80px);
       opacity: 0.3;
+      will-change: transform;
     }
 
     .blob-1 {
@@ -2965,12 +2966,84 @@
   <!-- Edit mode badge -->
   <div class="edit-badge" id="editBadge">✏️ 編輯模式中 — 點任意文字即可修改</div>
 
+  <!-- GSAP for interactive background -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
   <script src="firebase-config.js"></script>
   <script>
+    // ── Interactive Background Blobs (GSAP mouse follow) ──
+    (function initInteractiveBlobs() {
+      const blobs = document.querySelectorAll('.blob');
+      if (!blobs.length || typeof gsap === 'undefined') return;
+
+      // 每個 blob 不同的反應強度和速度，製造視差
+      const config = [
+        { strength: 0.08, speed: 0.8 },   // blob-1 (purple) 緩慢大範圍
+        { strength: 0.12, speed: 1.0 },   // blob-2 (blue) 中速
+        { strength: 0.06, speed: 0.6 },   // blob-3 (yellow) 最慢
+        { strength: 0.10, speed: 0.9 },   // blob-4 (green) 中偏快
+      ];
+
+      // 用 quickTo 創建平滑跟隨器
+      const quickX = [];
+      const quickY = [];
+      blobs.forEach((blob, i) => {
+        const c = config[i] || config[0];
+        quickX.push(gsap.quickTo(blob, 'x', { duration: 1.2 / c.speed, ease: 'power3.out' }));
+        quickY.push(gsap.quickTo(blob, 'y', { duration: 1.2 / c.speed, ease: 'power3.out' }));
+      });
+
+      // 監聽滑鼠
+      let mouseX = window.innerWidth / 2;
+      let mouseY = window.innerHeight / 2;
+
+      document.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        const cx = mouseX - window.innerWidth / 2;
+        const cy = mouseY - window.innerHeight / 2;
+
+        blobs.forEach((blob, i) => {
+          const c = config[i] || config[0];
+          // 不同象限的 blob 反向偏移，讓畫面更有層次
+          const dir = i % 2 === 0 ? 1 : -1;
+          quickX[i](cx * c.strength * dir);
+          quickY[i](cy * c.strength * dir);
+        });
+      });
+
+      // 呼吸脈動效果
+      blobs.forEach((blob, i) => {
+        gsap.to(blob, {
+          scale: 1 + (0.05 + i * 0.02),
+          duration: 3 + i * 0.8,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut',
+          delay: i * 0.5
+        });
+      });
+
+      // 移動裝置用陀螺儀
+      if (window.DeviceOrientationEvent) {
+        window.addEventListener('deviceorientation', (e) => {
+          if (e.gamma === null) return;
+          const cx = (e.gamma / 45) * window.innerWidth * 0.3;
+          const cy = (e.beta / 45) * window.innerHeight * 0.3;
+          blobs.forEach((blob, i) => {
+            const c = config[i] || config[0];
+            const dir = i % 2 === 0 ? 1 : -1;
+            quickX[i](cx * c.strength * dir);
+            quickY[i](cy * c.strength * dir);
+          });
+        });
+      }
+    })();
+
     // Counter animation
     function animateCounter(el, target, label = '') {
       let start = 0;
