@@ -882,10 +882,28 @@
       background: #9CA3AF;
     }
 
-    /* Terminated 卡片灰階化 */
+    /* Terminated 卡片樣式：輕微降飿和度，保持可讀性 */
     .tool-card.is-terminated {
-      opacity: 0.6;
-      filter: grayscale(0.4);
+      opacity: 0.75;
+      filter: grayscale(0.25) brightness(0.97);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .tool-card.is-terminated::after {
+      content: '已停用';
+      position: absolute;
+      top: 12px;
+      right: -22px;
+      background: rgba(107, 114, 128, 0.85);
+      color: #fff;
+      font-size: 0.62rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      padding: 3px 28px;
+      transform: rotate(35deg);
+      pointer-events: none;
+      z-index: 2;
     }
 
     .tool-card.is-terminated:hover {
