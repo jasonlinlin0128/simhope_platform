@@ -205,55 +205,252 @@
             margin-top: 2px
         }
 
-        /* Tabs */
-        .dash-tabs {
-            display: flex;
-            gap: 0;
-            border-bottom: 2px solid rgba(30, 27, 75, 0.06);
-            margin-bottom: 20px;
-            overflow-x: auto
+        /* Sidebar layout */
+        .dash-layout {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 28px 4% 80px;
+            display: grid;
+            grid-template-columns: 220px 1fr;
+            gap: 24px;
+            align-items: start
         }
 
-        .dash-tab {
-            padding: 10px 18px;
+        .dash-sidebar {
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1.5px solid rgba(255, 255, 255, .9);
+            overflow: hidden;
+            position: sticky;
+            top: 80px
+        }
+
+        .sidebar-profile {
+            padding: 20px 18px 16px;
+            border-bottom: 1.5px solid rgba(30, 27, 75, .06)
+        }
+
+        .sidebar-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            font-weight: 900;
+            margin-bottom: 10px
+        }
+
+        .sidebar-name {
+            font-weight: 800;
+            font-size: .9rem;
+            line-height: 1.2
+        }
+
+        .sidebar-email {
+            font-size: .72rem;
+            color: var(--text-mid);
+            margin-top: 2px
+        }
+
+        .sidebar-role {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: .65rem;
+            font-weight: 800;
+            margin-top: 6px
+        }
+
+        .nav-group {
+            padding: 10px 0 4px
+        }
+
+        .nav-group-label {
+            font-size: .62rem;
+            font-weight: 800;
+            color: var(--text-mid);
+            text-transform: uppercase;
+            letter-spacing: .6px;
+            padding: 4px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between
+        }
+
+        .nav-group-toggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: .75rem;
+            color: var(--text-mid);
+            padding: 2px 4px;
+            border-radius: 4px;
+            transition: background .15s
+        }
+
+        .nav-group-toggle:hover {
+            background: rgba(30, 27, 75, .06)
+        }
+
+        .nav-group-items {
+            overflow: hidden;
+            transition: max-height .25s ease
+        }
+
+        .nav-group-items.collapsed {
+            max-height: 0 !important
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 9px 18px;
             font-size: .82rem;
             font-weight: 700;
             color: var(--text-mid);
             cursor: pointer;
-            border-bottom: 3px solid transparent;
-            transition: all .15s;
-            white-space: nowrap;
+            border: none;
             background: none;
-            border-top: none;
-            border-left: none;
-            border-right: none;
-            font-family: inherit
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
+            transition: all .15s;
+            border-radius: 0;
+            position: relative
         }
 
-        .dash-tab.active {
-            color: var(--accent);
-            border-bottom-color: var(--accent)
+        .nav-item:hover {
+            background: rgba(99, 102, 241, .05);
+            color: var(--accent)
         }
 
-        .dash-tab:hover:not(.active) {
-            color: var(--text-dark)
+        .nav-item.active {
+            background: rgba(99, 102, 241, .08);
+            color: var(--accent)
         }
 
-        .dash-tab .tab-count {
-            background: rgba(99, 102, 241, 0.1);
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 20%;
+            height: 60%;
+            width: 3px;
+            background: var(--accent);
+            border-radius: 0 4px 4px 0
+        }
+
+        .nav-badge {
+            margin-left: auto;
+            background: rgba(99, 102, 241, .12);
             color: var(--accent);
             padding: 1px 7px;
             border-radius: 10px;
-            font-size: .68rem;
-            margin-left: 5px
+            font-size: .64rem;
+            font-weight: 800
         }
 
-        .tab-count-warn {
-            background: rgba(245, 158, 11, 0.15) !important;
-            color: #D97706 !important
+        .nav-badge-warn {
+            background: rgba(245, 158, 11, .15);
+            color: #D97706
         }
 
-        /* Tab content */
+        .sidebar-footer {
+            padding: 12px;
+            border-top: 1.5px solid rgba(30, 27, 75, .06);
+            display: flex;
+            flex-direction: column;
+            gap: 6px
+        }
+
+        .logout-btn-full {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: .82rem;
+            font-weight: 800;
+            cursor: pointer;
+            border: 1.5px solid rgba(239, 68, 68, .25);
+            background: rgba(239, 68, 68, .06);
+            color: #DC2626;
+            font-family: inherit;
+            transition: all .15s
+        }
+
+        .logout-btn-full:hover {
+            background: #DC2626;
+            color: #fff
+        }
+
+        .home-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 8px;
+            border-radius: 10px;
+            font-size: .78rem;
+            font-weight: 700;
+            cursor: pointer;
+            border: 1.5px solid rgba(30, 27, 75, .1);
+            background: none;
+            color: var(--text-mid);
+            text-decoration: none;
+            transition: all .15s
+        }
+
+        .home-btn:hover {
+            background: rgba(30, 27, 75, .06);
+            color: var(--text-dark)
+        }
+
+        .dash-content {
+            min-width: 0
+        }
+
+        /* Stats mini row */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 20px
+        }
+
+        .stat-box {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 14px 16px;
+            box-shadow: var(--shadow);
+            border: 1.5px solid rgba(255, 255, 255, .9);
+            text-align: center
+        }
+
+        .stat-box-num {
+            font-size: 1.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text
+        }
+
+        .stat-box-label {
+            font-size: .7rem;
+            color: var(--text-mid);
+            font-weight: 700;
+            margin-top: 2px
+        }
+
+        /* Tab pane */
         .tab-pane {
             display: none
         }
@@ -274,7 +471,7 @@
             border-radius: 14px;
             padding: 18px 20px;
             box-shadow: var(--shadow);
-            border: 1.5px solid rgba(255, 255, 255, 0.9);
+            border: 1.5px solid rgba(255, 255, 255, .9);
             display: flex;
             gap: 14px;
             align-items: flex-start;
@@ -323,17 +520,17 @@
         }
 
         .badge-approved {
-            background: rgba(22, 163, 74, 0.1);
+            background: rgba(22, 163, 74, .1);
             color: #16A34A
         }
 
         .badge-pending {
-            background: rgba(245, 158, 11, 0.1);
+            background: rgba(245, 158, 11, .1);
             color: #D97706
         }
 
         .badge-rejected {
-            background: rgba(239, 68, 68, 0.1);
+            background: rgba(239, 68, 68, .1);
             color: #DC2626
         }
 
@@ -351,7 +548,7 @@
             font-weight: 700;
             cursor: pointer;
             transition: all .15s;
-            border: 1.5px solid rgba(30, 27, 75, 0.08);
+            border: 1.5px solid rgba(30, 27, 75, .08);
             background: var(--white);
             font-family: inherit
         }
@@ -387,7 +584,7 @@
             border-radius: var(--radius);
             padding: 28px;
             box-shadow: var(--shadow);
-            border: 1.5px solid rgba(255, 255, 255, 0.9)
+            border: 1.5px solid rgba(255, 255, 255, .9)
         }
 
         .form-card h3 {
@@ -415,7 +612,7 @@
         .fg select,
         .fg textarea {
             padding: 10px 14px;
-            border: 2px solid rgba(30, 27, 75, 0.1);
+            border: 2px solid rgba(30, 27, 75, .1);
             border-radius: 10px;
             font-size: .85rem;
             font-family: inherit;
@@ -454,7 +651,7 @@
             cursor: pointer;
             background: linear-gradient(135deg, var(--accent), var(--accent2));
             color: #fff;
-            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.25);
+            box-shadow: 0 4px 16px rgba(99, 102, 241, .25);
             transition: all .2s
         }
 
@@ -497,11 +694,11 @@
             font-size: .85rem;
             font-weight: 800;
             z-index: 9999;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, .25);
             transition: opacity .4s
         }
 
-        /* Users table (admin) */
+        /* Users grid */
         .users-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -513,7 +710,7 @@
             border-radius: 14px;
             padding: 18px;
             box-shadow: var(--shadow);
-            border: 1.5px solid rgba(255, 255, 255, 0.9);
+            border: 1.5px solid rgba(255, 255, 255, .9);
             display: flex;
             gap: 12px;
             align-items: center
@@ -549,13 +746,6 @@
             text-overflow: ellipsis
         }
 
-        .user-card-stats {
-            font-size: .68rem;
-            color: var(--text-mid);
-            margin-top: 4px
-        }
-
-        /* Loading */
         .loading {
             text-align: center;
             padding: 40px;
@@ -563,28 +753,32 @@
             font-weight: 700
         }
 
-        @media(max-width:600px) {
-            .profile-header {
-                flex-direction: column;
-                align-items: center;
-                text-align: center
+        @media(max-width:800px) {
+            .dash-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .dash-sidebar {
+                position: static;
+                display: flex;
+                flex-wrap: wrap;
+                border-radius: 12px;
+            }
+
+            .sidebar-profile {
+                display: none
+            }
+
+            .nav-group {
+                padding: 6px 0
+            }
+
+            .sidebar-footer {
+                flex-direction: row
             }
 
             .stats-row {
-                flex-wrap: wrap
-            }
-
-            .stat-box {
-                min-width: calc(50% - 8px)
-            }
-
-            .fg-row {
-                flex-direction: column;
-                gap: 0
-            }
-
-            .item-card {
-                flex-direction: column
+                grid-template-columns: repeat(2, 1fr)
             }
         }
     </style>
@@ -595,13 +789,14 @@
         <a class="nav-logo" href="index.html">🏭 SimHope AI 工具中心</a>
         <div class="nav-right">
             <div class="nav-user" id="navUser"></div>
-            <a href="index.html" class="nav-btn nav-btn-ghost">← 回首頁</a>
-            <button class="nav-btn nav-btn-ghost" onclick="handleLogout()">登出</button>
         </div>
     </nav>
 
-    <div class="dash-wrap" id="dashWrap">
-        <div class="loading" id="loadingState">⏳ 載入中…</div>
+    <div class="dash-layout">
+        <aside class="dash-sidebar" id="dashSidebar">⏳ 載入中...</aside>
+        <main class="dash-content" id="dashWrap">
+            <div class="loading" id="loadingState">⏳ 載入中…</div>
+        </main>
     </div>
 
     <!-- Firebase SDK -->
@@ -678,6 +873,22 @@
             renderDashboard();
         }
 
+        function switchTab(tabKey) {
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+            const ni = document.querySelector(`.nav-item[data-tab="${tabKey}"]`);
+            if (ni) ni.classList.add('active');
+            const pane = document.getElementById('pane-' + tabKey);
+            if (pane) pane.classList.add('active');
+        }
+
+        function toggleGroup(id) {
+            const el = document.getElementById(id);
+            const btn = el.previousElementSibling.querySelector('.nav-group-toggle');
+            el.classList.toggle('collapsed');
+            btn.textContent = el.classList.contains('collapsed') ? '▸' : '▾';
+        }
+
         function renderDashboard() {
             const isAdmin = currentProfile.role === 'admin';
             const name = currentProfile.displayName || currentUser.email;
@@ -685,6 +896,60 @@
             const pendingCount = myTools.filter(t => t.approval === 'pending').length;
             const reviewCount = isAdmin ? (pendingTools.length + pendingPainCards.length) : 0;
 
+            // ── Sidebar ──
+            const sidebar = document.getElementById('dashSidebar');
+            sidebar.innerHTML = `
+                <div class="sidebar-profile">
+                    <div class="sidebar-avatar">${name.charAt(0).toUpperCase()}</div>
+                    <div class="sidebar-name">${name}</div>
+                    <div class="sidebar-email">${currentProfile.email}</div>
+                    <span class="sidebar-role ${isAdmin ? 'role-admin' : 'role-developer'}">${isAdmin ? '🛡️ 管理員' : '👨‍💻 開發者'}</span>
+                </div>
+
+                <!-- 我的內容 group -->
+                <div class="nav-group">
+                    <div class="nav-group-label">我的內容</div>
+                    <div class="nav-group-items">
+                        <button class="nav-item active" data-tab="my-tools" onclick="switchTab('my-tools')">🔧 我的工具 <span class="nav-badge">${myTools.length}</span></button>
+                        <button class="nav-item" data-tab="my-pain" onclick="switchTab('my-pain')">😤 我的痛點 <span class="nav-badge">${myPainCards.length}</span></button>
+                    </div>
+                </div>
+
+                <!-- 新增內容 group (collapsible) -->
+                <div class="nav-group">
+                    <div class="nav-group-label">
+                        新增內容
+                        <button class="nav-group-toggle" onclick="toggleGroup('group-add')">▾</button>
+                    </div>
+                    <div class="nav-group-items" id="group-add" style="max-height:200px">
+                        <button class="nav-item" data-tab="new-tool" onclick="switchTab('new-tool')">➕ 新增工具</button>
+                        <button class="nav-item" data-tab="new-pain" onclick="switchTab('new-pain')">➕ 新增痛點</button>
+                    </div>
+                </div>
+
+                ${isAdmin ? `
+                <!-- 管理員工具 group (collapsible) -->
+                <div class="nav-group">
+                    <div class="nav-group-label">
+                        管理員工具
+                        <button class="nav-group-toggle" onclick="toggleGroup('group-admin')">▾</button>
+                    </div>
+                    <div class="nav-group-items" id="group-admin" style="max-height:400px">
+                        <button class="nav-item" data-tab="review" onclick="switchTab('review')">📋 審核佇列 ${reviewCount > 0 ? `<span class="nav-badge nav-badge-warn">${reviewCount}</span>` : ''}</button>
+                        <button class="nav-item" data-tab="manage-all" onclick="switchTab('manage-all')">⚙️ 管理所有項目</button>
+                        <button class="nav-item" data-tab="all-users" onclick="switchTab('all-users')">👥 所有開發者</button>
+                        <button class="nav-item" data-tab="add-dev" onclick="switchTab('add-dev')">➕ 新增開發者</button>
+                    </div>
+                </div>
+                ` : ''}
+
+                <div class="sidebar-footer">
+                    <a href="index.html" class="home-btn">← 回首頁</a>
+                    <button class="logout-btn-full" onclick="handleLogout()">👋 登出</button>
+                </div>
+            `;
+
+            // ── Content ──
             const wrap = document.getElementById('dashWrap');
             wrap.innerHTML = `
                 <!-- Profile Header -->
