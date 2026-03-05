@@ -2961,31 +2961,27 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
   <script src="firebase-config.js"></script>
   <script>
-    // ── Interactive Background Blobs (GSAP mouse follow + float) ──
+    // ── Interactive Background Blobs ──
     (function initInteractiveBlobs() {
       const blobs = document.querySelectorAll('.blob');
       if (!blobs.length || typeof gsap === 'undefined') return;
 
-      // 每個 blob 的浮動路徑 + 滑鼠反應
       const config = [
-        { floatX: 30, floatY: -40, floatDur: 12, scale: 1.05, strength: 0.35 },
-        { floatX: -20, floatY: 30, floatDur: 10, scale: 1.08, strength: 0.55 },
-        { floatX: 10, floatY: -20, floatDur: 14, scale: 0.95, strength: 0.25 },
-        { floatX: -25, floatY: 35, floatDur: 9, scale: 1.05, strength: 0.45 },
-        { floatX: 20, floatY: -30, floatDur: 11, scale: 1.06, strength: 0.40 },
-        { floatX: -15, floatY: 25, floatDur: 13, scale: 1.04, strength: 0.50 },
-        { floatX: 30, floatY: -15, floatDur: 15, scale: 1.07, strength: 0.30 },
+        { floatX: 30, floatY: -40, floatDur: 12, scale: 1.05, strength: 0.70 },
+        { floatX: -20, floatY: 30, floatDur: 10, scale: 1.08, strength: 0.90 },
+        { floatX: 10, floatY: -20, floatDur: 14, scale: 0.95, strength: 0.50 },
+        { floatX: -25, floatY: 35, floatDur: 9, scale: 1.05, strength: 0.80 },
+        { floatX: 20, floatY: -30, floatDur: 11, scale: 1.06, strength: 0.75 },
+        { floatX: -15, floatY: 25, floatDur: 13, scale: 1.04, strength: 0.85 },
+        { floatX: 30, floatY: -15, floatDur: 15, scale: 1.07, strength: 0.60 },
       ];
 
-      // 滑鼠偏移值 (由 mousemove 更新)
-      const mouseOffset = { x: 0, y: 0 };
+      // 浮動位置存在純 JS 物件（不接觸 DOM transform）
+      const floatState = config.map(() => ({ x: 0, y: 0, scale: 1 }));
 
-      // 為每個 blob 建立獨立的浮動動畫 (GSAP timeline)
-      blobs.forEach((blob, i) => {
+      blobs.forEach((_, i) => {
         const c = config[i] || config[0];
-
-        // 浮動動畫 (取代 CSS keyframe)
-        gsap.to(blob, {
+        gsap.to(floatState[i], {
           keyframes: [
             { x: c.floatX, y: c.floatY, scale: c.scale, duration: c.floatDur / 2 },
             { x: 0, y: 0, scale: 1, duration: c.floatDur / 2 },
@@ -2993,41 +2989,37 @@
           repeat: -1,
           ease: 'sine.inOut',
           delay: i * 0.7,
-          // 加入 modifier 讓滑鼠偏移疊加在浮動之上
-          modifiers: {
-            x: (val) => parseFloat(val) + mouseOffset.x * c.strength * (i % 2 === 0 ? 1 : -1) + 'px',
-            y: (val) => parseFloat(val) + mouseOffset.y * c.strength * (i % 2 === 0 ? 1 : -1) + 'px',
-          }
         });
       });
 
-      // 監聽滑鼠
+      // 滑鼠 smooth lerp
+      const mouse = { x: 0, y: 0, tx: 0, ty: 0 };
       document.addEventListener('mousemove', (e) => {
-        const cx = e.clientX - window.innerWidth / 2;
-        const cy = e.clientY - window.innerHeight / 2;
-        // 用 GSAP 平滑過渡滑鼠偏移值
-        gsap.to(mouseOffset, {
-          x: cx,
-          y: cy,
-          duration: 0.8,
-          ease: 'power2.out',
-          overwrite: true
-        });
+        mouse.tx = e.clientX - window.innerWidth / 2;
+        mouse.ty = e.clientY - window.innerHeight / 2;
       });
-
-      // 移動裝置用陀螺儀
       if (window.DeviceOrientationEvent) {
         window.addEventListener('deviceorientation', (e) => {
           if (e.gamma === null) return;
-          gsap.to(mouseOffset, {
-            x: (e.gamma / 45) * window.innerWidth * 0.3,
-            y: ((e.beta || 0) / 45) * window.innerHeight * 0.3,
-            duration: 0.8,
-            ease: 'power2.out',
-            overwrite: true
-          });
+          mouse.tx = (e.gamma / 45) * window.innerWidth * 0.5;
+          mouse.ty = ((e.beta || 0) / 45) * window.innerHeight * 0.5;
         });
       }
+
+      // ticker: 每幀合成 float + mouse，透過 gsap.set 寫入 DOM
+      gsap.ticker.add(() => {
+        mouse.x += (mouse.tx - mouse.x) * 0.05;
+        mouse.y += (mouse.ty - mouse.y) * 0.05;
+        blobs.forEach((blob, i) => {
+          const c = config[i] || config[0];
+          const dir = i % 2 === 0 ? 1 : -1;
+          gsap.set(blob, {
+            x: floatState[i].x + mouse.x * c.strength * dir,
+            y: floatState[i].y + mouse.y * c.strength * dir,
+            scale: floatState[i].scale,
+          });
+        });
+      });
     })();
 
     // Counter animation
