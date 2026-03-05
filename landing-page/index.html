@@ -2433,7 +2433,7 @@
         <a href="#cta" class="nav-cta">找工具 →</a>
         <a href="auth.html" class="nav-cta"
           style="background:linear-gradient(135deg,#8B5CF6,#6366F1);font-size:.78rem;padding:8px 16px">👨‍💻 開發者</a>
-        <button class="login-btn" id="loginBtn" onclick="openLoginModal()">🔐 管理員登入</button>
+        <a href="auth.html" class="login-btn" id="loginBtn" style="text-decoration:none">🔐 管理員登入</a>
         <button class="logout-btn" id="logoutBtn" onclick="doLogout()">👋 登出</button>
       </div>
     </nav>
@@ -2456,7 +2456,7 @@
       </div>
       <p class="hero-desc">
         這些工具都是根據公司實際流程開發的，不需要懂 AI，打開就能用。<br />
-        目前收錄 <strong>6 個工具</strong>，持續新增中。
+        目前收錄 <strong id="hero-tool-count">0 個工具</strong>，持續新增中。
       </p>
       <div class="hero-actions">
         <a href="#tools" class="btn-primary">🔧 馬上找工具</a>
@@ -2492,7 +2492,7 @@
     <section id="tools">
       <div class="fade-up">
         <div class="section-tag">🧰 工具總覽</div>
-        <h2 class="section-title" id="tools-heading">16 個工具，解決 16 種困擾</h2>
+        <h2 class="section-title" id="tools-heading">載入中...</h2>
         <p class="section-desc">每個工具都標示了適用部門與使用步驟，三步以內就能上手。</p>
       </div>
       <div class="tools-layout fade-up">
@@ -2647,25 +2647,6 @@
 
   </div><!-- /#pageContent -->
 
-  <!-- Login Modal -->
-  <div class="modal-overlay" id="loginModal">
-    <div class="modal-box">
-      <button class="modal-close" onclick="closeLoginModal()">✕</button>
-      <div class="modal-icon">🔐</div>
-      <h2 class="modal-title">管理員登入</h2>
-      <p class="modal-sub">請輸入管理員帳號與密碼</p>
-      <div class="modal-field">
-        <label for="adminUser">帳號</label>
-        <input type="text" id="adminUser" placeholder="admin" autocomplete="username" />
-      </div>
-      <div class="modal-field">
-        <label for="adminPass">密碼</label>
-        <input type="password" id="adminPass" placeholder="••••••••" autocomplete="current-password" />
-      </div>
-      <div class="modal-error" id="loginError"></div>
-      <button class="modal-submit" onclick="doLogin()">登入</button>
-    </div>
-  </div>
 
   <!-- Contact Modal -->
   <div class="modal-overlay" id="contactModal">
@@ -3093,16 +3074,6 @@
       if (!isEditing) saveContent();
     }
 
-    // ── Login / Logout ──
-    function openLoginModal() {
-      document.getElementById('loginModal').classList.add('open');
-      document.getElementById('adminUser').focus();
-      document.getElementById('loginError').textContent = '';
-      document.getElementById('adminPass').value = '';
-    }
-    function closeLoginModal() {
-      document.getElementById('loginModal').classList.remove('open');
-    }
     function openContactModal() {
       document.getElementById('contactModal').classList.add('open');
     }
@@ -3110,37 +3081,6 @@
       document.getElementById('contactModal').classList.remove('open');
     }
     document.getElementById('contactModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeContactModal(); });
-    function doLogin() {
-      const u = document.getElementById('adminUser').value.trim();
-      const p = document.getElementById('adminPass').value;
-      if (u === ADMIN_USER && p === ADMIN_PASS) {
-        document.body.classList.add('admin-logged-in');
-        sessionStorage.setItem('admin_auth', '1');
-        closeLoginModal();
-        showToast('✅ 登入成功，歡迎回來！');
-      } else {
-        document.getElementById('loginError').textContent = '帳號或密碼錯誤，請再試一次。';
-        document.getElementById('adminPass').value = '';
-        document.getElementById('adminPass').focus();
-      }
-    }
-    function doLogout() {
-      if (isEditing) toggleEditMode();
-      document.body.classList.remove('admin-logged-in');
-      sessionStorage.removeItem('admin_auth');
-      showToast('👋 已登出');
-    }
-
-    // Keyboard: Enter in modal submits
-    document.getElementById('adminPass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
-    document.getElementById('adminUser').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('adminPass').focus(); });
-    // Click outside modal to close
-    document.getElementById('loginModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeLoginModal(); });
-
-    // Restore session
-    if (sessionStorage.getItem('admin_auth') === '1') {
-      document.body.classList.add('admin-logged-in');
-    }
 
     // ══════════════════════════════════════════
     // DYNAMIC TOOLS RENDERING FROM DB
@@ -3302,6 +3242,7 @@
       window.siteSettings = s; // Make site settings globally available
 
       const tools = window.allApprovedTools || [];
+      const painCards = window.allApprovedPainCards || [];
 
       // ── 動態計算統計數字 ──
       const activeTools = tools.filter(t => t.status !== 'terminated');
@@ -3324,7 +3265,7 @@
 
       // Tools heading
       const heading = document.getElementById('tools-heading');
-      if (heading) heading.textContent = `${availableCount} 個工具，解決 ${availableCount} 種困擾`;
+      if (heading) heading.textContent = `${availableCount} 個工具，解決 ${painCards.length} 種困擾`;
 
       // Eyebrow
       const eyebrow = document.getElementById('heroEyebrow');
