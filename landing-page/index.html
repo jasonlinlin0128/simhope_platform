@@ -912,6 +912,16 @@
       cursor: default;
     }
 
+    /* terminated 卡片的操作按鈕改為灰調 */
+    .tool-card.is-terminated .tool-arrow {
+      background: #9CA3AF;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+    }
+
+    .tool-card.is-terminated:hover .tool-arrow {
+      transform: none;
+    }
+
     .tool-arrow {
       width: 36px;
       height: 36px;
@@ -3191,7 +3201,7 @@
         const terminated = t.status === 'terminated';
         const cardClass = `tool-card ${t.color || 'c1'}${terminated ? ' is-terminated' : ''}`;
         const clickAttr = `onclick="location.href='tool-detail.html?id=${t.id}'"`;
-        const arrowIcon = terminated ? '📖 查看歷程' : '▶';
+        const arrowIcon = '▶';
         return `
           <div class="${cardClass}" ${clickAttr}>
             <div class="tool-icon">${t.icon || '🛠️'}</div>
