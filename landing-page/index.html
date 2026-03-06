@@ -4500,9 +4500,13 @@ ${toolsSummary}
             <button class="chat-history-btn" onclick="chatClearHistory()">清除對話</button>
           </div>
         </div>
-        <!-- session 歷史按鈕（管理員可見） -->
-        <button class="chat-history-toggle" id="chatSidebarToggle" onclick="toggleChatSidebar()" title="對話歷史"
-          style="display:none">🗒️</button>
+        <!-- session 歷史按鈕（管理員可見），有文字標籤提升可發現性 -->
+        <button class="chat-history-toggle" id="chatSidebarToggle" onclick="toggleChatSidebar()" title="查看對話歷史"
+          style="display:none; font-size:0.72rem; padding:4px 8px; gap:4px; align-items:center;">
+          📋 歷史
+        </button>
+        <!-- 展開/收合按鈕（所有人可見） -->
+        <button class="chat-header-close" id="chatExpandBtn" onclick="toggleChatExpand()" title="展開/收合視窗">⊞</button>
         <button class="chat-header-close" onclick="toggleChat(false)">✕</button>
       </div>
 
@@ -4620,17 +4624,12 @@ ${toolList ? '目前可用工具：\n' + toolList + '\n\n' : ''}重要規則：
       const handle = document.getElementById('chatResizeHandle');
       const win = document.getElementById('chatWindow');
       if (!handle || !win) return;
-
-      let startX, startY, startW, startH, startR, startB;
-
+      let startX, startY, startW, startH;
       handle.addEventListener('mousedown', e => {
         e.preventDefault();
         const rect = win.getBoundingClientRect();
         startX = e.clientX; startY = e.clientY;
         startW = rect.width; startH = rect.height;
-        startR = window.innerWidth - rect.right;
-        startB = window.innerHeight - rect.bottom;
-
         const onMove = e => {
           const newW = Math.max(300, Math.min(700, startW - (e.clientX - startX)));
           const newH = Math.max(360, Math.min(window.innerHeight * 0.85, startH - (e.clientY - startY)));
@@ -4646,6 +4645,50 @@ ${toolList ? '目前可用工具：\n' + toolList + '\n\n' : ''}重要規則：
         document.addEventListener('mousemove', onMove);
         document.addEventListener('mouseup', onUp);
       });
+    }
+
+    // 展開/收合切換
+    let chatExpanded = false;
+    function toggleChatExpand() {
+      chatExpanded = !chatExpanded;
+      const win = document.getElementById('chatWindow');
+      const btn = document.getElementById('chatExpandBtn');
+      win.style.width = chatExpanded ? '560px' : '360px';
+      win.style.height = chatExpanded ? '640px' : '520px';
+      win.style.transition = 'width 0.3s ease, height 0.3s ease';
+      btn.textContent = chatExpanded ? '\u229f' : '\u229e';
+      btn.title = chatExpanded ? '\u6536\u5408\u8996\u7a97' : '\u5c55\u958b\u8996\u7a97';
+    }
+
+    // 快速提問 chip
+    const QUICK_CHIPS = [
+      '\ud83d\udd27 \u6211\u60f3\u7d93\u5e38\u8981\u7ffb\u8b6f\u6587\u4ef6\uff0c\u6709\u9069\u5408\u7684\u5de5\u5177\u55ce\uff1f',
+      '\ud83d\udcdd \u5be9\u95b1\u5be6\u9ad4\u5408\u7d04\u8981\u5f88\u4e45\uff0c\u6709\u6c92\u6709\u53ef\u4ee5\u52a0\u901f\u7684\u65b9\u6cd5\uff1f',
+      '\u2753 \u9019\u500b\u5e73\u53f0\u6709\u54ea\u4e9b AI \u5de5\u5177\u53ef\u4ee5\u7528\uff1f',
+      '\ud83d\udcca \u6211\u60f3\u53cd\u6620\u5de5\u4f5c\u4e0a\u7684\u75db\u9ede',
+    ];
+
+    function showQuickChips() {
+      const msgs = document.getElementById('chatMessages');
+      if (!msgs) return;
+      const chipRow = document.createElement('div');
+      chipRow.id = 'chatQuickChips';
+      chipRow.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;padding:4px 0 8px;';
+      QUICK_CHIPS.forEach(q => {
+        const btn = document.createElement('button');
+        btn.textContent = q;
+        btn.style.cssText = 'background:rgba(167,139,250,0.1);border:1.5px solid rgba(167,139,250,0.25);border-radius:999px;padding:5px 12px;font-size:0.75rem;color:var(--clay-purple);cursor:pointer;font-family:inherit;transition:background 0.15s;';
+        btn.onmouseover = () => btn.style.background = 'rgba(167,139,250,0.2)';
+        btn.onmouseout = () => btn.style.background = 'rgba(167,139,250,0.1)';
+        btn.onclick = () => {
+          chipRow.remove();
+          document.getElementById('chatInput').value = q;
+          chatSend();
+        };
+        chipRow.appendChild(btn);
+      });
+      msgs.appendChild(chipRow);
+      scrollChatToBottom();
     }
 
     // ════════════════════════════════
@@ -4761,7 +4804,10 @@ ${toolList ? '目前可用工具：\n' + toolList + '\n\n' : ''}重要規則：
       if (inputRow) inputRow.style.display = 'flex';
       if (chatMessages.length === 0) {
         loadChatHistory().then(() => {
-          if (chatMessages.length === 0) addBotMessage('你好！👋 我是 SimHope AI 助理\n\n我可以幫你：\n• 🔧 根據問題推薦工具\n• ❓ 解答平台使用問題\n• 📝 引導你提交工作痛點\n\n有什麼我可以幫你的嗎？');
+          if (chatMessages.length === 0) {
+            addBotMessage('你好！👋 我是 SimHope AI 助理\n\n我可以幫你：\n• 🔧 根據問題推薦工具\n• ❓ 解答平台使用問題\n• 📝 引導你提交工作痛點\n\n選一個問題開始，或直接輸入：');
+            showQuickChips();
+          }
         });
       } else {
         rerenderMessages();
