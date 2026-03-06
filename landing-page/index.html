@@ -2561,6 +2561,19 @@
       padding: 2px 8px;
     }
 
+    .chat-model-select {
+      font-size: 0.65rem;
+      font-weight: 800;
+      background: rgba(167, 139, 250, 0.12);
+      color: var(--clay-purple);
+      border: 1px solid rgba(167, 139, 250, 0.3);
+      border-radius: 999px;
+      padding: 2px 8px;
+      cursor: pointer;
+      outline: none;
+      max-width: 140px;
+    }
+
     .chat-messages {
       flex: 1;
       overflow-y: auto;
@@ -4290,7 +4303,7 @@ ${toolsSummary}
         <div class="chat-header-info">
           <div class="chat-header-title">SimHope AI 助理</div>
           <div class="chat-header-sub">
-            <span class="chat-model-badge" id="chatModelBadge">qwen3.5:9b</span>
+            <select id="chatModelSelect" class="chat-model-select"></select>
             &nbsp;
             <button class="chat-history-btn" onclick="chatClearHistory()">清除對話</button>
           </div>
@@ -4313,11 +4326,20 @@ ${toolsSummary}
     // ════════════════════════════════
     // CHATBOT CONFIG（Tunnel 重啟後更新這裡）
     // ════════════════════════════════
+    // ════════════════════════════════
+    // CHATBOT CONFIG
+    // ollamaUrl：Tunnel 重啟後在此更新
+    // defaultModels：Firestore 讀取失敗時的後備清單
+    // ════════════════════════════════
     const CHAT_CONFIG = {
       ollamaUrl: 'https://typing-short-penn-montgomery.trycloudflare.com',
-      model: 'qwen3.5:9b',
-      maxSessions: 50,  // Firestore 每人最多保留幾個 session
+      maxSessions: 50,
+      defaultModels: [
+        { id: 'qwen3.5:9b', label: 'Qwen3.5 9B（預設）' },
+        { id: 'llama3.1:8b', label: 'Llama3.1 8B' },
+      ],
     };
+    let chatCurrentModel = CHAT_CONFIG.defaultModels[0].id;
 
     const CHAT_SYSTEM_PROMPT = `你是 SimHope AI 工具中心的智慧助理，協助台灣製造業工廠同仁。
 你的職責：
@@ -4332,9 +4354,26 @@ ${toolsSummary}
 - 推薦工具時附上連結格式：[工具名稱](/tool-detail.html?id=工具ID)
 - 不確定的問題誠實說不知道`;
 
-    // ════════════════════════════════
-    // 狀態變數
-    // ════════════════════════════════
+    // 動態 system prompt（注入工具清單）
+    function buildSystemPrompt() {
+      let toolList = '';
+      if (typeof DB !== 'undefined') {
+        const tools = DB.getTools().filter(t => t.status !== 'terminated');
+        toolList = tools.map(t => `- ${t.title}（ID: ${t.id}）：${t.desc}`).join('\n');
+      }
+      return `你是 SimHope AI 工具中心的智慧助理，協助台灣製造業工廠同仁。
+你的職責：
+1. 根據同仁描述的問題，推薦最適合的 AI 工具
+2. 說明工具用途和使用方法
+3. 引導同仁描述工作痛點
+4. 回答平台相關問題
+
+${toolList ? '目前可用工具：\n' + toolList + '\n\n' : ''}重要規則：
+- 一律使用繁體中文回答，語氣親切口語
+- 回答精簡，不超過 200 字
+- 推薦工具時附上連結格式：[工具名稱](/tool-detail.html?id=工具ID)
+- 不確定的問題誠實說不知道`;
+    }
     let chatOpen = false;
     let chatMessages = [];    // [{role, content}]
     let chatSessionId = null;
@@ -4342,14 +4381,36 @@ ${toolsSummary}
     let chatIsTyping = false;
 
     // ════════════════════════════════
-    // 初始化：監聽 Firebase Auth
+    // 初始化：Auth + 載入 models
     // ════════════════════════════════
     function initChatBot() {
       if (typeof firebase === 'undefined') return;
+      loadChatModels();
       firebase.auth().onAuthStateChanged(user => {
         chatUser = user;
         if (chatOpen) renderChatContent();
       });
+    }
+
+    // 從 Firestore chatConfig/models 讀取可用模型清單
+    // 管理員可在 Firestore Console 新增：chatConfig > models > {models: [{id, label}]}
+    async function loadChatModels() {
+      const select = document.getElementById('chatModelSelect');
+      let models = CHAT_CONFIG.defaultModels;
+      try {
+        if (typeof firebase !== 'undefined') {
+          const db = firebase.firestore();
+          const doc = await db.collection('chatConfig').doc('models').get();
+          if (doc.exists && doc.data().models?.length) {
+            models = doc.data().models;
+          }
+        }
+      } catch (_) { }
+      select.innerHTML = models.map(m =>
+        `<option value="${m.id}">${m.label}</option>`
+      ).join('');
+      chatCurrentModel = models[0].id;
+      select.addEventListener('change', () => { chatCurrentModel = select.value; });
     }
 
     // ════════════════════════════════
@@ -4452,9 +4513,9 @@ ${toolsSummary}
 
       try {
         const payload = {
-          model: CHAT_CONFIG.model,
+          model: chatCurrentModel,
           messages: [
-            { role: 'system', content: CHAT_SYSTEM_PROMPT },
+            { role: 'system', content: buildSystemPrompt() },
             ...chatMessages.slice(-10)  // 最近 10 輪保持 context
           ],
           stream: true,
@@ -4531,7 +4592,7 @@ ${toolsSummary}
         await ref.set({
           messages: chatMessages,
           updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-          model: CHAT_CONFIG.model,
+          model: chatCurrentModel,
           uid: chatUser.uid,
         }, { merge: true });
         // localStorage 同步備份
