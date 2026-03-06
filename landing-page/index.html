@@ -2419,6 +2419,323 @@
         padding: 28px 18px;
       }
     }
+
+    /* ════════════════════════════════════
+       CHATBOT WIDGET
+    ═══════════════════════════════════ */
+    #chatFab {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 12px;
+    }
+
+    #chatFabBtn {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--clay-purple), var(--clay-blue));
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      box-shadow: 0 6px 24px rgba(120, 90, 240, 0.45), 0 2px 8px rgba(0, 0, 0, 0.15);
+      transition: transform 0.2s, box-shadow 0.2s;
+      position: relative;
+    }
+
+    #chatFabBtn:hover {
+      transform: scale(1.08);
+      box-shadow: 0 10px 32px rgba(120, 90, 240, 0.55);
+    }
+
+    #chatUnreadBadge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      background: var(--clay-coral);
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 900;
+      min-width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      padding: 0 5px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #fff;
+    }
+
+    #chatWindow {
+      position: fixed;
+      bottom: 100px;
+      right: 28px;
+      width: 360px;
+      max-height: 520px;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(20px);
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18), 0 4px 16px rgba(0, 0, 0, 0.08);
+      border: 1.5px solid rgba(255, 255, 255, 0.9);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      z-index: 9998;
+      transform: scale(0.92) translateY(20px);
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s;
+    }
+
+    #chatWindow.open {
+      transform: scale(1) translateY(0);
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .chat-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 18px 14px;
+      border-bottom: 1.5px solid rgba(0, 0, 0, 0.06);
+      background: linear-gradient(135deg, rgba(167, 139, 250, 0.12), rgba(96, 165, 250, 0.08));
+    }
+
+    .chat-header-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--clay-purple), var(--clay-blue));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+
+    .chat-header-info {
+      flex: 1;
+    }
+
+    .chat-header-title {
+      font-size: 0.9rem;
+      font-weight: 900;
+      color: var(--text-dark);
+    }
+
+    .chat-header-sub {
+      font-size: 0.72rem;
+      color: var(--text-mid);
+      margin-top: 1px;
+    }
+
+    .chat-header-close {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.1rem;
+      color: var(--text-mid);
+      padding: 4px 6px;
+      border-radius: 8px;
+      transition: background 0.15s;
+    }
+
+    .chat-header-close:hover {
+      background: rgba(0, 0, 0, 0.07);
+    }
+
+    .chat-model-badge {
+      font-size: 0.62rem;
+      font-weight: 800;
+      background: rgba(167, 139, 250, 0.15);
+      color: var(--clay-purple);
+      border-radius: 999px;
+      padding: 2px 8px;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      scroll-behavior: smooth;
+    }
+
+    .chat-messages::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.12);
+      border-radius: 999px;
+    }
+
+    .chat-msg {
+      max-width: 85%;
+      padding: 10px 14px;
+      border-radius: 16px;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      word-break: break-word;
+    }
+
+    .chat-msg.bot {
+      background: rgba(167, 139, 250, 0.1);
+      border: 1.5px solid rgba(167, 139, 250, 0.2);
+      border-bottom-left-radius: 4px;
+      color: var(--text-dark);
+      align-self: flex-start;
+    }
+
+    .chat-msg.user {
+      background: var(--text-dark);
+      color: #fff;
+      border-bottom-right-radius: 4px;
+      align-self: flex-end;
+    }
+
+    .chat-msg a {
+      color: var(--clay-purple);
+      text-decoration: underline;
+    }
+
+    .chat-typing {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      padding: 10px 14px;
+      background: rgba(167, 139, 250, 0.08);
+      border-radius: 16px;
+      border-bottom-left-radius: 4px;
+      width: fit-content;
+      border: 1.5px solid rgba(167, 139, 250, 0.15);
+    }
+
+    .chat-typing span {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--clay-purple);
+      opacity: 0.5;
+      animation: chatBounce 1.2s infinite;
+    }
+
+    .chat-typing span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .chat-typing span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes chatBounce {
+
+      0%,
+      80%,
+      100% {
+        transform: translateY(0);
+        opacity: 0.5;
+      }
+
+      40% {
+        transform: translateY(-5px);
+        opacity: 1;
+      }
+    }
+
+    .chat-input-row {
+      display: flex;
+      gap: 8px;
+      padding: 12px 14px;
+      border-top: 1.5px solid rgba(0, 0, 0, 0.06);
+      background: rgba(255, 255, 255, 0.8);
+    }
+
+    #chatInput {
+      flex: 1;
+      border: 1.5px solid rgba(0, 0, 0, 0.1);
+      border-radius: 12px;
+      padding: 9px 13px;
+      font-size: 0.85rem;
+      font-family: inherit;
+      outline: none;
+      background: #fff;
+      resize: none;
+      max-height: 80px;
+      transition: border-color 0.2s;
+    }
+
+    #chatInput:focus {
+      border-color: var(--clay-purple);
+    }
+
+    #chatSendBtn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: var(--text-dark);
+      border: none;
+      cursor: pointer;
+      color: #fff;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: transform 0.15s, background 0.15s;
+      align-self: flex-end;
+    }
+
+    #chatSendBtn:hover {
+      transform: scale(1.08);
+      background: var(--clay-purple);
+    }
+
+    #chatSendBtn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .chat-login-prompt {
+      padding: 32px 20px;
+      text-align: center;
+      color: var(--text-mid);
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    .chat-login-prompt a {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 8px 20px;
+      background: var(--text-dark);
+      color: #fff;
+      border-radius: 999px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
+
+    .chat-history-btn {
+      background: none;
+      border: none;
+      font-size: 0.72rem;
+      color: var(--text-mid);
+      cursor: pointer;
+      padding: 0 4px;
+      text-decoration: underline;
+    }
   </style>
 </head>
 
@@ -3964,6 +4281,333 @@ ${toolsSummary}
       }
     };
   </script>
+
+  <!-- ═══════ CHATBOT WIDGET ═══════ -->
+  <div id="chatFab">
+    <div id="chatWindow">
+      <div class="chat-header">
+        <div class="chat-header-icon">🤖</div>
+        <div class="chat-header-info">
+          <div class="chat-header-title">SimHope AI 助理</div>
+          <div class="chat-header-sub">
+            <span class="chat-model-badge" id="chatModelBadge">qwen3.5:9b</span>
+            &nbsp;
+            <button class="chat-history-btn" onclick="chatClearHistory()">清除對話</button>
+          </div>
+        </div>
+        <button class="chat-header-close" onclick="toggleChat(false)">✕</button>
+      </div>
+      <div class="chat-messages" id="chatMessages"></div>
+      <div class="chat-input-row">
+        <textarea id="chatInput" placeholder="輸入訊息... (Enter 送出)" rows="1"></textarea>
+        <button id="chatSendBtn" onclick="chatSend()">➤</button>
+      </div>
+    </div>
+    <button id="chatFabBtn" onclick="toggleChat()" title="AI 助理">
+      🤖
+      <span id="chatUnreadBadge"></span>
+    </button>
+  </div>
+
+  <script>
+    // ════════════════════════════════
+    // CHATBOT CONFIG（Tunnel 重啟後更新這裡）
+    // ════════════════════════════════
+    const CHAT_CONFIG = {
+      ollamaUrl: 'https://typing-short-penn-montgomery.trycloudflare.com',
+      model: 'qwen3.5:9b',
+      maxSessions: 50,  // Firestore 每人最多保留幾個 session
+    };
+
+    const CHAT_SYSTEM_PROMPT = `你是 SimHope AI 工具中心的智慧助理，協助台灣製造業工廠同仁。
+你的職責：
+1. 根據同仁描述的問題，推薦最適合的 AI 工具
+2. 說明工具用途和使用方法
+3. 引導同仁描述工作痛點
+4. 回答平台相關問題
+
+重要規則：
+- 一律使用繁體中文回答，語氣親切口語
+- 回答精簡，不超過 200 字
+- 推薦工具時附上連結格式：[工具名稱](/tool-detail.html?id=工具ID)
+- 不確定的問題誠實說不知道`;
+
+    // ════════════════════════════════
+    // 狀態變數
+    // ════════════════════════════════
+    let chatOpen = false;
+    let chatMessages = [];    // [{role, content}]
+    let chatSessionId = null;
+    let chatUser = null;
+    let chatIsTyping = false;
+
+    // ════════════════════════════════
+    // 初始化：監聽 Firebase Auth
+    // ════════════════════════════════
+    function initChatBot() {
+      if (typeof firebase === 'undefined') return;
+      firebase.auth().onAuthStateChanged(user => {
+        chatUser = user;
+        if (chatOpen) renderChatContent();
+      });
+    }
+
+    // ════════════════════════════════
+    // FAB 開關
+    // ════════════════════════════════
+    function toggleChat(force) {
+      chatOpen = force !== undefined ? force : !chatOpen;
+      const win = document.getElementById('chatWindow');
+      const badge = document.getElementById('chatUnreadBadge');
+      win.classList.toggle('open', chatOpen);
+      if (chatOpen) {
+        badge.style.display = 'none';
+        renderChatContent();
+        setTimeout(() => {
+          document.getElementById('chatInput')?.focus();
+          scrollChatToBottom();
+        }, 300);
+      }
+    }
+
+    // ════════════════════════════════
+    // 渲染聊天內容（根據登入狀態）
+    // ════════════════════════════════
+    function renderChatContent() {
+      const msgs = document.getElementById('chatMessages');
+      const inputRow = document.querySelector('.chat-input-row');
+      if (!chatUser) {
+        msgs.innerHTML = `<div class="chat-login-prompt">🔐 請先登入才能使用 AI 助理<br><a href="auth.html">前往登入</a></div>`;
+        if (inputRow) inputRow.style.display = 'none';
+        return;
+      }
+      if (inputRow) inputRow.style.display = 'flex';
+      if (chatMessages.length === 0) {
+        loadChatHistory().then(() => {
+          if (chatMessages.length === 0) addBotMessage('你好！👋 我是 SimHope AI 助理\n\n我可以幫你：\n• 🔧 根據問題推薦工具\n• ❓ 解答平台使用問題\n• 📝 引導你提交工作痛點\n\n有什麼我可以幫你的嗎？');
+        });
+      } else {
+        rerenderMessages();
+      }
+    }
+
+    // ════════════════════════════════
+    // message helpers
+    // ════════════════════════════════
+    function addBotMessage(content) {
+      chatMessages.push({ role: 'assistant', content });
+      rerenderMessages();
+      saveChatHistory();
+    }
+
+    function rerenderMessages() {
+      const msgs = document.getElementById('chatMessages');
+      if (!msgs) return;
+      msgs.innerHTML = chatMessages.map(m => `
+      <div class="chat-msg ${m.role === 'user' ? 'user' : 'bot'}">${escapeHtml(m.content).replace(/\n/g, '<br>').replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')}</div>
+    `).join('');
+      scrollChatToBottom();
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function scrollChatToBottom() {
+      const msgs = document.getElementById('chatMessages');
+      if (msgs) msgs.scrollTop = msgs.scrollHeight;
+    }
+
+    function showTyping() {
+      removeTyping();
+      const msgs = document.getElementById('chatMessages');
+      const el = document.createElement('div');
+      el.className = 'chat-typing'; el.id = 'chatTypingEl';
+      el.innerHTML = '<span></span><span></span><span></span>';
+      msgs.appendChild(el);
+      scrollChatToBottom();
+    }
+
+    function removeTyping() {
+      document.getElementById('chatTypingEl')?.remove();
+    }
+
+    // ════════════════════════════════
+    // 送出訊息
+    // ════════════════════════════════
+    async function chatSend() {
+      if (!chatUser) return;
+      const input = document.getElementById('chatInput');
+      const text = input.value.trim();
+      if (!text || chatIsTyping) return;
+
+      input.value = '';
+      input.style.height = 'auto';
+      chatMessages.push({ role: 'user', content: text });
+      rerenderMessages();
+
+      chatIsTyping = true;
+      document.getElementById('chatSendBtn').disabled = true;
+      showTyping();
+
+      try {
+        const payload = {
+          model: CHAT_CONFIG.model,
+          messages: [
+            { role: 'system', content: CHAT_SYSTEM_PROMPT },
+            ...chatMessages.slice(-10)  // 最近 10 輪保持 context
+          ],
+          stream: true,
+          options: { temperature: 0.7 }
+        };
+
+        const res = await fetch(CHAT_CONFIG.ollamaUrl + '/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) throw new Error('API 回應失敗 ' + res.status);
+
+        // 串流讀取
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let fullContent = '';
+
+        removeTyping();
+
+        // 新增一個 bot 訊息佔位
+        chatMessages.push({ role: 'assistant', content: '' });
+        const lastIdx = chatMessages.length - 1;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const lines = decoder.decode(value).split('\n').filter(Boolean);
+          for (const line of lines) {
+            try {
+              const chunk = JSON.parse(line);
+              if (chunk.message?.content) {
+                fullContent += chunk.message.content;
+                // 過濾 <think>...</think> 標籤（Qwen3 CoT）
+                const displayContent = fullContent.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+                chatMessages[lastIdx].content = displayContent;
+                rerenderMessages();
+              }
+            } catch (_) { }
+          }
+        }
+
+        // 最終清理 thinking 標籤
+        const cleaned = fullContent.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+        chatMessages[lastIdx].content = cleaned || '（無回應）';
+        rerenderMessages();
+        saveChatHistory();
+
+      } catch (err) {
+        removeTyping();
+        addBotMessage('⚠️ 連線錯誤，請稍後再試。\n(' + err.message + ')');
+        console.error('ChatBot error:', err);
+      } finally {
+        chatIsTyping = false;
+        document.getElementById('chatSendBtn').disabled = false;
+        document.getElementById('chatInput')?.focus();
+      }
+    }
+
+    // ════════════════════════════════
+    // Firestore 儲存 / 讀取
+    // ════════════════════════════════
+    async function saveChatHistory() {
+      if (!chatUser || typeof firebase === 'undefined') {
+        // localStorage 備份
+        localStorage.setItem('simhope_chat_' + (chatUser?.uid || 'guest'), JSON.stringify(chatMessages));
+        return;
+      }
+      try {
+        if (!chatSessionId) chatSessionId = 'session_' + Date.now();
+        const db = firebase.firestore();
+        const ref = db.collection('chatHistory').doc(chatUser.uid).collection('sessions').doc(chatSessionId);
+        await ref.set({
+          messages: chatMessages,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+          model: CHAT_CONFIG.model,
+          uid: chatUser.uid,
+        }, { merge: true });
+        // localStorage 同步備份
+        localStorage.setItem('simhope_chat_' + chatUser.uid, JSON.stringify(chatMessages));
+
+        // 檢查 session 數量
+        const snaps = await db.collection('chatHistory').doc(chatUser.uid).collection('sessions').select().get();
+        if (snaps.size > CHAT_CONFIG.maxSessions) {
+          showToast('⚠️ 對話紀錄接近上限，建議點「清除對話」管理空間');
+        }
+      } catch (err) {
+        console.warn('Firestore save failed, using localStorage:', err);
+        localStorage.setItem('simhope_chat_' + chatUser.uid, JSON.stringify(chatMessages));
+      }
+    }
+
+    async function loadChatHistory() {
+      if (!chatUser) return;
+      // 先嘗試 localStorage
+      const local = localStorage.getItem('simhope_chat_' + chatUser.uid);
+      if (local) {
+        try { chatMessages = JSON.parse(local); rerenderMessages(); return; } catch (_) { }
+      }
+      // 再嘗試 Firestore
+      if (typeof firebase === 'undefined') return;
+      try {
+        const db = firebase.firestore();
+        const snaps = await db.collection('chatHistory').doc(chatUser.uid)
+          .collection('sessions').orderBy('updatedAt', 'desc').limit(1).get();
+        if (!snaps.empty) {
+          const data = snaps.docs[0].data();
+          chatSessionId = snaps.docs[0].id;
+          chatMessages = data.messages || [];
+          if (chatMessages.length) rerenderMessages();
+        }
+      } catch (err) {
+        console.warn('Firestore load failed:', err);
+      }
+    }
+
+    async function chatClearHistory() {
+      if (!confirm('確定要清除所有對話記錄嗎？')) return;
+      chatMessages = [];
+      chatSessionId = null;
+      if (chatUser) localStorage.removeItem('simhope_chat_' + chatUser.uid);
+      if (chatUser && typeof firebase !== 'undefined') {
+        try {
+          const db = firebase.firestore();
+          const snaps = await db.collection('chatHistory').doc(chatUser.uid).collection('sessions').get();
+          const batch = db.batch();
+          snaps.docs.forEach(d => batch.delete(d.ref));
+          await batch.commit();
+        } catch (_) { }
+      }
+      renderChatContent();
+      showToast('✅ 對話記錄已清除');
+    }
+
+    // ════════════════════════════════
+    // Enter 送出
+    // ════════════════════════════════
+    document.addEventListener('DOMContentLoaded', () => {
+      initChatBot();
+      const input = document.getElementById('chatInput');
+      if (input) {
+        input.addEventListener('keydown', e => {
+          if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); chatSend(); }
+        });
+        input.addEventListener('input', () => {
+          input.style.height = 'auto';
+          input.style.height = Math.min(input.scrollHeight, 80) + 'px';
+        });
+      }
+    });
+  </script>
+
 </body>
 
 </html>
