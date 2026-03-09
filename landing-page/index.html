@@ -2432,27 +2432,28 @@
       flex-direction: column;
       align-items: flex-end;
       gap: 12px;
+      font-family: -apple-system, 'SF Pro Display', BlinkMacSystemFont, 'Helvetica Neue', system-ui, sans-serif;
     }
 
     #chatFabBtn {
-      width: 58px;
-      height: 58px;
+      width: 54px;
+      height: 54px;
       border-radius: 50%;
-      background: linear-gradient(135deg, var(--clay-purple), var(--clay-blue));
+      background: linear-gradient(145deg, #7c5cfc, #4f9dff);
       border: none;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.6rem;
-      box-shadow: 0 6px 24px rgba(120, 90, 240, 0.45), 0 2px 8px rgba(0, 0, 0, 0.15);
-      transition: transform 0.2s, box-shadow 0.2s;
+      font-size: 1.5rem;
+      box-shadow: 0 8px 28px rgba(100, 80, 220, 0.5), 0 2px 8px rgba(0, 0, 0, 0.2);
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
       position: relative;
     }
 
     #chatFabBtn:hover {
-      transform: scale(1.08);
-      box-shadow: 0 10px 32px rgba(120, 90, 240, 0.55);
+      transform: scale(1.1);
+      box-shadow: 0 12px 36px rgba(100, 80, 220, 0.6);
     }
 
     #chatUnreadBadge {
@@ -2475,27 +2476,32 @@
 
     #chatWindow {
       position: fixed;
-      bottom: 100px;
+      bottom: 96px;
       right: 28px;
       width: 360px;
       height: 520px;
       min-width: 300px;
       min-height: 360px;
       max-width: 700px;
-      max-height: 85vh;
-      background: rgba(255, 255, 255, 0.96);
-      backdrop-filter: blur(20px);
-      border-radius: 24px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18), 0 4px 16px rgba(0, 0, 0, 0.08);
-      border: 1.5px solid rgba(255, 255, 255, 0.9);
+      max-height: 88vh;
+      background: rgba(246, 246, 246, 0.88);
+      backdrop-filter: saturate(180%) blur(28px);
+      -webkit-backdrop-filter: saturate(180%) blur(28px);
+      border-radius: 14px;
+      box-shadow:
+        0 0 0 0.5px rgba(0, 0, 0, 0.12),
+        0 2px 6px rgba(0, 0, 0, 0.08),
+        0 10px 40px rgba(0, 0, 0, 0.22),
+        0 30px 80px rgba(0, 0, 0, 0.1);
       display: flex;
       flex-direction: column;
       overflow: hidden;
       z-index: 9998;
-      transform: scale(0.92) translateY(20px);
+      transform: scale(0.88) translateY(24px);
       opacity: 0;
       pointer-events: none;
-      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s;
+      transition: transform 0.28s cubic-bezier(0.34, 1.4, 0.64, 1), opacity 0.2s;
+      font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, 'Helvetica Neue', system-ui, sans-serif;
     }
 
     #chatWindow.open {
@@ -2689,88 +2695,101 @@
       background: rgba(0, 0, 0, 0.07);
     }
 
+    /* macOS 標題列 */
     .chat-header {
       display: flex;
       align-items: center;
+      padding: 12px 14px 11px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.09);
+      background: rgba(235, 235, 235, 0.72);
+      backdrop-filter: blur(20px);
       gap: 10px;
-      padding: 16px 18px 14px;
-      border-bottom: 1.5px solid rgba(0, 0, 0, 0.06);
-      background: linear-gradient(135deg, rgba(167, 139, 250, 0.12), rgba(96, 165, 250, 0.08));
+      flex-shrink: 0;
+      position: relative;
     }
 
-    .chat-header-icon {
-      width: 36px;
-      height: 36px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, var(--clay-purple), var(--clay-blue));
+    /* 標題置中 */
+    .chat-header-title {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #1d1d1f;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+    }
+
+    .chat-header-right {
+      margin-left: auto;
       display: flex;
       align-items: center;
-      justify-content: center;
-      font-size: 1.1rem;
-      flex-shrink: 0;
-    }
-
-    .chat-header-info {
-      flex: 1;
-    }
-
-    .chat-header-title {
-      font-size: 0.9rem;
-      font-weight: 900;
-      color: var(--text-dark);
-    }
-
-    .chat-header-sub {
-      font-size: 0.72rem;
-      color: var(--text-mid);
-      margin-top: 1px;
+      gap: 4px;
     }
 
     .chat-header-close {
       background: none;
       border: none;
       cursor: pointer;
-      font-size: 1.1rem;
-      color: var(--text-mid);
-      padding: 4px 6px;
-      border-radius: 8px;
-      transition: background 0.15s;
+      font-size: 0.9rem;
+      color: rgba(0, 0, 0, 0.35);
+      padding: 3px 5px;
+      border-radius: 6px;
+      transition: background 0.12s;
+      line-height: 1;
     }
 
     .chat-header-close:hover {
       background: rgba(0, 0, 0, 0.07);
+      color: rgba(0, 0, 0, 0.6);
     }
 
-    .chat-model-badge {
-      font-size: 0.62rem;
-      font-weight: 800;
-      background: rgba(167, 139, 250, 0.15);
-      color: var(--clay-purple);
-      border-radius: 999px;
-      padding: 2px 8px;
+    /* model 選擇列欄（macOS 風 -- 第二行標題列） */
+    .chat-model-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 5px 14px;
+      background: rgba(245, 245, 245, 0.7);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+      flex-shrink: 0;
     }
 
     .chat-model-select {
-      font-size: 0.65rem;
-      font-weight: 800;
-      background: rgba(167, 139, 250, 0.12);
-      color: var(--clay-purple);
-      border: 1px solid rgba(167, 139, 250, 0.3);
-      border-radius: 999px;
-      padding: 2px 8px;
-      cursor: pointer;
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: #636366;
+      background: transparent;
+      border: none;
       outline: none;
-      max-width: 140px;
+      cursor: pointer;
+      font-family: inherit;
     }
 
+    .chat-history-btn {
+      font-size: 0.7rem;
+      color: #636366;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      text-decoration: none;
+    }
+
+    .chat-history-btn:hover {
+      color: #1d1d1f;
+    }
+
+    /* 訊息區 */
     .chat-messages {
       flex: 1;
       overflow-y: auto;
-      padding: 16px 14px;
+      padding: 14px 12px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
       scroll-behavior: smooth;
+      background: rgba(255, 255, 255, 0.55);
     }
 
     .chat-messages::-webkit-scrollbar {
@@ -2782,53 +2801,60 @@
       border-radius: 999px;
     }
 
+    /* 訊息氣泡（macOS iMessage 風） */
     .chat-msg {
-      max-width: 85%;
-      padding: 10px 14px;
-      border-radius: 16px;
+      max-width: 82%;
+      padding: 9px 13px;
+      border-radius: 18px;
       font-size: 0.85rem;
-      line-height: 1.6;
+      line-height: 1.55;
       word-break: break-word;
     }
 
     .chat-msg.bot {
-      background: rgba(167, 139, 250, 0.1);
-      border: 1.5px solid rgba(167, 139, 250, 0.2);
-      border-bottom-left-radius: 4px;
-      color: var(--text-dark);
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(0, 0, 0, 0.09);
+      border-bottom-left-radius: 5px;
+      color: #1d1d1f;
       align-self: flex-start;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
     }
 
     .chat-msg.user {
-      background: var(--text-dark);
+      background: #0a84ff;
       color: #fff;
-      border-bottom-right-radius: 4px;
+      border-bottom-right-radius: 5px;
       align-self: flex-end;
+      box-shadow: 0 2px 8px rgba(10, 132, 255, 0.35);
     }
 
-    .chat-msg a {
-      color: var(--clay-purple);
-      text-decoration: underline;
+    .chat-msg.user a {
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    .chat-msg.bot a {
+      color: #0a84ff;
     }
 
     .chat-typing {
       display: flex;
       gap: 4px;
       align-items: center;
-      padding: 10px 14px;
-      background: rgba(167, 139, 250, 0.08);
-      border-radius: 16px;
-      border-bottom-left-radius: 4px;
+      padding: 11px 16px;
+      background: rgba(255, 255, 255, 0.92);
+      border-radius: 18px;
+      border-bottom-left-radius: 5px;
       width: fit-content;
-      border: 1.5px solid rgba(167, 139, 250, 0.15);
+      border: 1px solid rgba(0, 0, 0, 0.09);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
     }
 
     .chat-typing span {
       width: 7px;
       height: 7px;
       border-radius: 50%;
-      background: var(--clay-purple);
-      opacity: 0.5;
+      background: #8e8e93;
+      opacity: 0.6;
       animation: chatBounce 1.2s infinite;
     }
 
@@ -2855,56 +2881,61 @@
       }
     }
 
+    /* macOS 輸入列 */
     .chat-input-row {
       display: flex;
       gap: 8px;
-      padding: 12px 14px;
-      border-top: 1.5px solid rgba(0, 0, 0, 0.06);
-      background: rgba(255, 255, 255, 0.8);
+      padding: 10px 12px;
+      border-top: 1px solid rgba(0, 0, 0, 0.08);
+      background: rgba(246, 246, 246, 0.92);
+      align-items: flex-end;
     }
 
     #chatInput {
       flex: 1;
-      border: 1.5px solid rgba(0, 0, 0, 0.1);
-      border-radius: 12px;
-      padding: 9px 13px;
+      border: 1px solid rgba(0, 0, 0, 0.13);
+      border-radius: 20px;
+      padding: 8px 14px;
       font-size: 0.85rem;
       font-family: inherit;
       outline: none;
-      background: #fff;
+      background: rgba(255, 255, 255, 0.92);
       resize: none;
       max-height: 80px;
-      transition: border-color 0.2s;
+      transition: border-color 0.15s;
+      line-height: 1.5;
     }
 
     #chatInput:focus {
-      border-color: var(--clay-purple);
+      border-color: #0a84ff;
+      box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.12);
     }
 
     #chatSendBtn {
-      width: 38px;
-      height: 38px;
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
-      background: var(--text-dark);
+      background: #0a84ff;
       border: none;
       cursor: pointer;
       color: #fff;
-      font-size: 1rem;
+      font-size: 0.95rem;
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
       transition: transform 0.15s, background 0.15s;
       align-self: flex-end;
+      margin-bottom: 1px;
     }
 
     #chatSendBtn:hover {
-      transform: scale(1.08);
-      background: var(--clay-purple);
+      transform: scale(1.1);
+      background: #0070d9;
     }
 
     #chatSendBtn:disabled {
-      background: #ccc;
+      background: #c7c7cc;
       cursor: not-allowed;
       transform: none;
     }
@@ -4491,23 +4522,25 @@ ${toolsSummary}
       <div id="chatResizeHandle"></div>
 
       <div class="chat-header">
-        <div class="chat-header-icon">🤖</div>
-        <div class="chat-header-info">
-          <div class="chat-header-title">SimHope AI 助理</div>
-          <div class="chat-header-sub">
-            <select id="chatModelSelect" class="chat-model-select"></select>
-            &nbsp;
-            <button class="chat-history-btn" onclick="chatClearHistory()">清除對話</button>
-          </div>
+        <!-- macOS traffic lights -->
+        <div class="mac-traffic-lights">
+          <button class="mac-btn mac-btn-close" onclick="toggleChat(false)" title="關閉"></button>
+          <button class="mac-btn mac-btn-min" onclick="toggleChatExpand()" title="展開/收合" id="chatExpandBtn"></button>
+          <button class="mac-btn mac-btn-max" id="chatSidebarToggle" onclick="toggleChatSidebar()" title="對話歷史—管理員可見"
+            style="display:none"></button>
         </div>
-        <!-- session 歷史按鈕（管理員可見），有文字標籤提升可發現性 -->
-        <button class="chat-history-toggle" id="chatSidebarToggle" onclick="toggleChatSidebar()" title="查看對話歷史"
-          style="display:none; font-size:0.72rem; padding:4px 8px; gap:4px; align-items:center;">
-          📋 歷史
-        </button>
-        <!-- 展開/收合按鈕（所有人可見） -->
-        <button class="chat-header-close" id="chatExpandBtn" onclick="toggleChatExpand()" title="展開/收合視窗">⊞</button>
-        <button class="chat-header-close" onclick="toggleChat(false)">✕</button>
+        <!-- 標題置中 -->
+        <div class="chat-header-title">🤖 SimHope AI 助理</div>
+        <!-- 右側按鈕 -->
+        <div class="chat-header-right">
+          <button class="chat-header-close" onclick="chatClearHistory()" title="清除對話">🗑️</button>
+        </div>
+      </div>
+      <!-- model + history 工具列 -->
+      <div class="chat-model-bar">
+        <select id="chatModelSelect" class="chat-model-select"></select>
+        <button id="chatHistoryToggleText" class="chat-history-btn" onclick="toggleChatSidebar()"
+          style="display:none">📋 歷史記錄</button>
       </div>
 
       <div class="chat-with-sidebar">
@@ -4662,10 +4695,10 @@ ${toolList ? '目前可用工具：\n' + toolList + '\n\n' : ''}重要規則：
 
     // 快速提問 chip
     const QUICK_CHIPS = [
-      '\ud83d\udd27 \u6211\u60f3\u7d93\u5e38\u8981\u7ffb\u8b6f\u6587\u4ef6\uff0c\u6709\u9069\u5408\u7684\u5de5\u5177\u55ce\uff1f',
-      '\ud83d\udcdd \u5be9\u95b1\u5be6\u9ad4\u5408\u7d04\u8981\u5f88\u4e45\uff0c\u6709\u6c92\u6709\u53ef\u4ee5\u52a0\u901f\u7684\u65b9\u6cd5\uff1f',
-      '\u2753 \u9019\u500b\u5e73\u53f0\u6709\u54ea\u4e9b AI \u5de5\u5177\u53ef\u4ee5\u7528\uff1f',
-      '\ud83d\udcca \u6211\u60f3\u53cd\u6620\u5de5\u4f5c\u4e0a\u7684\u75db\u9ede',
+      '🔍 我有一個工作問題，不確定哪個工具能幫我？',
+      '📖 我想瞭解某個工具該怎麼使用？',
+      '❓ 這個平台有哪些 AI 工具可以用？',
+      '📊 我想反映工作上的痛點',
     ];
 
     function showQuickChips() {
