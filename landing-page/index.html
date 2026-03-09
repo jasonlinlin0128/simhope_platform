@@ -2695,6 +2695,38 @@
       background: rgba(0, 0, 0, 0.07);
     }
 
+    
+    /* macOS Traffic Lights */
+    .mac-traffic-lights {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .mac-btn {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: filter 0.15s;
+    }
+    .mac-btn::before {
+      content: '';
+      display: block;
+      width: 100%; height: 100%;
+      border-radius: 50%;
+      box-shadow: inset 0 0 0 0.5px gba(0,0,0,0.12);
+    }
+    .mac-btn:hover { filter: brightness(0.85); }
+    .mac-btn-close { background: #ff5f56; }
+    .mac-btn-min { background: #ffbd2e; }
+    .mac-btn-max { background: #27c93f; }
+
     /* macOS 標題列 */
     .chat-header {
       display: flex;
