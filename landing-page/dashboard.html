@@ -1179,14 +1179,12 @@
 
         // ── Render: Edit Tool Form ──
         function renderEditToolForm() {
-            // Unused since we're using modals now. Kept empty to not break tab switching if called.
-            return \`<div style="display:none"></div>\`;
+            return `<div style="display:none"></div>`;
         }
 
         // ── Render: Edit Pain Form ──
         function renderEditPainForm() {
-            // Unused since we're using modals now.
-            return \`<div style="display:none"></div>\`;
+            return `<div style="display:none"></div>`;
         }
 
         // ── Render: Review Queue (Admin) ──
@@ -1196,10 +1194,9 @@
                 ...pendingPainCards.map(c => ({ ...c, _type: 'pain' }))
             ];
             if (!all.length) return `<div class="empty-state" ><div class="empty-state-icon">✅</div><div class="empty-state-text">沒有待審核的項目</div></div> `;
-            return `<div class="card-list" > ${
-                all.map(item => {
-                    if (item._type === 'tool') {
-                        return `<div class="item-card">
+            return `<div class="card-list" > ${all.map(item => {
+                if (item._type === 'tool') {
+                    return `<div class="item-card">
                         <div class="item-icon">${item.icon || '🛠️'}</div>
                         <div class="item-body">
                             <div class="item-title">${item.title}</div>
@@ -1211,8 +1208,8 @@
                             <button class="act-btn act-btn-reject" onclick="rejectItem('tool','${item.id}')">❌ 退回</button>
                         </div>
                     </div>`;
-                    } else {
-                        return `<div class="item-card">
+                } else {
+                    return `<div class="item-card">
                         <div class="item-icon">😤</div>
                         <div class="item-body">
                             <div class="item-title">${item.before}</div>
@@ -1224,9 +1221,9 @@
                             <button class="act-btn act-btn-reject" onclick="rejectItem('pain','${item.id}')">❌ 退回</button>
                         </div>
                     </div>`;
-                    }
-                }).join('')
-            }</div> `;
+                }
+            }).join('')
+                }</div> `;
         }
 
         // ── Render: Add Developer (Admin) ──
@@ -1267,7 +1264,7 @@
             const pains = allPainCardsAdmin;
             if (!tools.length && !pains.length) return `<div class="empty-state" ><div class="empty-state-icon">⚙️</div><div class="empty-state-text">尚無任何已上架的工具或痛點</div></div> `;
             return `
-                <h3 style = "font-size:.88rem;font-weight:900;color:var(--text-mid);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px" >🔧 工具列表(${ tools.length })</h3>
+                <h3 style = "font-size:.88rem;font-weight:900;color:var(--text-mid);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px" >🔧 工具列表(${tools.length})</h3>
                 <div class="card-list" style="margin-bottom:24px">${tools.map(t => {
                 const statusBadge = { live: '✅ 上線', beta: '🟡 湋試中', evaluating: '🔵 評估中', dev: '🔨 開發中', terminated: '❌ 已停止' }[t.status] || t.status;
                 return `<div class="item-card">
@@ -1308,13 +1305,12 @@
         // ── Render: All Users (Admin) ──
         function renderAllUsers() {
             if (!allUsers.length) return `<div class="empty-state" ><div class="empty-state-icon">👥</div><div class="empty-state-text">尚無使用者</div></div> `;
-            return `<div class="users-grid" > ${
-                allUsers.map(u => {
-                    const name = u.displayName || u.email;
-                    const isAdmin = u.role === 'admin';
-                    const isSelf = u.uid === currentUser.uid;
-                    const roleLabel = isAdmin ? '🛡️ 管理員' : '👨‍💻 開發者';
-                    return `<div class="user-card">
+            return `<div class="users-grid" > ${allUsers.map(u => {
+                const name = u.displayName || u.email;
+                const isAdmin = u.role === 'admin';
+                const isSelf = u.uid === currentUser.uid;
+                const roleLabel = isAdmin ? '🛡️ 管理員' : '👨‍💻 開發者';
+                return `<div class="user-card">
                     <div class="user-card-avatar">${name.charAt(0).toUpperCase()}</div>
                     <div class="user-card-info">
                         <div class="user-card-name">${name} <span style="font-size:.65rem;color:var(--text-mid)">${roleLabel}</span>${isSelf ? ' <span style="font-size:.58rem;color:#6366F1;font-weight:700">(You)</span>' : ''}</div>
@@ -1326,8 +1322,8 @@
                         ${!isAdmin && !isSelf ? `<button class="act-btn act-btn-reject" onclick="revokeAccess('${u.uid}')">⛔ 移除權限</button>` : ''}
                     </div>
                 </div>`;
-                }).join('')
-            }</div> `;
+            }).join('')
+                }</div> `;
         }
 
         // ── Handlers ──
@@ -1413,10 +1409,10 @@
 
         async function changeToolStatus(toolId, newStatus) {
             const label = newStatus === 'terminated' ? '下架' : '上架';
-            if (!confirm(`確定要將此工具「${ label }」？`)) return;
+            if (!confirm(`確定要將此工具「${label}」？`)) return;
             try {
                 await FireDB.updateTool(toolId, { status: newStatus });
-                showToast(`✅ 工具已${ label } `);
+                showToast(`✅ 工具已${label} `);
                 await initDashboard();
             } catch (err) { showToast('❌ 操作失敗：' + err.message); }
         }
@@ -1433,10 +1429,10 @@
 
         async function setUserRole(uid, role) {
             const label = role === 'admin' ? '管理員' : '開發者';
-            if (!confirm(`確定要將此使用者設為「${ label }」？`)) return;
+            if (!confirm(`確定要將此使用者設為「${label}」？`)) return;
             try {
                 await FireDB.setUserRole(uid, role);
-                showToast(`✅ 已設為${ label } `);
+                showToast(`✅ 已設為${label} `);
                 await initDashboard();
             } catch (err) { showToast('❌ 操作失敗：' + err.message); }
         }
@@ -1471,47 +1467,47 @@
             try {
                 const res = await fetch(
                     `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${apiKey}`,
-            {
-                method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password: pass, returnSecureToken: false })
-            }
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, password: pass, returnSecureToken: false })
+                    }
                 );
-            const data = await res.json();
-            if (data.error) throw new Error(data.error.message);
+                const data = await res.json();
+                if (data.error) throw new Error(data.error.message);
 
-            const newUid = data.localId;
-            // 建立 Firestore user doc
-            await firebase.firestore().collection('users').doc(newUid).set({
-                email,
-                displayName: name,
-                role,
-                avatarUrl: '',
-                bio: '',
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
+                const newUid = data.localId;
+                // 建立 Firestore user doc
+                await firebase.firestore().collection('users').doc(newUid).set({
+                    email,
+                    displayName: name,
+                    role,
+                    avatarUrl: '',
+                    bio: '',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
 
-            // 更新 displayName（via REST）
-            await fetch(
-                `https://identitytoolkit.googleapis.com/v1/accounts:update?key=${apiKey}`,
-                {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ idToken: data.idToken, displayName: name })
-                }
-            );
+                // 更新 displayName（via REST）
+                await fetch(
+                    `https://identitytoolkit.googleapis.com/v1/accounts:update?key=${apiKey}`,
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ idToken: data.idToken, displayName: name })
+                    }
+                );
 
-            const roleLabel = role === 'admin' ? '管理員' : '開發者';
-            showToast(`✅ ${roleLabel}帳號「${name}」已建立！`);
-            document.getElementById('addDevForm').reset();
-            await initDashboard();
-        } catch (err) {
-            const msg = err.message === 'EMAIL_EXISTS' ? 'Email 已被使用' : err.message;
-            showToast('❌ 建立失敗：' + msg);
-        } finally {
-            btn.disabled = false;
-            btn.textContent = '+ 建立帳號';
-        }
+                const roleLabel = role === 'admin' ? '管理員' : '開發者';
+                showToast(`✅ ${roleLabel}帳號「${name}」已建立！`);
+                document.getElementById('addDevForm').reset();
+                await initDashboard();
+            } catch (err) {
+                const msg = err.message === 'EMAIL_EXISTS' ? 'Email 已被使用' : err.message;
+                showToast('❌ 建立失敗：' + msg);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '+ 建立帳號';
+            }
         }
 
         // ── Modals logic ──
