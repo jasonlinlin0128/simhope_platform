@@ -878,6 +878,34 @@
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
             transition: opacity .4s;
         }
+
+        .sidebar-steps-input {
+            width: 100%;
+            font-family: inherit;
+            font-size: 0.75rem;
+            padding: 6px 8px;
+            border-radius: 6px;
+            border: 1px solid rgba(30, 27, 75, 0.1);
+            background: #F9FAFB;
+            color: var(--text-dark);
+            outline: none;
+            margin-top: 4px;
+        }
+
+        .version-row {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 4px;
+            align-items: center;
+        }
+
+        .version-row input {
+            font-size: 0.7rem;
+            padding: 4px;
+            border-radius: 4px;
+            border: 1px solid rgba(30, 27, 75, 0.1);
+            background: #F9FAFB;
+        }
     </style>
 </head>
 
@@ -885,7 +913,7 @@
     <nav>
         <a class="nav-logo" href="index.html">🏭 SimHope AI 工具中心</a>
         <div class="breadcrumb">
-            <a href="index.html">工具總覽</a>
+            <a href="index.html" id="bcDashLink">儀表板</a>
             <span class="breadcrumb-sep">›</span>
             <span class="breadcrumb-current" id="breadcrumbTitle">載入中…</span>
         </div>
@@ -905,16 +933,31 @@
                 <div class="sidebar-tagline" id="sbTagline"></div>
             </div>
             <div class="sidebar-body">
+                <div class="sidebar-row"><span class="sidebar-label">分類</span><span class="sidebar-val"
+                        id="sbTypeWrap"><span id="sbType"></span></span></div>
                 <div class="sidebar-row"><span class="sidebar-label">部門</span><span class="sidebar-val"
                         id="sbDeptWrap"><span id="sbDept"></span></span></div>
                 <div class="sidebar-row"><span class="sidebar-label">狀態</span><span id="sbStatusWrap"><span
                             id="sbStatus"></span></span></div>
                 <div class="sidebar-tags" id="sbTags"></div>
 
-                <div id="sbUrlEditArea" style="display:none; margin-top: 12px;">
-                    <span class="sidebar-label" style="font-size:0.75rem; display:block; margin-bottom:2px;">🔗
+                <div id="sbEditExtrasArea"
+                    style="display:none; margin-top: 16px; border-top: 1px dashed rgba(30,27,75,0.1); padding-top: 12px;">
+                    <span class="sidebar-label"
+                        style="font-size:0.75rem; display:block; margin-bottom:2px; font-weight: 800; color:var(--text-dark)">🔗
                         連結網址</span>
                     <input type="url" id="sbUrlInput" class="sb-url-input" placeholder="輸入工具 URL (webapp必填)" />
+
+                    <span class="sidebar-label"
+                        style="font-size:0.75rem; display:block; margin-top:12px; margin-bottom:2px; font-weight: 800; color:var(--text-dark)">👣
+                        使用步驟 (逗號分隔)</span>
+                    <input type="text" id="sbStepsInput" class="sidebar-steps-input" placeholder="選語言, 說話或打字, 看翻譯結果" />
+
+                    <span class="sidebar-label"
+                        style="font-size:0.75rem; display:block; margin-top:12px; margin-bottom:2px; font-weight: 800; color:var(--text-dark)">📦
+                        版本更新與下載</span>
+                    <div id="sbVersionsWrap" style="margin-top: 4px;"></div>
+                    <button class="tag-add-btn" onclick="addToolVersionRow()" style="margin-top: 4px;">+ 新增版本</button>
                 </div>
             </div>
             <div class="sidebar-cta" id="sbCta"></div>
@@ -1114,9 +1157,32 @@
             renderSidebarTags();
         }
 
+        function addToolVersionRow(version = '', releaseNotes = '', fileUrl = '') {
+            const wrap = document.getElementById('sbVersionsWrap');
+            const row = document.createElement('div');
+            row.className = 'version-row';
+            row.innerHTML = `
+                <input type="text" placeholder="版號" value="${version}" class="v-ver" style="width:40px;">
+                <input type="text" placeholder="說明" value="${releaseNotes}" class="v-note" style="flex:1;">
+                <input type="url" placeholder="下載連結" value="${fileUrl}" class="v-url" style="width:60px;">
+                <button type="button" class="tag-remove" onclick="this.parentElement.remove()" style="background:none;border:none;margin-left:2px">✕</button>
+            `;
+            wrap.appendChild(row);
+        }
+
         function initPage(t) {
             document.title = t.title + ' — SimHope AI 工具中心';
             document.getElementById('breadcrumbTitle').textContent = t.title;
+            // Adaptive breadcrumb: if admin, go back to dashboard
+            const bcDash = document.getElementById('bcDashLink');
+            if (isAdmin) {
+                bcDash.href = 'dashboard.html';
+                bcDash.textContent = '儀表板';
+            } else {
+                bcDash.href = 'index.html';
+                bcDash.textContent = '工具總覽';
+            }
+
             document.getElementById('adminBarTitle').textContent = '✏️ 編輯：' + t.title;
 
             const iconEl = document.getElementById('sbIcon');
@@ -1129,6 +1195,8 @@
             taglineEl.textContent = t.tagline;
             mainTitleEl.textContent = t.title;
 
+            const typeLabels = { 'webapp': '🌐 Web App', 'download': '⬇️ 下載工具', 'showcase': '📺 展示型' };
+
             // Make text fields editable for admin
             if (isAdmin) {
                 [iconEl, titleEl, taglineEl, mainTitleEl].forEach(el => {
@@ -1140,11 +1208,25 @@
                 titleEl.addEventListener('input', () => mainTitleEl.textContent = titleEl.textContent);
                 mainTitleEl.addEventListener('input', () => titleEl.textContent = mainTitleEl.textContent);
 
-                // URL Editor
-                const urlArea = document.getElementById('sbUrlEditArea');
-                const urlInput = document.getElementById('sbUrlInput');
-                urlArea.style.display = 'block';
-                urlInput.value = t.url || '';
+                // Show Extra Edit Area (URL, Steps, Versions)
+                document.getElementById('sbEditExtrasArea').style.display = 'block';
+                document.getElementById('sbUrlInput').value = t.url || '';
+                document.getElementById('sbStepsInput').value = (t.steps || []).join(', ');
+
+                const vWrap = document.getElementById('sbVersionsWrap');
+                vWrap.innerHTML = '';
+                if (t.versions && t.versions.length) {
+                    t.versions.forEach(v => addToolVersionRow(v.version, v.releaseNotes, v.fileUrl));
+                }
+
+                // Editable Type Select
+                document.getElementById('sbTypeWrap').innerHTML = `
+                    <select id="editTypeSelect" class="sb-select">
+                        <option value="webapp" ${t.type === 'webapp' ? 'selected' : ''}>🌐 Web App</option>
+                        <option value="download" ${t.type === 'download' ? 'selected' : ''}>⬇️ 下載工具</option>
+                        <option value="showcase" ${t.type === 'showcase' ? 'selected' : ''}>📺 展示型</option>
+                    </select>
+                `;
 
                 // Editable Department and Status via Selects
                 document.getElementById('sbDeptWrap').innerHTML = `
@@ -1159,6 +1241,7 @@
                     </select>
                 `;
             } else {
+                document.getElementById('sbType').textContent = typeLabels[t.type] || '工具';
                 const dept = DB.DEPTS[t.dept] || DB.DEPTS.other;
                 document.getElementById('sbDept').textContent = dept.label;
                 const sCls = { live: 's-live', beta: 's-beta', new: 's-new', dev: 's-dev', pending: 's-pending', terminated: 's-terminated' };
@@ -1645,6 +1728,9 @@
             tools[idx].desc = document.getElementById('mainSummary')?.textContent || '';
             tools[idx].tags = tool.tags || [];
 
+            const typeSel = document.getElementById('editTypeSelect');
+            if (typeSel) tools[idx].type = typeSel.value;
+
             const deptSel = document.getElementById('editDeptSelect');
             if (deptSel) tools[idx].dept = deptSel.value;
 
@@ -1653,6 +1739,25 @@
 
             const urlInput = document.getElementById('sbUrlInput');
             if (urlInput) tools[idx].url = urlInput.value.trim();
+
+            const stepsInput = document.getElementById('sbStepsInput');
+            if (stepsInput) {
+                tools[idx].steps = stepsInput.value.split(',').map(s => s.trim()).filter(Boolean);
+            }
+
+            const versionsWrap = document.getElementById('sbVersionsWrap');
+            if (versionsWrap) {
+                const rows = versionsWrap.querySelectorAll('.version-row');
+                const versions = [];
+                rows.forEach(r => {
+                    versions.push({
+                        version: r.querySelector('.v-ver').value.trim(),
+                        releaseNotes: r.querySelector('.v-note').value.trim(),
+                        fileUrl: r.querySelector('.v-url').value.trim(),
+                    });
+                });
+                tools[idx].versions = versions;
+            }
 
             if (!tools[idx].blog) tools[idx].blog = {};
             tools[idx].blog.blocks = blocks;
