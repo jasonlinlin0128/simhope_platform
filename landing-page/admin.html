@@ -1451,11 +1451,12 @@
             row.style.display = 'flex';
             row.style.gap = '8px';
             row.style.marginBottom = '8px';
+            row.style.alignItems = 'center';
             row.innerHTML = `
-                <input type="text" placeholder="版本號 (如 v1.0)" class="v-ver" required style="width:100px; padding:6px; border-radius:6px; border:1px solid #ccc;">
-                <input type="text" placeholder="更新說明" class="v-note" style="flex:1; padding:6px; border-radius:6px; border:1px solid #ccc;">
-                <input type="url" placeholder="下載連結URL" class="v-url" required style="flex:1; padding:6px; border-radius:6px; border:1px solid #ccc;">
-                <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove()" style="padding:4px 8px;">×</button>
+                <input type="text" placeholder="版本號 (如 v1.0)" class="v-ver" required style="width:70px; padding:6px; border-radius:6px; border:1px solid #ccc; font-size: 0.8rem;">
+                <input type="text" placeholder="更新說明" class="v-note" style="flex:1; padding:6px; border-radius:6px; border:1px solid #ccc; font-size: 0.8rem;">
+                <input type="url" placeholder="下載連結URL" class="v-url" required style="flex:2; padding:6px; border-radius:6px; border:1px solid #ccc; font-size: 0.8rem;">
+                <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove()" style="padding:4px 8px; flex-shrink:0;">×</button>
             `;
             wrap.appendChild(row);
         }
@@ -1492,11 +1493,12 @@
                         row.style.display = 'flex';
                         row.style.gap = '8px';
                         row.style.marginBottom = '8px';
+                        row.style.alignItems = 'center';
                         row.innerHTML = `
-                            <input type="text" placeholder="版本號 (如 v1.0)" value="${v.version || ''}" class="v-ver" required style="width:100px; padding:6px; border-radius:6px; border:1px solid #ccc;">
-                            <input type="text" placeholder="更新說明" value="${v.releaseNotes || ''}" class="v-note" style="flex:1; padding:6px; border-radius:6px; border:1px solid #ccc;">
-                            <input type="url" placeholder="下載連結URL" value="${v.fileUrl || ''}" class="v-url" required style="flex:1; padding:6px; border-radius:6px; border:1px solid #ccc;">
-                            <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove()" style="padding:4px 8px;">×</button>
+                            <input type="text" placeholder="版本號 (如 v1.0)" value="${v.version || ''}" class="v-ver" required style="width:70px; padding:6px; border-radius:6px; border:1px solid #ccc; font-size: 0.8rem;">
+                            <input type="text" placeholder="更新說明" value="${v.releaseNotes || ''}" class="v-note" style="flex:1; padding:6px; border-radius:6px; border:1px solid #ccc; font-size: 0.8rem;">
+                            <input type="url" placeholder="下載連結URL" value="${v.fileUrl || ''}" class="v-url" required style="flex:2; padding:6px; border-radius:6px; border:1px solid #ccc; font-size: 0.8rem;">
+                            <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove()" style="padding:4px 8px; flex-shrink:0;">×</button>
                         `;
                         vWrap.appendChild(row);
                     });

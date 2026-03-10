@@ -1525,11 +1525,15 @@
             const wrap = document.getElementById('et-versions-wrap');
             const row = document.createElement('div');
             row.className = 'version-row';
+            row.style.display = 'flex';
+            row.style.gap = '8px';
+            row.style.marginBottom = '8px';
+            row.style.alignItems = 'center';
             row.innerHTML = \`
-                <input type="text" placeholder="版本號(如v1)" value="\${version}" class="v-ver d-input" required style="max-width:100px; padding: 6px;">
-                <input type="text" placeholder="更新說明" value="\${releaseNotes}" class="v-note d-input" style="padding: 6px; flex: 1;">
-                <input type="url" placeholder="下載連結URL" value="\${fileUrl}" class="v-url d-input" required style="padding: 6px; flex: 1;">
-                <button type="button" class="act-btn act-btn-reject" onclick="this.parentElement.remove()" style="padding: 6px 10px;">×</button>
+                <input type="text" placeholder="版號(如v1)" value="\${version}" class="v-ver d-input" required style="width:70px; padding: 6px;">
+                <input type="text" placeholder="更新說明" value="\${releaseNotes}" class="v-note d-input" style="flex:1; padding: 6px;">
+                <input type="url" placeholder="下載連結URL" value="\${fileUrl}" class="v-url d-input" required style="flex:2; padding: 6px;">
+                <button type="button" class="act-btn act-btn-reject" onclick="this.parentElement.remove()" style="padding: 6px 10px; flex-shrink:0;">✕</button>
             \`;
             wrap.appendChild(row);
         }
