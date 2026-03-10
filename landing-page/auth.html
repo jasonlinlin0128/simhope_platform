@@ -358,7 +358,7 @@
                     <div class="logged-in-name" id="liName">載入中…</div>
                     <div class="logged-in-role" id="liRole"></div>
                     <div class="logged-in-actions">
-                        <a class="li-btn li-btn-primary" href="dashboard.html">📊 前往 Dashboard</a>
+                        <a class="li-btn li-btn-primary" href="index.html">📊 前往 儀表板</a>
                         <a class="li-btn li-btn-secondary" href="index.html">← 回工具中心</a>
                         <button class="li-btn li-btn-danger" onclick="handleLogout()">登出</button>
                     </div>
@@ -427,7 +427,7 @@
                 const password = document.getElementById('loginPassword').value;
                 await Auth.login(email, password);
                 showSuccess('✅ 登入成功，正在跳轉…');
-                setTimeout(() => location.href = 'dashboard.html', 800);
+                setTimeout(() => location.href = 'index.html', 800);
             } catch (err) {
                 showError(firebaseErrorMsg(err.code));
             } finally {
@@ -446,8 +446,8 @@
                 const email = document.getElementById('regEmail').value;
                 const password = document.getElementById('regPassword').value;
                 await Auth.register(email, password, name);
-                showSuccess('✅ 註冊成功！正在跳轉到 Dashboard…');
-                setTimeout(() => location.href = 'dashboard.html', 1000);
+                showSuccess('✅ 註冊成功！正在跳轉到 儀表板…');
+                setTimeout(() => location.href = 'index.html', 1000);
             } catch (err) {
                 showError(firebaseErrorMsg(err.code));
             } finally {

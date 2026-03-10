@@ -3018,7 +3018,8 @@
         <a href="#voices">同仁回饋</a>
         <a href="#cta" class="nav-cta">找工具 →</a>
         <a href="auth.html" class="login-btn" id="loginBtn" style="text-decoration:none">🔐 登入</a>
-        <button class="logout-btn" id="logoutBtn" onclick="doLogout()">👋 登出</button>
+        <a href="dashboard.html" class="login-btn" id="dashBtn" style="text-decoration:none; display:none;">📊 儀表板</a>
+        <button class="logout-btn" id="logoutBtn" onclick="doLogout()" style="display:none;">👋 登出</button>
       </div>
     </nav>
 
@@ -4654,8 +4655,24 @@ ${toolList ? '目前可用工具：\n' + toolList + '\n\n' : ''}重要規則：
       if (typeof firebase === 'undefined') return;
       loadChatModels();
       initChatResize();
+
+      const btnLogin = document.getElementById('loginBtn');
+      const btnDash = document.getElementById('dashBtn');
+      const btnLogout = document.getElementById('logoutBtn');
+
       firebase.auth().onAuthStateChanged(async user => {
         chatUser = user;
+
+        if (user) {
+          if (btnLogin) btnLogin.style.display = 'none';
+          if (btnDash) btnDash.style.display = 'inline-block';
+          if (btnLogout) btnLogout.style.display = 'inline-block';
+        } else {
+          if (btnLogin) btnLogin.style.display = 'inline-block';
+          if (btnDash) btnDash.style.display = 'none';
+          if (btnLogout) btnLogout.style.display = 'none';
+        }
+
         // 判斷是否為管理員展示歷史按鈕
         if (user) {
           try {
@@ -4669,6 +4686,13 @@ ${toolList ? '目前可用工具：\n' + toolList + '\n\n' : ''}重要規則：
         }
         if (chatOpen) renderChatContent();
       });
+    }
+
+    async function doLogout() {
+      if (typeof Auth !== 'undefined') {
+        await Auth.logout();
+        location.reload();
+      }
     }
 
     // ════════════════════════════════
