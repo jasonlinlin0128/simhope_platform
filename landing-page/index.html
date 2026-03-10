@@ -4366,14 +4366,14 @@ ${toolsSummary}
             row.style.gap = '8px';
             row.style.marginBottom = '8px';
             row.style.alignItems = 'center';
-            row.innerHTML = \`
-                    <input type="text" placeholder="版號 (如 v1)" value="\${v.version || ''}" class="v-ver" required style="width:70px; padding:6px; border-radius:6px; border:1px solid #ccc; font-size:0.8rem;">
-                    <input type="text" placeholder="更新說明" value="\${v.releaseNotes || ''}" class="v-note" style="flex:2; padding:6px; border-radius:6px; border:1px solid #ccc; font-size:0.8rem;">
-                    <input type="url" placeholder="下載 URL" value="\${v.fileUrl || ''}" class="v-url" required style="flex:3; padding:6px; border-radius:6px; border:1px solid #ccc; font-size:0.8rem;">
+            row.innerHTML = `
+                    <input type="text" placeholder="版號 (如 v1)" value="${v.version || ''}" class="v-ver" required style="width:70px; padding:6px; border-radius:6px; border:1px solid #ccc; font-size:0.8rem;">
+                    <input type="text" placeholder="更新說明" value="${v.releaseNotes || ''}" class="v-note" style="flex:2; padding:6px; border-radius:6px; border:1px solid #ccc; font-size:0.8rem;">
+                    <input type="url" placeholder="下載 URL" value="${v.fileUrl || ''}" class="v-url" required style="flex:3; padding:6px; border-radius:6px; border:1px solid #ccc; font-size:0.8rem;">
                     <button type="button" class="d-btn d-btn-danger d-btn-sm" onclick="this.parentElement.remove()" style="padding:4px 8px; flex-shrink:0;">✕</button>
-                \`;
-                vWrap.appendChild(row);
-            });
+            `;
+            vWrap.appendChild(row);
+          });
         }
       }
 
@@ -4384,23 +4384,23 @@ ${toolsSummary}
       document.getElementById('toolDrawerModal').classList.add('open');
     }
     function closeToolDrawerModal() { document.getElementById('toolDrawerModal').classList.remove('open'); }
-    
+
     function addTdmVersionRow() {
-        const wrap = document.getElementById('tdm-versions-wrap');
-        if (!wrap) return;
-        const row = document.createElement('div');
-        row.className = 'version-row';
-        row.style.display = 'flex';
-        row.style.gap = '8px';
-        row.style.marginBottom = '8px';
-        row.style.alignItems = 'center';
-        row.innerHTML = \`
+      const wrap = document.getElementById('tdm-versions-wrap');
+      if (!wrap) return;
+      const row = document.createElement('div');
+      row.className = 'version-row';
+      row.style.display = 'flex';
+      row.style.gap = '8px';
+      row.style.marginBottom = '8px';
+      row.style.alignItems = 'center';
+      row.innerHTML = `
             <input type="text" placeholder="版號 (如 v1)" class="v-ver" required style="width:70px; padding:6px; border-radius:6px; border:1px solid #ccc; font-size:0.8rem;">
             <input type="text" placeholder="更新說明" class="v-note" style="flex:2; padding:6px; border-radius:6px; border:1px solid #ccc; font-size:0.8rem;">
             <input type="url" placeholder="下載 URL" class="v-url" required style="flex:3; padding:6px; border-radius:6px; border:1px solid #ccc; font-size:0.8rem;">
             <button type="button" class="d-btn d-btn-danger d-btn-sm" onclick="this.parentElement.remove()" style="padding:4px 8px; flex-shrink:0;">✕</button>
-        \`;
-        wrap.appendChild(row);
+        `;
+      wrap.appendChild(row);
     }
     document.getElementById('toolDrawerModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeToolDrawerModal(); });
 
@@ -4425,14 +4425,14 @@ ${toolsSummary}
       const vRows = document.querySelectorAll('#tdm-versions-wrap .version-row');
       let versions = undefined;
       if (vRows.length > 0) {
-          versions = [];
-          vRows.forEach(r => {
-              versions.push({
-                  version: r.querySelector('.v-ver').value.trim(),
-                  releaseNotes: r.querySelector('.v-note').value.trim(),
-                  fileUrl: r.querySelector('.v-url').value.trim(),
-              });
+        versions = [];
+        vRows.forEach(r => {
+          versions.push({
+            version: r.querySelector('.v-ver').value.trim(),
+            releaseNotes: r.querySelector('.v-note').value.trim(),
+            fileUrl: r.querySelector('.v-url').value.trim(),
           });
+        });
       }
 
       const tool = {
@@ -4524,7 +4524,7 @@ ${toolsSummary}
     function renderPainChips(chips) {
       const el = document.getElementById('heroPainChips');
       if (!el) return;
-      el.innerHTML = chips.map(c => `< span class="pain-chip" > <span>${c.emoji}</span>${ c.text }</span >`).join('');
+      el.innerHTML = chips.map(c => `< span class="pain-chip" > <span>${c.emoji}</span>${c.text}</span >`).join('');
     }
 
     function saveHeroDrawer() {
@@ -4697,7 +4697,7 @@ ${toolsSummary}
       let toolList = '';
       if (typeof DB !== 'undefined') {
         const tools = DB.getTools().filter(t => t.status !== 'terminated');
-        toolList = tools.map(t => `- ${ t.title }（ID: ${ t.id }）：${ t.desc } `).join('\n');
+        toolList = tools.map(t => `- ${t.title}（ID: ${t.id}）：${t.desc} `).join('\n');
       }
       return `你是 SimHope AI 工具中心的智慧助理，協助台灣製造業工廠同仁。
             你的職責：
@@ -4706,7 +4706,7 @@ ${toolsSummary}
             3. 引導同仁描述工作痛點
             4. 回答平台相關問題
 
-${ toolList ? '目前可用工具：\n' + toolList + '\n\n' : '' } 重要規則：
+${toolList ? '目前可用工具：\n' + toolList + '\n\n' : ''} 重要規則：
             - 一律使用繁體中文回答，語氣親切口語
               - 回答精簡，不超過 200 字
                 - 推薦工具時附上連結格式：[工具名稱](/tool-detail.html?id=工具ID)
@@ -4868,7 +4868,7 @@ ${ toolList ? '目前可用工具：\n' + toolList + '\n\n' : '' } 重要規則�
           const ts = d.updatedAt?.toDate ? d.updatedAt.toDate().toLocaleDateString('zh-TW') : '';
           const isActive = doc.id === chatSessionId ? 'active' : '';
           return `< div class="sidebar-session-item ${isActive}" onclick = "loadSession('${doc.id}')" >
-              ${ firstMsg.substring(0, 20) }${ firstMsg.length > 20 ? '...' : '' }
+              ${firstMsg.substring(0, 20)}${firstMsg.length > 20 ? '...' : ''}
             <div class="sidebar-session-date">${ts}</div>
           </div > `;
         }).join('');
@@ -4913,7 +4913,7 @@ ${ toolList ? '目前可用工具：\n' + toolList + '\n\n' : '' } 重要規則�
         }
       } catch (_) { }
       select.innerHTML = models.map(m =>
-        `< option value = "${m.id}" > ${ m.label }</option > `
+        `< option value = "${m.id}" > ${m.label}</option > `
       ).join('');
       chatCurrentModel = models[0].id;
       select.addEventListener('change', () => { chatCurrentModel = select.value; });
@@ -4982,8 +4982,8 @@ ${ toolList ? '目前可用工具：\n' + toolList + '\n\n' : '' } 重要規則�
             🧠 思考中...
           </div > `;
         }
-        return `< div class= "chat-msg ${m.role === 'user' ? 'user' : 'bot'}" > ${ escapeHtml(m.content).replace(/\n/g, '<br>').replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
-        }</div >`;
+        return `< div class= "chat-msg ${m.role === 'user' ? 'user' : 'bot'}" > ${escapeHtml(m.content).replace(/\n/g, '<br>').replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
+          }</div >`;
       }).join('');
       scrollChatToBottom();
     }

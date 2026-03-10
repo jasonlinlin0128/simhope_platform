@@ -1529,12 +1529,12 @@
             row.style.gap = '8px';
             row.style.marginBottom = '8px';
             row.style.alignItems = 'center';
-            row.innerHTML = \`
-                <input type="text" placeholder="版號(如v1)" value="\${version}" class="v-ver d-input" required style="width:70px; padding: 6px;">
-                <input type="text" placeholder="更新說明" value="\${releaseNotes}" class="v-note d-input" style="flex:1; padding: 6px;">
-                <input type="url" placeholder="下載連結URL" value="\${fileUrl}" class="v-url d-input" required style="flex:2; padding: 6px;">
+            row.innerHTML = `
+                <input type="text" placeholder="版號(如v1)" value="${version}" class="v-ver" required style="width:70px; padding: 6px; border: 1px solid #ccc; border-radius: 6px;">
+                <input type="text" placeholder="更新說明" value="${releaseNotes}" class="v-note" style="flex:1; padding: 6px; border: 1px solid #ccc; border-radius: 6px;">
+                <input type="url" placeholder="下載連結URL" value="${fileUrl}" class="v-url" required style="flex:2; padding: 6px; border: 1px solid #ccc; border-radius: 6px;">
                 <button type="button" class="act-btn act-btn-reject" onclick="this.parentElement.remove()" style="padding: 6px 10px; flex-shrink:0;">✕</button>
-            \`;
+            `;
             wrap.appendChild(row);
         }
 
@@ -1567,14 +1567,14 @@
                 const st = document.getElementById('et-status');
                 if (st) st.value = t.status || 'live';
             } else {
-                if(document.getElementById('et-status-container')) {
+                if (document.getElementById('et-status-container')) {
                     document.getElementById('et-status-container').style.display = 'none';
                 }
             }
             document.getElementById('et-url').value = t.url || '';
             document.getElementById('et-tags').value = (t.tags || []).join(', ');
             document.getElementById('et-steps').value = (t.steps || []).join(', ');
-            
+
             const vWrap = document.getElementById('et-versions-wrap');
             if (vWrap) {
                 vWrap.innerHTML = '';
@@ -1650,6 +1650,8 @@
                 btn.disabled = false;
             }
         }
+    </script>
+
     <!-- Edit Tool Modal -->
     <div class="edit-modal-overlay" id="editToolModal">
         <form class="edit-modal" id="editToolForm" onsubmit="handleUpdateTool(event)">
@@ -1680,52 +1682,52 @@
                     <div class="fg">
                         <label>所屬部門</label>
                         <select id="et-dept" required>
-                            <script>document.write(Object.entries(DB.DEPTS).map(([k, v]) => \`<option value="\${k}">\${v.icon} \${v.name}</option>\`).join(''))</script>
-    </select>
-    </div>
-    <div class="fg">
-        <label>工具類型</label>
-        <select id="et-type" required>
-            <option value="webapp">網頁應用 (WebApp)</option>
-            <option value="desktop">電腦軟體 (Desktop)</option>
-            <option value="prompt">提示詞 (Prompt)</option>
-            <option value="api">API 服務</option>
-            <option value="gpts">GPTs</option>
-        </select>
-    </div>
-    </div>
-    <div class="fg" id="et-status-container" style="display:none">
-        <label>上架狀態 (管理員專用)</label>
-        <select id="et-status">
-            <option value="live">✅ 正常上架</option>
-            <option value="dev">🚧 開發中</option>
-            <option value="terminated">🔕 已下架</option>
-        </select>
-    </div>
-    <div class="fg">
-        <label>主要連結 (URL)</label>
-        <input type="url" id="et-url">
-    </div>
-    <div class="fg">
-        <label>標籤 (用逗號分隔)</label>
-        <input type="text" id="et-tags">
-    </div>
-    <div class="fg">
-        <label>步驟 (用逗號分隔)</label>
-        <input type="text" id="et-steps">
-    </div>
-    <div class="fg">
-        <label>歷史版本 (下載連結)</label>
-        <div class="versions-wrap" id="et-versions-wrap"></div>
-        <button type="button" class="add-version-btn" onclick="addVersionRow()">+ 新增版本</button>
-        <div class="hint" style="font-size:0.8rem;color:#888;margin-top:4px;">若為下載軟體，請填寫版本號、更新說明與下載連結。</div>
-    </div>
-    </div>
-    <div class="edit-modal-footer">
-        <button type="button" class="act-btn" onclick="closeEditModal('tool')">取消</button>
-        <button type="submit" class="submit-btn" id="etSubmit" style="padding:8px 16px;margin:0;">儲存變更</button>
-    </div>
-    </form>
+                            <script>document.write(Object.entries(DB.DEPTS).map(([k, v]) => `<option value="${k}">${v.icon} ${v.name}</option>`).join(''))</script>
+                        </select>
+                    </div>
+                    <div class="fg">
+                        <label>工具類型</label>
+                        <select id="et-type" required>
+                            <option value="webapp">網頁應用 (WebApp)</option>
+                            <option value="desktop">電腦軟體 (Desktop)</option>
+                            <option value="prompt">提示詞 (Prompt)</option>
+                            <option value="api">API 服務</option>
+                            <option value="gpts">GPTs</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="fg" id="et-status-container" style="display:none">
+                    <label>上架狀態 (管理員專用)</label>
+                    <select id="et-status">
+                        <option value="live">✅ 正常上架</option>
+                        <option value="dev">🚧 開發中</option>
+                        <option value="terminated">🔕 已下架</option>
+                    </select>
+                </div>
+                <div class="fg">
+                    <label>主要連結 (URL)</label>
+                    <input type="url" id="et-url">
+                </div>
+                <div class="fg">
+                    <label>標籤 (用逗號分隔)</label>
+                    <input type="text" id="et-tags">
+                </div>
+                <div class="fg">
+                    <label>步驟 (用逗號分隔)</label>
+                    <input type="text" id="et-steps">
+                </div>
+                <div class="fg">
+                    <label>歷史版本 (下載連結)</label>
+                    <div class="versions-wrap" id="et-versions-wrap"></div>
+                    <button type="button" class="add-version-btn" onclick="addVersionRow()">+ 新增版本</button>
+                    <div class="hint" style="font-size:0.8rem;color:#888;margin-top:4px;">若為下載軟體，請填寫版本號、更新說明與下載連結。</div>
+                </div>
+            </div>
+            <div class="edit-modal-footer">
+                <button type="button" class="act-btn" onclick="closeEditModal('tool')">取消</button>
+                <button type="submit" class="submit-btn" id="etSubmit" style="padding:8px 16px;margin:0;">儲存變更</button>
+            </div>
+        </form>
     </div>
 
     <!-- Edit Pain Modal -->
@@ -1739,7 +1741,7 @@
                 <div class="fg">
                     <label>相關部門</label>
                     <select id="ep-dept" required>
-                        <script>document.write(Object.entries(DB.DEPTS).map(([k, v]) => \`<option value="\${k}">\${v.icon} \${v.name}</option>\`).join(''))</script>
+                        <script>document.write(Object.entries(DB.DEPTS).map(([k, v]) => `<option value="${k}">${v.icon} ${v.name}</option>`).join(''))</script>
                     </select>
                 </div>
                 <div class="fg">
