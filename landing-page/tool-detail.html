@@ -1192,7 +1192,7 @@
         function renderBlocks() {
             const wrap = document.getElementById('blocksWrap');
             if (!blocks.length && !isAdmin) {
-                wrap.innerHTML = `< div class="empty-blog" ><div class="empty-blog-icon">📝</div><div class="empty-blog-title">尚無內容</div><div class="empty-blog-sub">管理員可在此編輯內容</div></div > `;
+                wrap.innerHTML = `<div class="empty-blog" ><div class="empty-blog-icon">📝</div><div class="empty-blog-title">尚無內容</div><div class="empty-blog-sub">管理員可在此編輯內容</div></div> `;
                 return;
             }
             let html = '';
@@ -1202,7 +1202,7 @@
             }
             blocks.forEach((b, i) => {
                 html += renderBlockRow(b, i);
-                if (isAdmin) html += `< button class="add-block-btn" onclick = "insertBlockAt(${i + 1})" title = "新增區塊" >＋</button > `;
+                if (isAdmin) html += `<button class="add-block-btn" onclick = "insertBlockAt(${i + 1})" title = "新增區塊" >＋</button> `;
             });
             wrap.innerHTML = html;
 
@@ -1216,20 +1216,20 @@
         }
 
         function renderBlockRow(b, i) {
-            const cls = `block - row block - ${b.type} `;
-            const handle = `< div class="block-handle" draggable = "true" ondragstart = "dragBlock(event,${i})" >⠿</div > `;
-            const actions = `< div class="block-actions" >
+            const cls = `block-row block - ${b.type} `;
+            const handle = `<div class="block-handle" draggable = "true" ondragstart = "dragBlock(event,${i})" >⠿</div> `;
+            const actions = `<div class="block-actions" >
                 ${i > 0 ? `<button class="ba-btn" onclick="moveBlock(${i},-1)" title="上移">↑</button>` : ''}
                 ${i < blocks.length - 1 ? `<button class="ba-btn" onclick="moveBlock(${i},1)" title="下移">↓</button>` : ''}
             <button class="ba-btn" onclick="deleteBlock(${i})" title="刪除">🗑</button>
-            </div > `;
+            </div> `;
 
             let content = '';
             if (b.type === 'divider') {
-                content = `< div class="block-content" style = "flex:1" > <hr /></div > `;
+                content = `<div class="block-content" style = "flex:1" > <hr /></div> `;
             } else if (b.type === 'image') {
                 const hasImg = b.url && b.url.length > 0;
-                content = `< div class="block-content" style = "padding:8px 0" >
+                content = `<div class="block-content" style = "padding:8px 0" >
                 ${hasImg ? `<img src="${b.url}" alt="${b.caption || ''}" style="max-width:100%;border-radius:10px;display:block;box-shadow:0 2px 12px rgba(0,0,0,0.08)"/>` : ''}
                     ${isAdmin ? `<div style="display:flex;gap:8px;align-items:center;margin-top:8px">
                         <label style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:var(--accent);color:white;border-radius:10px;cursor:pointer;font-size:.82rem;font-weight:700;transition:opacity .2s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
@@ -1241,10 +1241,10 @@
                     </div>` : ''
                     }
                     ${isAdmin ? `<input value="${b.caption || ''}" placeholder="圖片說明（選填）" style="width:100%;margin-top:6px;padding:4px 10px;font-size:.75rem;border:1px solid rgba(30,27,75,0.08);border-radius:6px;font-family:inherit;outline:none;color:var(--text-mid)" onchange="updateImageCaption(${i},this.value)"/>` : (b.caption ? `<div class="img-caption">${b.caption}</div>` : '')}
-                </div > `;
+                </div> `;
             } else if (b.type === 'video') {
                 const embed = buildVideoEmbed(b.url || '');
-                content = `< div class="block-content" style = "padding:8px 0" >
+                content = `<div class="block-content" style = "padding:8px 0" >
                 ${embed}
                     ${isAdmin ? `<div style="display:flex;gap:8px;align-items:center;margin-top:8px">
                         <label style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#8B5CF6;color:white;border-radius:10px;cursor:pointer;font-size:.82rem;font-weight:700;transition:opacity .2s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
@@ -1256,28 +1256,28 @@
                     </div>` : ''
                     }
                     ${b.caption ? `<div class="vid-caption">${b.caption}</div>` : ''}
-                </div > `;
+                </div> `;
             } else if (b.type === 'table') {
                 const rows = b.rows || [['', '', ''], ['', '', ''], ['', '', '']];
                 const tableHtml = `< table > ${rows.map((r, ri) => `<tr>${r.map((c, ci) => `<${ri === 0 ? 'th' : 'td'} ${isAdmin ? `contenteditable="true" onblur="updateTableCell(${i},${ri},${ci},this.textContent)"` : ''} style="min-width:60px">${c}</${ri === 0 ? 'th' : 'td'}>`).join('')}</tr>`).join('')}</table > `;
-                content = `< div class="block-content block-table" style = "padding:8px 0;overflow-x:auto" > ${tableHtml}${isAdmin ? `<div style="display:flex;gap:6px;margin-top:8px"><button class="ba-btn" onclick="addTableRow(${i})" style="width:auto;padding:4px 10px;font-size:.7rem">+ 行</button><button class="ba-btn" onclick="addTableCol(${i})" style="width:auto;padding:4px 10px;font-size:.7rem">+ 列</button></div>` : ''}</div > `;
+                content = `<div class="block-content block-table" style = "padding:8px 0;overflow-x:auto" > ${tableHtml}${isAdmin ? `<div style="display:flex;gap:6px;margin-top:8px"><button class="ba-btn" onclick="addTableRow(${i})" style="width:auto;padding:4px 10px;font-size:.7rem">+ 行</button><button class="ba-btn" onclick="addTableCol(${i})" style="width:auto;padding:4px 10px;font-size:.7rem">+ 列</button></div>` : ''}</div> `;
             } else {
                 // text, h1, h2, h3, bullet, numbered, code, callout
                 const editable = isAdmin ? `contenteditable = "true"` : '';
                 const ph = BLOCK_PH[b.type] || '';
-                content = `< div class="block-content" ${editable} data - idx="${i}" data - ph="${ph}" > ${escHtml(b.content || '')}</div > `;
+                content = `<div class="block-content" ${editable} data-idx="${i}" data-ph="${ph}" > ${escHtml(b.content || '')}</div> `;
             }
 
-            return `< div class="${cls}" data - idx="${i}" ondragover = "event.preventDefault()" ondrop = "dropBlock(event,${i})" > ${handle}${content}${actions}</div > `;
+            return `<div class="${cls}" data-idx="${i}" ondragover = "event.preventDefault()" ondrop = "dropBlock(event,${i})" > ${handle}${content}${actions}</div> `;
         }
 
         function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
         function buildVideoEmbed(url) {
             const yt = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([A-Za-z0-9_-]{11})/);
-            if (yt) return `< iframe src = "https://www.youtube.com/embed/${yt[1]}" allowfullscreen ></iframe > `;
-            if (url) return `< video controls src = "${url}" ></video > `;
-            return `< div style = "background:#F3F4F6;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;border-radius:12px;color:#9CA3AF;font-size:.9rem" > 尚未設定影片連結</div > `;
+            if (yt) return `<iframe src = "https://www.youtube.com/embed/${yt[1]}" allowfullscreen ></iframe> `;
+            if (url) return `<video controls src = "${url}" ></video> `;
+            return `<div style = "background:#F3F4F6;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;border-radius:12px;color:#9CA3AF;font-size:.9rem" > 尚未設定影片連結</div> `;
         }
 
         // ═══════════════════════════════
@@ -1293,7 +1293,7 @@
             renderBlocks();
             // Focus new block
             setTimeout(() => {
-                const el = document.querySelector(`.block - row[data - idx="${idx}"] .block - content[contenteditable]`);
+                const el = document.querySelector(`.block-row[data-idx="${idx}"] .block-content[contenteditable]`);
                 if (el) el.focus();
             }, 50);
         }
@@ -1378,7 +1378,7 @@
                 deleteBlock(idx);
                 // Focus previous block
                 setTimeout(() => {
-                    const prev = document.querySelector(`.block - row[data - idx="${Math.max(0, idx - 1)}"] .block - content[contenteditable]`);
+                    const prev = document.querySelector(`.block-row[data-idx="${Math.max(0, idx - 1)}"] .block-content[contenteditable]`);
                     if (prev) prev.focus();
                 }, 50);
             }
@@ -1388,7 +1388,7 @@
                 const sel = window.getSelection();
                 if (sel.anchorOffset === 0) {
                     e.preventDefault();
-                    const prev = document.querySelector(`.block - row[data - idx="${idx - 1}"] .block - content[contenteditable]`);
+                    const prev = document.querySelector(`.block-row[data-idx="${idx - 1}"] .block-content[contenteditable]`);
                     if (prev) prev.focus();
                 }
             }
@@ -1397,7 +1397,7 @@
                 const sel = window.getSelection();
                 if (sel.anchorOffset >= el.textContent.length) {
                     e.preventDefault();
-                    const next = document.querySelector(`.block - row[data - idx="${idx + 1}"] .block - content[contenteditable]`);
+                    const next = document.querySelector(`.block-row[data-idx="${idx + 1}"] .block-content[contenteditable]`);
                     if (next) next.focus();
                 }
             }
@@ -1473,7 +1473,7 @@
             if (type === 'video') { blocks[idx].url = ''; blocks[idx].caption = ''; }
             renderBlocks();
             setTimeout(() => {
-                const el = document.querySelector(`.block - row[data - idx="${idx}"] .block - content[contenteditable]`);
+                const el = document.querySelector(`.block-row[data-idx="${idx}"] .block-content[contenteditable]`);
                 if (el) el.focus();
             }, 50);
         }

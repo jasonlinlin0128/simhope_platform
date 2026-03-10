@@ -4495,14 +4495,14 @@ ${toolsSummary}
       const list = document.getElementById('dh-chips-list');
       if (!list) return;
       list.innerHTML = drawerChips.map((c, i) => `
-              < div style = "display:flex;align-items:center;gap:6px;margin-bottom:6px;background:#F3F4F6;border-radius:10px;padding:6px 10px" >
+              <div style = "display:flex;align-items:center;gap:6px;margin-bottom:6px;background:#F3F4F6;border-radius:10px;padding:6px 10px" >
           <input class="d-input" value="${c.emoji}" maxlength="2" style="width:40px;font-size:1.1rem;text-align:center;padding:4px 2px;flex-shrink:0"
             onchange="drawerChips[${i}].emoji=this.value" />
           <input class="d-input" value="${c.text}" maxlength="20" style="flex:1;padding:4px 8px"
             onchange="drawerChips[${i}].text=this.value" />
           <button class="d-btn d-btn-danger d-btn-sm" onclick="removeChip(${i})"
             style="padding:4px 8px">🗑️</button>
-        </div > `).join('');
+        </div> `).join('');
     }
     function removeChip(i) { drawerChips.splice(i, 1); renderChipsList(drawerChips); }
     function addChip() {
@@ -4524,7 +4524,7 @@ ${toolsSummary}
     function renderPainChips(chips) {
       const el = document.getElementById('heroPainChips');
       if (!el) return;
-      el.innerHTML = chips.map(c => `< span class="pain-chip" > <span>${c.emoji}</span>${c.text}</span >`).join('');
+      el.innerHTML = chips.map(c => `<span class="pain-chip" > <span>${c.emoji}</span>${c.text}</span>`).join('');
     }
 
     function saveHeroDrawer() {
@@ -4867,10 +4867,10 @@ ${toolList ? '目前可用工具：\n' + toolList + '\n\n' : ''} 重要規則：
           const firstMsg = d.messages?.find(m => m.role === 'user')?.content || '新對話';
           const ts = d.updatedAt?.toDate ? d.updatedAt.toDate().toLocaleDateString('zh-TW') : '';
           const isActive = doc.id === chatSessionId ? 'active' : '';
-          return `< div class="sidebar-session-item ${isActive}" onclick = "loadSession('${doc.id}')" >
+          return `<div class="sidebar-session-item ${isActive}" onclick = "loadSession('${doc.id}')" >
               ${firstMsg.substring(0, 20)}${firstMsg.length > 20 ? '...' : ''}
             <div class="sidebar-session-date">${ts}</div>
-          </div > `;
+          </div> `;
         }).join('');
       } catch (err) {
         listEl.innerHTML = '<div style="padding:8px;font-size:0.7rem;color:#f00">載入失敗</div>';
@@ -4944,7 +4944,7 @@ ${toolList ? '目前可用工具：\n' + toolList + '\n\n' : ''} 重要規則：
       const msgs = document.getElementById('chatMessages');
       const inputRow = document.querySelector('.chat-input-row');
       if (!chatUser) {
-        msgs.innerHTML = `< div class="chat-login-prompt" >🔐 請先登入才能使用 AI 助理 < br > <a href="auth.html">前往登入</a></div > `;
+        msgs.innerHTML = `<div class="chat-login-prompt" >🔐 請先登入才能使用 AI 助理 <br > <a href="auth.html">前往登入</a></div> `;
         if (inputRow) inputRow.style.display = 'none';
         return;
       }
@@ -4975,15 +4975,15 @@ ${toolList ? '目前可用工具：\n' + toolList + '\n\n' : ''} 重要規則：
       if (!msgs) return;
       msgs.innerHTML = chatMessages.map(m => {
         if (m.content === '__thinking__') {
-          return `< div class="chat-thinking-badge" >
+          return `<div class="chat-thinking-badge" >
               <div class="brain-wave">
                 <span></span><span></span><span></span><span></span><span></span>
               </div>
             🧠 思考中...
-          </div > `;
+          </div> `;
         }
-        return `< div class= "chat-msg ${m.role === 'user' ? 'user' : 'bot'}" > ${escapeHtml(m.content).replace(/\n/g, '<br>').replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
-          }</div >`;
+        return `<div class= "chat-msg ${m.role === 'user' ? 'user' : 'bot'}" > ${escapeHtml(m.content).replace(/\n/g, '<br>').replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
+          }</div>`;
       }).join('');
       scrollChatToBottom();
     }

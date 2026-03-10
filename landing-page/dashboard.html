@@ -1195,8 +1195,8 @@
                 ...pendingTools.map(t => ({ ...t, _type: 'tool' })),
                 ...pendingPainCards.map(c => ({ ...c, _type: 'pain' }))
             ];
-            if (!all.length) return `< div class="empty-state" ><div class="empty-state-icon">✅</div><div class="empty-state-text">沒有待審核的項目</div></div > `;
-            return `< div class="card-list" > ${
+            if (!all.length) return `<div class="empty-state" ><div class="empty-state-icon">✅</div><div class="empty-state-text">沒有待審核的項目</div></div> `;
+            return `<div class="card-list" > ${
                 all.map(item => {
                     if (item._type === 'tool') {
                         return `<div class="item-card">
@@ -1226,12 +1226,12 @@
                     </div>`;
                     }
                 }).join('')
-            }</div > `;
+            }</div> `;
         }
 
         // ── Render: Add Developer (Admin) ──
         function renderAddDeveloper() {
-            return `< div class="form-card" >
+            return `<div class="form-card" >
                 <h3>➕ 新增開發者帳號</h3>
                 <p style="font-size:.82rem;color:var(--text-mid);margin-bottom:18px">管理員直接建立開發者帳號，指定密碼後通知對方登入。</p>
                 <form id="addDevForm" onsubmit="handleAddDeveloper(event)">
@@ -1258,16 +1258,16 @@
                     </div>
                     <button class="submit-btn" type="submit" id="adSubmit">+ 建立帳號</button>
                 </form>
-            </div > `;
+            </div> `;
         }
 
         // ── Render: Manage All (Admin) ──
         function renderManageAll() {
             const tools = allToolsAdmin;
             const pains = allPainCardsAdmin;
-            if (!tools.length && !pains.length) return `< div class="empty-state" ><div class="empty-state-icon">⚙️</div><div class="empty-state-text">尚無任何已上架的工具或痛點</div></div > `;
+            if (!tools.length && !pains.length) return `<div class="empty-state" ><div class="empty-state-icon">⚙️</div><div class="empty-state-text">尚無任何已上架的工具或痛點</div></div> `;
             return `
-                < h3 style = "font-size:.88rem;font-weight:900;color:var(--text-mid);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px" >🔧 工具列表(${ tools.length })</h3 >
+                <h3 style = "font-size:.88rem;font-weight:900;color:var(--text-mid);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px" >🔧 工具列表(${ tools.length })</h3>
                 <div class="card-list" style="margin-bottom:24px">${tools.map(t => {
                 const statusBadge = { live: '✅ 上線', beta: '🟡 湋試中', evaluating: '🔵 評估中', dev: '🔨 開發中', terminated: '❌ 已停止' }[t.status] || t.status;
                 return `<div class="item-card">
@@ -1307,8 +1307,8 @@
 
         // ── Render: All Users (Admin) ──
         function renderAllUsers() {
-            if (!allUsers.length) return `< div class="empty-state" ><div class="empty-state-icon">👥</div><div class="empty-state-text">尚無使用者</div></div > `;
-            return `< div class="users-grid" > ${
+            if (!allUsers.length) return `<div class="empty-state" ><div class="empty-state-icon">👥</div><div class="empty-state-text">尚無使用者</div></div> `;
+            return `<div class="users-grid" > ${
                 allUsers.map(u => {
                     const name = u.displayName || u.email;
                     const isAdmin = u.role === 'admin';
@@ -1327,7 +1327,7 @@
                     </div>
                 </div>`;
                 }).join('')
-            }</div > `;
+            }</div> `;
         }
 
         // ── Handlers ──
