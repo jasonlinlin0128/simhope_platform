@@ -816,6 +816,8 @@
         let allUsers = [];
         let allToolsAdmin = [];
         let allPainCardsAdmin = [];
+        let editingToolId = null;
+        let editingPainId = null;
 
         async function handleLogout() {
             await Auth.logout();
@@ -965,6 +967,8 @@
                 <div class="tab-pane" id="pane-my-pain">${renderMyPainCards()}</div>
                 <div class="tab-pane" id="pane-new-tool">${renderNewToolForm()}</div>
                 <div class="tab-pane" id="pane-new-pain">${renderNewPainForm()}</div>
+                <div class="tab-pane" id="pane-edit-tool">${renderEditToolForm()}</div>
+                <div class="tab-pane" id="pane-edit-pain">${renderEditPainForm()}</div>
                 ${isAdmin ? `<div class="tab-pane" id="pane-review">${renderReviewQueue()}</div>` : ''}
                 ${isAdmin ? `<div class="tab-pane" id="pane-manage-all">${renderManageAll()}</div>` : ''}
                 ${isAdmin ? `<div class="tab-pane" id="pane-all-users">${renderAllUsers()}</div>` : ''}
@@ -988,6 +992,10 @@
                             ${t.rejectReason ? `<span class="badge badge-rejected">退回原因：${t.rejectReason}</span>` : ''}
                         </div>
                     </div>
+                    <div class="item-actions">
+                        <button class="act-btn" onclick="editTool('${t.id}')">✏️ 編輯</button>
+                        <button class="act-btn act-btn-reject" onclick="deleteItem('tool','${t.id}')">🗑️ 刪除</button>
+                    </div>
                 </div>`;
             }).join('')}</div>`;
         }
@@ -1004,6 +1012,10 @@
                         <div class="item-title">${c.before || ''}</div>
                         <div class="item-sub">✅ ${c.after || ''}</div>
                         <div class="item-badges"><span class="badge ${badgeCls}">${badgeLabel}</span></div>
+                    </div>
+                    <div class="item-actions">
+                        <button class="act-btn" onclick="editPain('${c.id}')">✏️ 編輯</button>
+                        <button class="act-btn act-btn-reject" onclick="deleteItem('pain','${c.id}')">🗑️ 刪除</button>
                     </div>
                 </div>`;
             }).join('')}</div>`;
@@ -1036,7 +1048,6 @@
             </div>`;
         }
 
-        // ── Render: New Pain Card Form ──
         function renderNewPainForm() {
             const isAdmin = currentProfile.role === 'admin';
             const depts = DB.DEPTS;
@@ -1047,6 +1058,53 @@
                     <div class="fg"><label>😓 痛點描述（使用前） *</label><textarea id="np-before" required placeholder="例：泰籍員工溝通靠比手畫腳，品質問題說不清楚…"></textarea></div>
                     <div class="fg"><label>✅ 解決後效益（使用後） *</label><textarea id="np-after" required placeholder="例：即時雙語翻譯，泰文中文一鍵切換…"></textarea></div>
                     <button class="submit-btn" type="submit" id="npSubmit">${isAdmin ? '🚀 直接上架' : '📤 提交審核'}</button>
+                </form>
+            </div>`;
+        }
+
+        // ── Render: Edit Tool Form ──
+        function renderEditToolForm() {
+            const depts = DB.DEPTS;
+            const statuses = DB.STATUSES;
+            const isAdmin = currentProfile.role === 'admin';
+            return `<div class="form-card">
+                <h3>✏️ 編輯工具</h3>
+                <form id="editToolForm" onsubmit="handleUpdateTool(event)">
+                    <div class="fg-row">
+                        <div class="fg"><label>工具名稱 *</label><input id="et-title" required /></div>
+                        <div class="fg"><label>圖示 Emoji</label><input id="et-icon" maxlength="4" /></div>
+                    </div>
+                    <div class="fg"><label>一句話介紹 *</label><input id="et-tagline" required /></div>
+                    <div class="fg"><label>詳細描述 *</label><textarea id="et-desc" required></textarea></div>
+                    <div class="fg-row">
+                        <div class="fg"><label>部門</label><select id="et-dept">${Object.entries(depts).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('')}</select></div>
+                        <div class="fg"><label>類型</label><select id="et-type"><option value="webapp">🌐 Web App</option><option value="download">⬇️ 下載工具</option><option value="showcase">📺 展示型</option></select></div>
+                        ${isAdmin ? `<div class="fg"><label>狀態</label><select id="et-status">${Object.entries(statuses).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('')}</select></div>` : ''}
+                    </div>
+                    <div class="fg"><label>工具網址</label><input id="et-url" /></div>
+                    <div class="fg"><label>標籤（逗號分隔）</label><input id="et-tags" /></div>
+                    <div class="fg"><label>使用步驟（逗號分隔，最多三步）</label><input id="et-steps" /></div>
+                    <div class="fg-row" style="margin-top:10px">
+                        <button class="submit-btn" type="submit" id="etSubmit">💾 儲存變更</button>
+                        <button class="submit-btn" type="button" style="background:#6B7280;box-shadow:none" onclick="switchTab('my-tools')">取消</button>
+                    </div>
+                </form>
+            </div>`;
+        }
+
+        // ── Render: Edit Pain Form ──
+        function renderEditPainForm() {
+            const depts = DB.DEPTS;
+            return `<div class="form-card">
+                <h3>✏️ 編輯痛點卡片</h3>
+                <form id="editPainForm" onsubmit="handleUpdatePain(event)">
+                    <div class="fg"><label>部門</label><select id="ep-dept">${Object.entries(depts).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('')}</select></div>
+                    <div class="fg"><label>😓 痛點描述（使用前） *</label><textarea id="ep-before" required></textarea></div>
+                    <div class="fg"><label>✅ 解決後效益（使用後） *</label><textarea id="ep-after" required></textarea></div>
+                    <div class="fg-row" style="margin-top:10px">
+                        <button class="submit-btn" type="submit" id="epSubmit">💾 儲存變更</button>
+                        <button class="submit-btn" type="button" style="background:#6B7280;box-shadow:none" onclick="switchTab('my-pain')">取消</button>
+                    </div>
                 </form>
             </div>`;
         }
@@ -1141,6 +1199,7 @@
                             </div>
                         </div>
                         <div class="item-actions">
+                            <button class="act-btn" onclick="editTool('${t.id}')" title="編輯">✏️ 編輯</button>
                             <button class="act-btn" onclick="changeToolStatus('${t.id}', 'terminated')" title="下架" style="border-color:#D97706;color:#D97706">🔕 下架</button>
                             <button class="act-btn act-btn-reject" onclick="deleteItem('tool','${t.id}')" title="刪除">🗑️ 刪除</button>
                         </div>
@@ -1156,6 +1215,7 @@
                             <div class="item-badges"><span class="badge badge-approved">✅ 已上架</span></div>
                         </div>
                         <div class="item-actions">
+                            <button class="act-btn" onclick="editPain('${c.id}')" title="編輯">✏️ 編輯</button>
                             <button class="act-btn act-btn-reject" onclick="deleteItem('pain','${c.id}')" title="刪除">🗑️ 刪除</button>
                         </div>
                     </div>`;
@@ -1367,6 +1427,90 @@
             } finally {
                 btn.disabled = false;
                 btn.textContent = '+ 建立帳號';
+            }
+        }
+
+        // ── Edit Handlers ──
+        function editTool(id) {
+            let t = myTools.find(x => x.id === id) || allToolsAdmin.find(x => x.id === id);
+            if (!t) return;
+            editingToolId = id;
+            document.getElementById('et-title').value = t.title || '';
+            document.getElementById('et-icon').value = t.icon || '';
+            document.getElementById('et-tagline').value = t.tagline || '';
+            document.getElementById('et-desc').value = t.desc || '';
+            document.getElementById('et-dept').value = t.dept || Object.keys(DB.DEPTS)[0];
+            document.getElementById('et-type').value = t.type || 'webapp';
+            if (document.getElementById('et-status')) document.getElementById('et-status').value = t.status || 'live';
+            document.getElementById('et-url').value = t.url || '';
+            document.getElementById('et-tags').value = (t.tags || []).join(', ');
+            document.getElementById('et-steps').value = (t.steps || []).join(', ');
+            switchTab('edit-tool');
+        }
+
+        function editPain(id) {
+            let c = myPainCards.find(x => x.id === id) || allPainCardsAdmin.find(x => x.id === id);
+            if (!c) return;
+            editingPainId = id;
+            document.getElementById('ep-dept').value = c.dept || Object.keys(DB.DEPTS)[0];
+            document.getElementById('ep-before').value = c.before || '';
+            document.getElementById('ep-after').value = c.after || '';
+            switchTab('edit-pain');
+        }
+
+        async function handleUpdateTool(e) {
+            e.preventDefault();
+            if (!editingToolId) return;
+            const btn = document.getElementById('etSubmit');
+            btn.disabled = true;
+            const isAdmin = currentProfile.role === 'admin';
+            const data = {
+                title: document.getElementById('et-title').value.trim(),
+                icon: document.getElementById('et-icon').value.trim() || '🛠️',
+                tagline: document.getElementById('et-tagline').value.trim(),
+                desc: document.getElementById('et-desc').value.trim(),
+                dept: document.getElementById('et-dept').value,
+                type: document.getElementById('et-type').value,
+                url: document.getElementById('et-url').value.trim() || '#',
+                tags: document.getElementById('et-tags').value.split(',').map(s => s.trim()).filter(Boolean),
+                steps: document.getElementById('et-steps').value.split(',').map(s => s.trim()).filter(Boolean),
+            };
+            if (isAdmin) data.status = document.getElementById('et-status')?.value || 'live';
+
+            try {
+                await FireDB.updateTool(editingToolId, data);
+                showToast('✅ 工具已更新');
+                editingToolId = null;
+                await initDashboard();
+                switchTab(isAdmin ? 'manage-all' : 'my-tools');
+            } catch (err) {
+                showToast('❌ 更新失敗：' + err.message);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function handleUpdatePain(e) {
+            e.preventDefault();
+            if (!editingPainId) return;
+            const btn = document.getElementById('epSubmit');
+            btn.disabled = true;
+            const isAdmin = currentProfile.role === 'admin';
+            const data = {
+                dept: document.getElementById('ep-dept').value,
+                before: document.getElementById('ep-before').value.trim(),
+                after: document.getElementById('ep-after').value.trim()
+            };
+            try {
+                await FireDB.updatePainCard(editingPainId, data);
+                showToast('✅ 痛點卡片已更新');
+                editingPainId = null;
+                await initDashboard();
+                switchTab(isAdmin ? 'manage-all' : 'my-pain');
+            } catch (err) {
+                showToast('❌ 更新失敗：' + err.message);
+            } finally {
+                btn.disabled = false;
             }
         }
     </script>
