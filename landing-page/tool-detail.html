@@ -141,10 +141,20 @@
             margin-bottom: 8px;
         }
 
+        .sidebar-title[contenteditable="true"]:focus,
+        .sidebar-tagline[contenteditable="true"]:focus,
+        .sb-url-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3);
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.5);
+        }
+
         .sidebar-tagline {
             font-size: .82rem;
             color: var(--text-mid);
             line-height: 1.55;
+            min-height: 20px;
         }
 
         .sidebar-body {
@@ -254,6 +264,62 @@
             border-radius: var(--radius-pill);
             padding: 3px 10px;
             font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .tag-remove {
+            cursor: pointer;
+            opacity: 0.5;
+            font-size: 0.8em;
+        }
+
+        .tag-remove:hover {
+            opacity: 1;
+            color: #EF4444;
+        }
+
+        .tag-add-btn {
+            font-size: .7rem;
+            background: transparent;
+            border: 1px dashed rgba(30, 27, 75, 0.2);
+            border-radius: var(--radius-pill);
+            padding: 2px 8px;
+            cursor: pointer;
+            color: var(--text-mid);
+        }
+
+        .tag-add-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .sb-select {
+            font-family: inherit;
+            font-size: 0.8rem;
+            padding: 2px 4px;
+            border-radius: 4px;
+            border: 1px solid rgba(30, 27, 75, 0.1);
+            outline: none;
+            background: #F9FAFB;
+            color: var(--text-dark);
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .sb-url-input {
+            width: 100%;
+            font-family: inherit;
+            font-size: 0.75rem;
+            padding: 6px 8px;
+            border-radius: 6px;
+            border: 1px solid rgba(30, 27, 75, 0.1);
+            background: #F9FAFB;
+            color: var(--text-dark);
+            outline: none;
+            margin-top: 4px;
         }
 
         .sidebar-cta {
@@ -840,9 +906,16 @@
             </div>
             <div class="sidebar-body">
                 <div class="sidebar-row"><span class="sidebar-label">部門</span><span class="sidebar-val"
-                        id="sbDept"></span></div>
-                <div class="sidebar-row"><span class="sidebar-label">狀態</span><span id="sbStatus"></span></div>
+                        id="sbDeptWrap"><span id="sbDept"></span></span></div>
+                <div class="sidebar-row"><span class="sidebar-label">狀態</span><span id="sbStatusWrap"><span
+                            id="sbStatus"></span></span></div>
                 <div class="sidebar-tags" id="sbTags"></div>
+
+                <div id="sbUrlEditArea" style="display:none; margin-top: 12px;">
+                    <span class="sidebar-label" style="font-size:0.75rem; display:block; margin-bottom:2px;">🔗
+                        連結網址</span>
+                    <input type="url" id="sbUrlInput" class="sb-url-input" placeholder="輸入工具 URL (webapp必填)" />
+                </div>
             </div>
             <div class="sidebar-cta" id="sbCta"></div>
         </aside>
@@ -1015,31 +1088,96 @@
             }
         }
 
+        function renderSidebarTags() {
+            const tagsWrap = document.getElementById('sbTags');
+            let html = (tool.tags || []).map((tag, i) =>
+                `<span class="tag-pill">${tag}${isAdmin ? `<span class="tag-remove" onclick="removeToolTag(${i})" title="移除標籤">✕</span>` : ''}</span>`
+            ).join('');
+
+            if (isAdmin) {
+                html += `<button class="tag-add-btn" onclick="addToolTag()">+ 標籤</button>`;
+            }
+            tagsWrap.innerHTML = html;
+        }
+
+        function removeToolTag(idx) {
+            if (!tool.tags) return;
+            tool.tags.splice(idx, 1);
+            renderSidebarTags();
+        }
+
+        function addToolTag() {
+            const t = prompt('輸入新標籤名稱：');
+            if (!t || !t.trim()) return;
+            if (!tool.tags) tool.tags = [];
+            tool.tags.push(t.trim());
+            renderSidebarTags();
+        }
+
         function initPage(t) {
             document.title = t.title + ' — SimHope AI 工具中心';
             document.getElementById('breadcrumbTitle').textContent = t.title;
             document.getElementById('adminBarTitle').textContent = '✏️ 編輯：' + t.title;
 
-            // Sidebar
-            document.getElementById('sbIcon').textContent = t.icon || '🛠️';
-            document.getElementById('sbTitle').textContent = t.title;
-            document.getElementById('sbTagline').textContent = t.tagline;
-            const dept = DB.DEPTS[t.dept] || DB.DEPTS.other;
-            document.getElementById('sbDept').textContent = dept.label;
-            const sCls = { live: 's-live', beta: 's-beta', new: 's-new', dev: 's-dev', pending: 's-pending', terminated: 's-terminated' };
-            const sLabel = DB.STATUSES[t.status]?.label || t.status;
-            document.getElementById('sbStatus').innerHTML = `<span class="s-badge ${sCls[t.status] || 's-live'}"><span class="s-dot"></span>${sLabel}</span>`;
-            document.getElementById('sbTags').innerHTML = (t.tags || []).map(tag => `<span class="tag-pill">${tag}</span>`).join('');
+            const iconEl = document.getElementById('sbIcon');
+            const titleEl = document.getElementById('sbTitle');
+            const taglineEl = document.getElementById('sbTagline');
+            const mainTitleEl = document.getElementById('mainTitle');
+
+            iconEl.textContent = t.icon || '🛠️';
+            titleEl.textContent = t.title;
+            taglineEl.textContent = t.tagline;
+            mainTitleEl.textContent = t.title;
+
+            // Make text fields editable for admin
+            if (isAdmin) {
+                [iconEl, titleEl, taglineEl, mainTitleEl].forEach(el => {
+                    el.contentEditable = 'true';
+                    el.title = '點擊直接編輯';
+                });
+
+                // Sync main title and sidebar title
+                titleEl.addEventListener('input', () => mainTitleEl.textContent = titleEl.textContent);
+                mainTitleEl.addEventListener('input', () => titleEl.textContent = mainTitleEl.textContent);
+
+                // URL Editor
+                const urlArea = document.getElementById('sbUrlEditArea');
+                const urlInput = document.getElementById('sbUrlInput');
+                urlArea.style.display = 'block';
+                urlInput.value = t.url || '';
+
+                // Editable Department and Status via Selects
+                document.getElementById('sbDeptWrap').innerHTML = `
+                    <select id="editDeptSelect" class="sb-select">
+                        ${Object.entries(DB.DEPTS).map(([k, v]) => `<option value="${k}" ${k === t.dept ? 'selected' : ''}>${v.label}</option>`).join('')}
+                    </select>
+                `;
+
+                document.getElementById('sbStatusWrap').innerHTML = `
+                    <select id="editStatusSelect" class="sb-select">
+                        ${Object.entries(DB.STATUSES).map(([k, v]) => `<option value="${k}" ${k === t.status ? 'selected' : ''}>${v.label}</option>`).join('')}
+                    </select>
+                `;
+            } else {
+                const dept = DB.DEPTS[t.dept] || DB.DEPTS.other;
+                document.getElementById('sbDept').textContent = dept.label;
+                const sCls = { live: 's-live', beta: 's-beta', new: 's-new', dev: 's-dev', pending: 's-pending', terminated: 's-terminated' };
+                const sLabel = DB.STATUSES[t.status]?.label || t.status;
+                document.getElementById('sbStatus').innerHTML = `<span class="s-badge ${sCls[t.status] || 's-live'}"><span class="s-dot"></span>${sLabel}</span>`;
+            }
+
+            renderSidebarTags();
 
             // CTA buttons
             const cta = document.getElementById('sbCta');
             if (t.type === 'webapp' && t.url && t.url !== '#' && t.status !== 'terminated') {
                 cta.innerHTML = `<a class="cta-btn cta-btn-primary" href="${t.url}" target="_blank">🚀 前往使用</a>`;
+            } else {
+                cta.innerHTML = '';
             }
             cta.innerHTML += `<a class="cta-btn cta-btn-secondary" href="index.html">← 回工具總覽</a>`;
 
-            // Main
-            document.getElementById('mainTitle').textContent = t.title;
+            // Main Summary
             const summaryEl = document.getElementById('mainSummary');
             summaryEl.textContent = t.blog?.summary || t.desc || '';
             if (isAdmin) { summaryEl.contentEditable = 'true'; summaryEl.style.outline = '1.5px dashed var(--accent)'; summaryEl.style.borderRadius = '4px'; summaryEl.title = '點擊編輯摘要'; }
@@ -1499,11 +1637,41 @@
             const tools = DB.getTools();
             const idx = tools.findIndex(t => t.id === tool.id);
             if (idx < 0) return;
+
+            // Gather Inline Edits
+            tools[idx].icon = document.getElementById('sbIcon').textContent.trim();
+            tools[idx].title = document.getElementById('sbTitle').textContent.trim();
+            tools[idx].tagline = document.getElementById('sbTagline').textContent.trim();
+            tools[idx].desc = document.getElementById('mainSummary')?.textContent || '';
+            tools[idx].tags = tool.tags || [];
+
+            const deptSel = document.getElementById('editDeptSelect');
+            if (deptSel) tools[idx].dept = deptSel.value;
+
+            const statusSel = document.getElementById('editStatusSelect');
+            if (statusSel) tools[idx].status = statusSel.value;
+
+            const urlInput = document.getElementById('sbUrlInput');
+            if (urlInput) tools[idx].url = urlInput.value.trim();
+
             if (!tools[idx].blog) tools[idx].blog = {};
             tools[idx].blog.blocks = blocks;
-            tools[idx].blog.summary = document.getElementById('mainSummary')?.textContent || '';
+            tools[idx].blog.summary = tools[idx].desc; // keep them in sync
+
             DB.saveTools(tools);
-            showToast('💾 已儲存！');
+
+            // Re-render CTA and Title instantly
+            document.getElementById('adminBarTitle').textContent = '✏️ 編輯：' + tools[idx].title;
+            document.getElementById('breadcrumbTitle').textContent = tools[idx].title;
+            const cta = document.getElementById('sbCta');
+            let ctaHtml = '';
+            if (tools[idx].type === 'webapp' && tools[idx].url && tools[idx].url !== '#' && tools[idx].status !== 'terminated') {
+                ctaHtml += `<a class="cta-btn cta-btn-primary" href="${tools[idx].url}" target="_blank">🚀 前往使用</a>`;
+            }
+            ctaHtml += `<a class="cta-btn cta-btn-secondary" href="index.html">← 回工具總覽</a>`;
+            cta.innerHTML = ctaHtml;
+
+            showToast('💾 已儲存！變更已生效。');
         }
 
         // ── Toast ──
