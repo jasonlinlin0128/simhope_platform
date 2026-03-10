@@ -855,6 +855,53 @@
             <div class="blocks-wrap" id="blocksWrap"></div>
             <div id="ctaArea"></div>
             <div id="dlArea"></div>
+
+            <!-- RATINGS AND REVIEWS AREA -->
+            <div id="reviewsArea" style="margin-top: 40px; padding-top: 24px; border-top: 1px solid rgba(0,0,0,0.1);">
+                <h2 style="font-size: 1.3rem; font-weight: 800; margin-bottom: 16px;">💬 使用評價</h2>
+
+                <!-- Average Rating Display -->
+                <div id="avgRatingDisplay" style="display:flex; align-items:center; gap:12px; margin-bottom: 24px;">
+                    <span style="font-size: 2.2rem; font-weight: 800; color: #1E1B4B" id="avgScore">--</span>
+                    <div style="display:flex; flex-direction:column;">
+                        <span style="color:#F59E0B; font-size:1.2rem;" id="avgStars">☆☆☆☆☆</span>
+                        <span style="font-size:0.85rem; color: #6B7280" id="reviewCount">共 0 則評價</span>
+                    </div>
+                </div>
+
+                <!-- Review list -->
+                <div id="reviewsList" style="display:flex; flex-direction:column; gap:16px; margin-bottom: 30px;">
+                    <!-- Reviews will be rendered here -->
+                </div>
+
+                <!-- Add Review Form -->
+                <div
+                    style="background: #F9FAFB; padding: 20px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.05);">
+                    <h3 style="font-size: 1rem; font-weight: 800; margin-bottom: 12px;">🌟 留下你的評價</h3>
+
+                    <div style="margin-bottom: 12px;">
+                        <label
+                            style="font-size:0.85rem; font-weight: 700; color: #374151; display:block; margin-bottom:6px;">評分</label>
+                        <div class="star-rating" id="reviewStars"
+                            style="font-size: 1.5rem; color: #D1D5DB; cursor: pointer;">
+                            <span data-val="1">★</span><span data-val="2">★</span><span data-val="3">★</span><span
+                                data-val="4">★</span><span data-val="5">★</span>
+                        </div>
+                        <input type="hidden" id="reviewScore" value="0">
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <label
+                            style="font-size:0.85rem; font-weight: 700; color: #374151; display:block; margin-bottom:6px;">使用心得</label>
+                        <textarea id="reviewText" rows="3"
+                            style="width:100%; padding:10px; border-radius:8px; border:1px solid #D1D5DB; font-family:inherit; resize:vertical; font-size:0.9rem;"
+                            placeholder="你覺得這個工具好用嗎？有什麼建議？"></textarea>
+                    </div>
+
+                    <button class="cta-btn cta-btn-primary" style="padding: 10px 24px; font-size:0.9rem;"
+                        onclick="submitReview()">送出評價</button>
+                </div>
+            </div>
         </main>
     </div>
 
@@ -1007,6 +1054,126 @@
             if (t.type === 'download' && t.files && t.files.length) {
                 document.getElementById('dlArea').innerHTML = `<div class="dl-section"><h2>📦 下載檔案</h2><div class="dl-list">${t.files.map(f => `<a class="dl-item" href="${f.url}" download><span style="font-size:1.5rem">📦</span><div><div style="font-weight:700">${f.name || '下載檔案'}</div>${f.size ? `<div style="font-size:.75rem;color:#9CA3AF">${f.size}</div>` : ''}</div><span style="margin-left:auto;font-size:1.2rem;color:var(--accent)">⬇️</span></a>`).join('')}</div></div>`;
             }
+
+            // Ratings Initialization
+            initReviewsUI(t.id);
+        }
+
+        // ═══════════════════════════════
+        // REVIEWS logic
+        // ═══════════════════════════════
+
+        let currentUserRating = 0;
+
+        function initReviewsUI(tId) {
+            // Star hover bindings
+            const stars = document.querySelectorAll('#reviewStars span');
+            stars.forEach(s => {
+                s.addEventListener('mouseover', function () {
+                    const val = parseInt(this.dataset.val);
+                    setStars('#reviewStars span', val, true);
+                });
+                s.addEventListener('mouseout', function () {
+                    setStars('#reviewStars span', currentUserRating, false);
+                });
+                s.addEventListener('click', function () {
+                    currentUserRating = parseInt(this.dataset.val);
+                    document.getElementById('reviewScore').value = currentUserRating;
+                    setStars('#reviewStars span', currentUserRating, false);
+                });
+            });
+
+            loadReviews(tId);
+        }
+
+        function setStars(selector, val, isHover) {
+            const stars = document.querySelectorAll(selector);
+            stars.forEach((s, idx) => {
+                const sColor = isHover && idx < val ? '#FCD34D' : (idx < val ? '#F59E0B' : '#D1D5DB');
+                s.style.color = sColor;
+            });
+        }
+
+        function renderStarsHtml(val) {
+            let html = '';
+            for (let i = 1; i <= 5; i++) {
+                html += `<span style="color: ${i <= val ? '#F59E0B' : '#E5E7EB'}">★</span>`;
+            }
+            return html;
+        }
+
+        async function loadReviews(tId) {
+            const reviews = DB.getReviews ? await DB.getReviews(tId) : [];
+            const list = document.getElementById('reviewsList');
+
+            if (!reviews || reviews.length === 0) {
+                list.innerHTML = `<div style="text-align:center; padding:20px; color:#9CA3AF; font-size:0.9rem;">目前還沒有評價，成為第一個評價的人吧！</div>`;
+                document.getElementById('avgScore').textContent = '0.0';
+                document.getElementById('reviewCount').textContent = '共 0 則評價';
+                return;
+            }
+
+            // Calculate average
+            const sum = reviews.reduce((acc, r) => acc + r.rating, 0);
+            const avg = (sum / reviews.length).toFixed(1);
+
+            document.getElementById('avgScore').textContent = avg;
+            document.getElementById('avgStars').innerHTML = renderStarsHtml(Math.round(avg));
+            document.getElementById('reviewCount').textContent = `共 ${reviews.length} 則評價`;
+
+            // Render list
+            list.innerHTML = reviews.map(r => `
+                <div style="padding:16px; border-radius:12px; background:white; border:1px solid rgba(0,0,0,0.06); box-shadow:0 2px 8px rgba(0,0,0,0.02)">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:8px; align-items:center;">
+                        <span style="font-weight:700; font-size:0.95rem; color:#1F2937">${r.userName || '匿名使用者'}</span>
+                        <div style="font-size:1.1rem;">${renderStarsHtml(r.rating)}</div>
+                    </div>
+                    ${r.comment ? `<p style="font-size:0.9rem; color:#4B5563; line-height:1.5; margin:0;">${r.comment.replace(/\n/g, '<br>')}</p>` : ''}
+                    <div style="font-size:0.75rem; color:#9CA3AF; margin-top:8px;">${new Date(r.timestamp).toLocaleDateString()}</div>
+                </div>
+            `).join('');
+        }
+
+        async function submitReview() {
+            if (!tool) return;
+            const score = parseInt(document.getElementById('reviewScore').value);
+            const text = document.getElementById('reviewText').value.trim();
+
+            if (score === 0) {
+                showToast('⚠️ 請先選擇評分（1~5顆星）');
+                return;
+            }
+
+            if (!DB.addReview) {
+                showToast('⚠️ 資料庫尚未支援評價功能');
+                return;
+            }
+
+            try {
+                // Determine user info
+                // Replace with actual user session data when auth is wired to standard users
+                const uName = sessionStorage.getItem('simhope_user') || '公司同仁';
+
+                await DB.addReview(tool.id, {
+                    userId: String(Date.now()), // Placeholder user ID
+                    userName: uName,
+                    rating: score,
+                    comment: text,
+                    timestamp: new Date().toISOString()
+                });
+
+                document.getElementById('reviewText').value = '';
+                document.getElementById('reviewScore').value = '0';
+                currentUserRating = 0;
+                setStars('#reviewStars span', 0, false);
+
+                showToast('✅ 評價成功發布');
+                loadReviews(tool.id);
+
+            } catch (err) {
+                console.error(err);
+                showToast('⚠️ 評價發布失敗');
+            }
         }
 
         // ═══════════════════════════════
@@ -1025,7 +1192,7 @@
         function renderBlocks() {
             const wrap = document.getElementById('blocksWrap');
             if (!blocks.length && !isAdmin) {
-                wrap.innerHTML = `<div class="empty-blog"><div class="empty-blog-icon">📝</div><div class="empty-blog-title">尚無內容</div><div class="empty-blog-sub">管理員可在此編輯內容</div></div>`;
+                wrap.innerHTML = `< div class="empty-blog" ><div class="empty-blog-icon">📝</div><div class="empty-blog-title">尚無內容</div><div class="empty-blog-sub">管理員可在此編輯內容</div></div > `;
                 return;
             }
             let html = '';
@@ -1035,7 +1202,7 @@
             }
             blocks.forEach((b, i) => {
                 html += renderBlockRow(b, i);
-                if (isAdmin) html += `<button class="add-block-btn" onclick="insertBlockAt(${i + 1})" title="新增區塊">＋</button>`;
+                if (isAdmin) html += `< button class="add-block-btn" onclick = "insertBlockAt(${i + 1})" title = "新增區塊" >＋</button > `;
             });
             wrap.innerHTML = html;
 
@@ -1049,21 +1216,21 @@
         }
 
         function renderBlockRow(b, i) {
-            const cls = `block-row block-${b.type}`;
-            const handle = `<div class="block-handle" draggable="true" ondragstart="dragBlock(event,${i})">⠿</div>`;
-            const actions = `<div class="block-actions">
+            const cls = `block - row block - ${b.type} `;
+            const handle = `< div class="block-handle" draggable = "true" ondragstart = "dragBlock(event,${i})" >⠿</div > `;
+            const actions = `< div class="block-actions" >
                 ${i > 0 ? `<button class="ba-btn" onclick="moveBlock(${i},-1)" title="上移">↑</button>` : ''}
                 ${i < blocks.length - 1 ? `<button class="ba-btn" onclick="moveBlock(${i},1)" title="下移">↓</button>` : ''}
-                <button class="ba-btn" onclick="deleteBlock(${i})" title="刪除">🗑</button>
-            </div>`;
+            <button class="ba-btn" onclick="deleteBlock(${i})" title="刪除">🗑</button>
+            </div > `;
 
             let content = '';
             if (b.type === 'divider') {
-                content = `<div class="block-content" style="flex:1"><hr/></div>`;
+                content = `< div class="block-content" style = "flex:1" > <hr /></div > `;
             } else if (b.type === 'image') {
                 const hasImg = b.url && b.url.length > 0;
-                content = `<div class="block-content" style="padding:8px 0">
-                    ${hasImg ? `<img src="${b.url}" alt="${b.caption || ''}" style="max-width:100%;border-radius:10px;display:block;box-shadow:0 2px 12px rgba(0,0,0,0.08)"/>` : ''}
+                content = `< div class="block-content" style = "padding:8px 0" >
+                ${hasImg ? `<img src="${b.url}" alt="${b.caption || ''}" style="max-width:100%;border-radius:10px;display:block;box-shadow:0 2px 12px rgba(0,0,0,0.08)"/>` : ''}
                     ${isAdmin ? `<div style="display:flex;gap:8px;align-items:center;margin-top:8px">
                         <label style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:var(--accent);color:white;border-radius:10px;cursor:pointer;font-size:.82rem;font-weight:700;transition:opacity .2s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
                             📷 ${hasImg ? '更換圖片' : '上傳圖片'}
@@ -1071,13 +1238,14 @@
                         </label>
                         <span style="color:var(--text-mid);font-size:.72rem">或</span>
                         <input value="${b.url && !b.url.startsWith('data:') ? b.url : ''}" placeholder="貼上圖片網址" style="flex:1;padding:6px 10px;font-size:.78rem;border:1.5px solid rgba(30,27,75,0.1);border-radius:8px;font-family:inherit;outline:none" onchange="updateImageUrl(${i},this.value)"/>
-                    </div>` : ''}
+                    </div>` : ''
+                    }
                     ${isAdmin ? `<input value="${b.caption || ''}" placeholder="圖片說明（選填）" style="width:100%;margin-top:6px;padding:4px 10px;font-size:.75rem;border:1px solid rgba(30,27,75,0.08);border-radius:6px;font-family:inherit;outline:none;color:var(--text-mid)" onchange="updateImageCaption(${i},this.value)"/>` : (b.caption ? `<div class="img-caption">${b.caption}</div>` : '')}
-                </div>`;
+                </div > `;
             } else if (b.type === 'video') {
                 const embed = buildVideoEmbed(b.url || '');
-                content = `<div class="block-content" style="padding:8px 0">
-                    ${embed}
+                content = `< div class="block-content" style = "padding:8px 0" >
+                ${embed}
                     ${isAdmin ? `<div style="display:flex;gap:8px;align-items:center;margin-top:8px">
                         <label style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#8B5CF6;color:white;border-radius:10px;cursor:pointer;font-size:.82rem;font-weight:700;transition:opacity .2s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
                             🎬 上傳影片
@@ -1085,30 +1253,31 @@
                         </label>
                         <span style="color:var(--text-mid);font-size:.72rem">或</span>
                         <input value="${b.url && !b.url.startsWith('data:') ? b.url : ''}" placeholder="YouTube 連結 或影片 URL" style="flex:1;padding:6px 10px;font-size:.78rem;border:1.5px solid rgba(30,27,75,0.1);border-radius:8px;font-family:inherit;outline:none" onchange="updateVideoUrl(${i},this.value)"/>
-                    </div>` : ''}
+                    </div>` : ''
+                    }
                     ${b.caption ? `<div class="vid-caption">${b.caption}</div>` : ''}
-                </div>`;
+                </div > `;
             } else if (b.type === 'table') {
                 const rows = b.rows || [['', '', ''], ['', '', ''], ['', '', '']];
-                const tableHtml = `<table>${rows.map((r, ri) => `<tr>${r.map((c, ci) => `<${ri === 0 ? 'th' : 'td'} ${isAdmin ? `contenteditable="true" onblur="updateTableCell(${i},${ri},${ci},this.textContent)"` : ''} style="min-width:60px">${c}</${ri === 0 ? 'th' : 'td'}>`).join('')}</tr>`).join('')}</table>`;
-                content = `<div class="block-content block-table" style="padding:8px 0;overflow-x:auto">${tableHtml}${isAdmin ? `<div style="display:flex;gap:6px;margin-top:8px"><button class="ba-btn" onclick="addTableRow(${i})" style="width:auto;padding:4px 10px;font-size:.7rem">+ 行</button><button class="ba-btn" onclick="addTableCol(${i})" style="width:auto;padding:4px 10px;font-size:.7rem">+ 列</button></div>` : ''}</div>`;
+                const tableHtml = `< table > ${rows.map((r, ri) => `<tr>${r.map((c, ci) => `<${ri === 0 ? 'th' : 'td'} ${isAdmin ? `contenteditable="true" onblur="updateTableCell(${i},${ri},${ci},this.textContent)"` : ''} style="min-width:60px">${c}</${ri === 0 ? 'th' : 'td'}>`).join('')}</tr>`).join('')}</table > `;
+                content = `< div class="block-content block-table" style = "padding:8px 0;overflow-x:auto" > ${tableHtml}${isAdmin ? `<div style="display:flex;gap:6px;margin-top:8px"><button class="ba-btn" onclick="addTableRow(${i})" style="width:auto;padding:4px 10px;font-size:.7rem">+ 行</button><button class="ba-btn" onclick="addTableCol(${i})" style="width:auto;padding:4px 10px;font-size:.7rem">+ 列</button></div>` : ''}</div > `;
             } else {
                 // text, h1, h2, h3, bullet, numbered, code, callout
-                const editable = isAdmin ? `contenteditable="true"` : '';
+                const editable = isAdmin ? `contenteditable = "true"` : '';
                 const ph = BLOCK_PH[b.type] || '';
-                content = `<div class="block-content" ${editable} data-idx="${i}" data-ph="${ph}">${escHtml(b.content || '')}</div>`;
+                content = `< div class="block-content" ${editable} data - idx="${i}" data - ph="${ph}" > ${escHtml(b.content || '')}</div > `;
             }
 
-            return `<div class="${cls}" data-idx="${i}" ondragover="event.preventDefault()" ondrop="dropBlock(event,${i})">${handle}${content}${actions}</div>`;
+            return `< div class="${cls}" data - idx="${i}" ondragover = "event.preventDefault()" ondrop = "dropBlock(event,${i})" > ${handle}${content}${actions}</div > `;
         }
 
         function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
         function buildVideoEmbed(url) {
             const yt = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([A-Za-z0-9_-]{11})/);
-            if (yt) return `<iframe src="https://www.youtube.com/embed/${yt[1]}" allowfullscreen></iframe>`;
-            if (url) return `<video controls src="${url}"></video>`;
-            return `<div style="background:#F3F4F6;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;border-radius:12px;color:#9CA3AF;font-size:.9rem">尚未設定影片連結</div>`;
+            if (yt) return `< iframe src = "https://www.youtube.com/embed/${yt[1]}" allowfullscreen ></iframe > `;
+            if (url) return `< video controls src = "${url}" ></video > `;
+            return `< div style = "background:#F3F4F6;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;border-radius:12px;color:#9CA3AF;font-size:.9rem" > 尚未設定影片連結</div > `;
         }
 
         // ═══════════════════════════════
@@ -1124,7 +1293,7 @@
             renderBlocks();
             // Focus new block
             setTimeout(() => {
-                const el = document.querySelector(`.block-row[data-idx="${idx}"] .block-content[contenteditable]`);
+                const el = document.querySelector(`.block - row[data - idx="${idx}"] .block - content[contenteditable]`);
                 if (el) el.focus();
             }, 50);
         }
@@ -1150,14 +1319,14 @@
             if (!file) return;
             const maxMB = type === 'video' ? 10 : 3;
             if (file.size > maxMB * 1024 * 1024) {
-                showToast(`⚠️ 檔案太大，${type === 'video' ? '影片' : '圖片'}最大 ${maxMB}MB`);
+                showToast(`⚠️ 檔案太大，${type === 'video' ? '影片' : '圖片'}最大 ${maxMB} MB`);
                 return;
             }
             const reader = new FileReader();
             reader.onload = () => {
                 blocks[blockIdx].url = reader.result;
                 renderBlocks();
-                showToast(`✅ ${type === 'video' ? '影片' : '圖片'}已上傳（記得按「儲存」）`);
+                showToast(`✅ ${type === 'video' ? '影片' : '圖片'} 已上傳（記得按「儲存」）`);
             };
             reader.readAsDataURL(file);
         }
@@ -1209,7 +1378,7 @@
                 deleteBlock(idx);
                 // Focus previous block
                 setTimeout(() => {
-                    const prev = document.querySelector(`.block-row[data-idx="${Math.max(0, idx - 1)}"] .block-content[contenteditable]`);
+                    const prev = document.querySelector(`.block - row[data - idx="${Math.max(0, idx - 1)}"] .block - content[contenteditable]`);
                     if (prev) prev.focus();
                 }, 50);
             }
@@ -1219,7 +1388,7 @@
                 const sel = window.getSelection();
                 if (sel.anchorOffset === 0) {
                     e.preventDefault();
-                    const prev = document.querySelector(`.block-row[data-idx="${idx - 1}"] .block-content[contenteditable]`);
+                    const prev = document.querySelector(`.block - row[data - idx="${idx - 1}"] .block - content[contenteditable]`);
                     if (prev) prev.focus();
                 }
             }
@@ -1228,7 +1397,7 @@
                 const sel = window.getSelection();
                 if (sel.anchorOffset >= el.textContent.length) {
                     e.preventDefault();
-                    const next = document.querySelector(`.block-row[data-idx="${idx + 1}"] .block-content[contenteditable]`);
+                    const next = document.querySelector(`.block - row[data - idx="${idx + 1}"] .block - content[contenteditable]`);
                     if (next) next.focus();
                 }
             }
@@ -1304,7 +1473,7 @@
             if (type === 'video') { blocks[idx].url = ''; blocks[idx].caption = ''; }
             renderBlocks();
             setTimeout(() => {
-                const el = document.querySelector(`.block-row[data-idx="${idx}"] .block-content[contenteditable]`);
+                const el = document.querySelector(`.block - row[data - idx="${idx}"] .block - content[contenteditable]`);
                 if (el) el.focus();
             }, 50);
         }

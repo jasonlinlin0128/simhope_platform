@@ -1273,6 +1273,12 @@
                     <input class="step-input" id="tm-s3" placeholder="步驟 3" maxlength="10" />
                 </div>
 
+                <div class="form-section">歷史版本 (下載連結)</div>
+                <div class="versions-wrap" id="tm-versions-wrap"
+                    style="padding:10px; border:1px dashed #ccc; border-radius:8px; margin-bottom:10px;"></div>
+                <button type="button" class="btn btn-ghost btn-sm" onclick="addTmVersionRow()"
+                    style="margin-bottom:15px;">+ 新增版本</button>
+
                 <div class="form-section">標籤 <span class="fl-hint">（輸入後按 Enter 或逗號確認，建議 3～5 個）</span></div>
                 <div class="tags-input-wrap" id="tagsWrap" onclick="document.getElementById('tagsRaw').focus()">
                     <input class="tags-raw-input" id="tagsRaw" placeholder="輸入標籤後按 Enter…" />
@@ -1438,6 +1444,22 @@
         }
 
         // ── Tool Modal ──
+        function addTmVersionRow() {
+            const wrap = document.getElementById('tm-versions-wrap');
+            const row = document.createElement('div');
+            row.className = 'version-row';
+            row.style.display = 'flex';
+            row.style.gap = '8px';
+            row.style.marginBottom = '8px';
+            row.innerHTML = `
+                <input type="text" placeholder="版本號 (如 v1.0)" class="v-ver" required style="width:100px; padding:6px; border-radius:6px; border:1px solid #ccc;">
+                <input type="text" placeholder="更新說明" class="v-note" style="flex:1; padding:6px; border-radius:6px; border:1px solid #ccc;">
+                <input type="url" placeholder="下載連結URL" class="v-url" required style="flex:1; padding:6px; border-radius:6px; border:1px solid #ccc;">
+                <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove()" style="padding:4px 8px;">×</button>
+            `;
+            wrap.appendChild(row);
+        }
+
         function openToolModal(tool) {
             currentTags = [];
             document.getElementById('toolModalTitle').textContent = tool ? '編輯工具' : '新增工具';
@@ -1459,6 +1481,28 @@
                 o.classList.toggle('selected', o.dataset.color === selectedColor);
             });
             document.getElementById('tagsRaw').value = '';
+
+            const vWrap = document.getElementById('tm-versions-wrap');
+            if (vWrap) {
+                vWrap.innerHTML = '';
+                if (tool?.versions && tool.versions.length) {
+                    tool.versions.forEach(v => {
+                        const row = document.createElement('div');
+                        row.className = 'version-row';
+                        row.style.display = 'flex';
+                        row.style.gap = '8px';
+                        row.style.marginBottom = '8px';
+                        row.innerHTML = `
+                            <input type="text" placeholder="版本號 (如 v1.0)" value="${v.version || ''}" class="v-ver" required style="width:100px; padding:6px; border-radius:6px; border:1px solid #ccc;">
+                            <input type="text" placeholder="更新說明" value="${v.releaseNotes || ''}" class="v-note" style="flex:1; padding:6px; border-radius:6px; border:1px solid #ccc;">
+                            <input type="url" placeholder="下載連結URL" value="${v.fileUrl || ''}" class="v-url" required style="flex:1; padding:6px; border-radius:6px; border:1px solid #ccc;">
+                            <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove()" style="padding:4px 8px;">×</button>
+                        `;
+                        vWrap.appendChild(row);
+                    });
+                }
+            }
+
             document.getElementById('toolModal').classList.add('open');
         }
         function editTool(id) {
@@ -1494,6 +1538,18 @@
                 tags: [...currentTags],
                 order: 0,
             };
+
+            const vRows = document.querySelectorAll('#tm-versions-wrap .version-row');
+            if (vRows.length > 0) {
+                tool.versions = [];
+                vRows.forEach(r => {
+                    tool.versions.push({
+                        version: r.querySelector('.v-ver').value.trim(),
+                        releaseNotes: r.querySelector('.v-note').value.trim(),
+                        fileUrl: r.querySelector('.v-url').value.trim(),
+                    });
+                });
+            }
             const tools = DB.getTools();
             if (id) {
                 const idx = tools.findIndex(t => t.id === id);

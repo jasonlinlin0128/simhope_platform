@@ -781,6 +781,121 @@
                 grid-template-columns: repeat(2, 1fr)
             }
         }
+
+        /* Overlay for Edit Modals */
+        .edit-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .edit-modal-overlay.open {
+            display: flex;
+        }
+
+        .edit-modal {
+            background: var(--white);
+            border-radius: var(--radius);
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.2);
+            animation: modalIn 0.2s ease-out;
+        }
+
+        .edit-modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .edit-modal-header h3 {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--text-dark);
+        }
+
+        .edit-modal-close {
+            background: var(--bg-alt);
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .edit-modal-body {
+            padding: 20px 24px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .edit-modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            background: var(--bg-main);
+        }
+
+        /* Versions Row */
+        .versions-wrap {
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            padding: 12px;
+            margin-top: 6px;
+        }
+
+        .version-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+            align-items: stretch;
+        }
+
+        .version-row .d-input {
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .add-version-btn {
+            background: var(--bg-alt);
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
     </style>
 </head>
 
@@ -1064,49 +1179,14 @@
 
         // ── Render: Edit Tool Form ──
         function renderEditToolForm() {
-            const depts = DB.DEPTS;
-            const statuses = DB.STATUSES;
-            const isAdmin = currentProfile.role === 'admin';
-            return `<div class="form-card">
-                <h3>✏️ 編輯工具</h3>
-                <form id="editToolForm" onsubmit="handleUpdateTool(event)">
-                    <div class="fg-row">
-                        <div class="fg"><label>工具名稱 *</label><input id="et-title" required /></div>
-                        <div class="fg"><label>圖示 Emoji</label><input id="et-icon" maxlength="4" /></div>
-                    </div>
-                    <div class="fg"><label>一句話介紹 *</label><input id="et-tagline" required /></div>
-                    <div class="fg"><label>詳細描述 *</label><textarea id="et-desc" required></textarea></div>
-                    <div class="fg-row">
-                        <div class="fg"><label>部門</label><select id="et-dept">${Object.entries(depts).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('')}</select></div>
-                        <div class="fg"><label>類型</label><select id="et-type"><option value="webapp">🌐 Web App</option><option value="download">⬇️ 下載工具</option><option value="showcase">📺 展示型</option></select></div>
-                        ${isAdmin ? `<div class="fg"><label>狀態</label><select id="et-status">${Object.entries(statuses).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('')}</select></div>` : ''}
-                    </div>
-                    <div class="fg"><label>工具網址</label><input id="et-url" /></div>
-                    <div class="fg"><label>標籤（逗號分隔）</label><input id="et-tags" /></div>
-                    <div class="fg"><label>使用步驟（逗號分隔，最多三步）</label><input id="et-steps" /></div>
-                    <div class="fg-row" style="margin-top:10px">
-                        <button class="submit-btn" type="submit" id="etSubmit">💾 儲存變更</button>
-                        <button class="submit-btn" type="button" style="background:#6B7280;box-shadow:none" onclick="switchTab('my-tools')">取消</button>
-                    </div>
-                </form>
-            </div>`;
+            // Unused since we're using modals now. Kept empty to not break tab switching if called.
+            return \`<div style="display:none"></div>\`;
         }
 
         // ── Render: Edit Pain Form ──
         function renderEditPainForm() {
-            const depts = DB.DEPTS;
-            return `<div class="form-card">
-                <h3>✏️ 編輯痛點卡片</h3>
-                <form id="editPainForm" onsubmit="handleUpdatePain(event)">
-                    <div class="fg"><label>部門</label><select id="ep-dept">${Object.entries(depts).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('')}</select></div>
-                    <div class="fg"><label>😓 痛點描述（使用前） *</label><textarea id="ep-before" required></textarea></div>
-                    <div class="fg"><label>✅ 解決後效益（使用後） *</label><textarea id="ep-after" required></textarea></div>
-                    <div class="fg-row" style="margin-top:10px">
-                        <button class="submit-btn" type="submit" id="epSubmit">💾 儲存變更</button>
-                        <button class="submit-btn" type="button" style="background:#6B7280;box-shadow:none" onclick="switchTab('my-pain')">取消</button>
-                    </div>
-                </form>
-            </div>`;
+            // Unused since we're using modals now.
+            return \`<div style="display:none"></div>\`;
         }
 
         // ── Render: Review Queue (Admin) ──
@@ -1115,10 +1195,11 @@
                 ...pendingTools.map(t => ({ ...t, _type: 'tool' })),
                 ...pendingPainCards.map(c => ({ ...c, _type: 'pain' }))
             ];
-            if (!all.length) return `<div class="empty-state"><div class="empty-state-icon">✅</div><div class="empty-state-text">沒有待審核的項目</div></div>`;
-            return `<div class="card-list">${all.map(item => {
-                if (item._type === 'tool') {
-                    return `<div class="item-card">
+            if (!all.length) return `< div class="empty-state" ><div class="empty-state-icon">✅</div><div class="empty-state-text">沒有待審核的項目</div></div > `;
+            return `< div class="card-list" > ${
+                all.map(item => {
+                    if (item._type === 'tool') {
+                        return `<div class="item-card">
                         <div class="item-icon">${item.icon || '🛠️'}</div>
                         <div class="item-body">
                             <div class="item-title">${item.title}</div>
@@ -1130,8 +1211,8 @@
                             <button class="act-btn act-btn-reject" onclick="rejectItem('tool','${item.id}')">❌ 退回</button>
                         </div>
                     </div>`;
-                } else {
-                    return `<div class="item-card">
+                    } else {
+                        return `<div class="item-card">
                         <div class="item-icon">😤</div>
                         <div class="item-body">
                             <div class="item-title">${item.before}</div>
@@ -1143,13 +1224,14 @@
                             <button class="act-btn act-btn-reject" onclick="rejectItem('pain','${item.id}')">❌ 退回</button>
                         </div>
                     </div>`;
-                }
-            }).join('')}</div>`;
+                    }
+                }).join('')
+            }</div > `;
         }
 
         // ── Render: Add Developer (Admin) ──
         function renderAddDeveloper() {
-            return `<div class="form-card">
+            return `< div class="form-card" >
                 <h3>➕ 新增開發者帳號</h3>
                 <p style="font-size:.82rem;color:var(--text-mid);margin-bottom:18px">管理員直接建立開發者帳號，指定密碼後通知對方登入。</p>
                 <form id="addDevForm" onsubmit="handleAddDeveloper(event)">
@@ -1176,16 +1258,16 @@
                     </div>
                     <button class="submit-btn" type="submit" id="adSubmit">+ 建立帳號</button>
                 </form>
-            </div>`;
+            </div > `;
         }
 
         // ── Render: Manage All (Admin) ──
         function renderManageAll() {
             const tools = allToolsAdmin;
             const pains = allPainCardsAdmin;
-            if (!tools.length && !pains.length) return `<div class="empty-state"><div class="empty-state-icon">⚙️</div><div class="empty-state-text">尚無任何已上架的工具或痛點</div></div>`;
+            if (!tools.length && !pains.length) return `< div class="empty-state" ><div class="empty-state-icon">⚙️</div><div class="empty-state-text">尚無任何已上架的工具或痛點</div></div > `;
             return `
-                <h3 style="font-size:.88rem;font-weight:900;color:var(--text-mid);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px">🔧 工具列表 (${tools.length})</h3>
+                < h3 style = "font-size:.88rem;font-weight:900;color:var(--text-mid);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px" >🔧 工具列表(${ tools.length })</h3 >
                 <div class="card-list" style="margin-bottom:24px">${tools.map(t => {
                 const statusBadge = { live: '✅ 上線', beta: '🟡 湋試中', evaluating: '🔵 評估中', dev: '🔨 開發中', terminated: '❌ 已停止' }[t.status] || t.status;
                 return `<div class="item-card">
@@ -1225,13 +1307,14 @@
 
         // ── Render: All Users (Admin) ──
         function renderAllUsers() {
-            if (!allUsers.length) return `<div class="empty-state"><div class="empty-state-icon">👥</div><div class="empty-state-text">尚無使用者</div></div>`;
-            return `<div class="users-grid">${allUsers.map(u => {
-                const name = u.displayName || u.email;
-                const isAdmin = u.role === 'admin';
-                const isSelf = u.uid === currentUser.uid;
-                const roleLabel = isAdmin ? '🛡️ 管理員' : '👨‍💻 開發者';
-                return `<div class="user-card">
+            if (!allUsers.length) return `< div class="empty-state" ><div class="empty-state-icon">👥</div><div class="empty-state-text">尚無使用者</div></div > `;
+            return `< div class="users-grid" > ${
+                allUsers.map(u => {
+                    const name = u.displayName || u.email;
+                    const isAdmin = u.role === 'admin';
+                    const isSelf = u.uid === currentUser.uid;
+                    const roleLabel = isAdmin ? '🛡️ 管理員' : '👨‍💻 開發者';
+                    return `<div class="user-card">
                     <div class="user-card-avatar">${name.charAt(0).toUpperCase()}</div>
                     <div class="user-card-info">
                         <div class="user-card-name">${name} <span style="font-size:.65rem;color:var(--text-mid)">${roleLabel}</span>${isSelf ? ' <span style="font-size:.58rem;color:#6366F1;font-weight:700">(You)</span>' : ''}</div>
@@ -1243,7 +1326,8 @@
                         ${!isAdmin && !isSelf ? `<button class="act-btn act-btn-reject" onclick="revokeAccess('${u.uid}')">⛔ 移除權限</button>` : ''}
                     </div>
                 </div>`;
-            }).join('')}</div>`;
+                }).join('')
+            }</div > `;
         }
 
         // ── Handlers ──
@@ -1329,10 +1413,10 @@
 
         async function changeToolStatus(toolId, newStatus) {
             const label = newStatus === 'terminated' ? '下架' : '上架';
-            if (!confirm(`確定要將此工具「${label}」？`)) return;
+            if (!confirm(`確定要將此工具「${ label }」？`)) return;
             try {
                 await FireDB.updateTool(toolId, { status: newStatus });
-                showToast(`✅ 工具已${label}`);
+                showToast(`✅ 工具已${ label } `);
                 await initDashboard();
             } catch (err) { showToast('❌ 操作失敗：' + err.message); }
         }
@@ -1349,10 +1433,10 @@
 
         async function setUserRole(uid, role) {
             const label = role === 'admin' ? '管理員' : '開發者';
-            if (!confirm(`確定要將此使用者設為「${label}」？`)) return;
+            if (!confirm(`確定要將此使用者設為「${ label }」？`)) return;
             try {
                 await FireDB.setUserRole(uid, role);
-                showToast(`✅ 已設為${label}`);
+                showToast(`✅ 已設為${ label } `);
                 await initDashboard();
             } catch (err) { showToast('❌ 操作失敗：' + err.message); }
         }
@@ -1387,47 +1471,80 @@
             try {
                 const res = await fetch(
                     `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${apiKey}`,
-                    {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email, password: pass, returnSecureToken: false })
-                    }
-                );
-                const data = await res.json();
-                if (data.error) throw new Error(data.error.message);
-
-                const newUid = data.localId;
-                // 建立 Firestore user doc
-                await firebase.firestore().collection('users').doc(newUid).set({
-                    email,
-                    displayName: name,
-                    role,
-                    avatarUrl: '',
-                    bio: '',
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-
-                // 更新 displayName（via REST）
-                await fetch(
-                    `https://identitytoolkit.googleapis.com/v1/accounts:update?key=${apiKey}`,
-                    {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ idToken: data.idToken, displayName: name })
-                    }
-                );
-
-                const roleLabel = role === 'admin' ? '管理員' : '開發者';
-                showToast(`✅ ${roleLabel}帳號「${name}」已建立！`);
-                document.getElementById('addDevForm').reset();
-                await initDashboard();
-            } catch (err) {
-                const msg = err.message === 'EMAIL_EXISTS' ? 'Email 已被使用' : err.message;
-                showToast('❌ 建立失敗：' + msg);
-            } finally {
-                btn.disabled = false;
-                btn.textContent = '+ 建立帳號';
+            {
+                method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password: pass, returnSecureToken: false })
             }
+                );
+            const data = await res.json();
+            if (data.error) throw new Error(data.error.message);
+
+            const newUid = data.localId;
+            // 建立 Firestore user doc
+            await firebase.firestore().collection('users').doc(newUid).set({
+                email,
+                displayName: name,
+                role,
+                avatarUrl: '',
+                bio: '',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            // 更新 displayName（via REST）
+            await fetch(
+                `https://identitytoolkit.googleapis.com/v1/accounts:update?key=${apiKey}`,
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ idToken: data.idToken, displayName: name })
+                }
+            );
+
+            const roleLabel = role === 'admin' ? '管理員' : '開發者';
+            showToast(`✅ ${roleLabel}帳號「${name}」已建立！`);
+            document.getElementById('addDevForm').reset();
+            await initDashboard();
+        } catch (err) {
+            const msg = err.message === 'EMAIL_EXISTS' ? 'Email 已被使用' : err.message;
+            showToast('❌ 建立失敗：' + msg);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '+ 建立帳號';
+        }
+        }
+
+        // ── Modals logic ──
+        function closeEditModal(type) {
+            document.getElementById('edit' + (type === 'tool' ? 'Tool' : 'Pain') + 'Modal').classList.remove('open');
+            editingToolId = null;
+            editingPainId = null;
+        }
+
+        function addVersionRow(version = '', releaseNotes = '', fileUrl = '') {
+            const wrap = document.getElementById('et-versions-wrap');
+            const row = document.createElement('div');
+            row.className = 'version-row';
+            row.innerHTML = \`
+                <input type="text" placeholder="版本號(如v1)" value="\${version}" class="v-ver d-input" required style="max-width:100px; padding: 6px;">
+                <input type="text" placeholder="更新說明" value="\${releaseNotes}" class="v-note d-input" style="padding: 6px; flex: 1;">
+                <input type="url" placeholder="下載連結URL" value="\${fileUrl}" class="v-url d-input" required style="padding: 6px; flex: 1;">
+                <button type="button" class="act-btn act-btn-reject" onclick="this.parentElement.remove()" style="padding: 6px 10px;">×</button>
+            \`;
+            wrap.appendChild(row);
+        }
+
+        function getVersionsData() {
+            const rows = document.querySelectorAll('#et-versions-wrap .version-row');
+            const versions = [];
+            rows.forEach(r => {
+                versions.push({
+                    version: r.querySelector('.v-ver').value.trim(),
+                    releaseNotes: r.querySelector('.v-note').value.trim(),
+                    fileUrl: r.querySelector('.v-url').value.trim(),
+                });
+            });
+            return versions;
         }
 
         // ── Edit Handlers ──
@@ -1441,11 +1558,28 @@
             document.getElementById('et-desc').value = t.desc || '';
             document.getElementById('et-dept').value = t.dept || Object.keys(DB.DEPTS)[0];
             document.getElementById('et-type').value = t.type || 'webapp';
-            if (document.getElementById('et-status')) document.getElementById('et-status').value = t.status || 'live';
+            if (currentProfile?.role === 'admin') {
+                document.getElementById('et-status-container').style.display = 'block';
+                const st = document.getElementById('et-status');
+                if (st) st.value = t.status || 'live';
+            } else {
+                if(document.getElementById('et-status-container')) {
+                    document.getElementById('et-status-container').style.display = 'none';
+                }
+            }
             document.getElementById('et-url').value = t.url || '';
             document.getElementById('et-tags').value = (t.tags || []).join(', ');
             document.getElementById('et-steps').value = (t.steps || []).join(', ');
-            switchTab('edit-tool');
+            
+            const vWrap = document.getElementById('et-versions-wrap');
+            if (vWrap) {
+                vWrap.innerHTML = '';
+                if (t.versions && t.versions.length) {
+                    t.versions.forEach(v => addVersionRow(v.version, v.releaseNotes, v.fileUrl));
+                }
+            }
+
+            document.getElementById('editToolModal').classList.add('open');
         }
 
         function editPain(id) {
@@ -1455,7 +1589,7 @@
             document.getElementById('ep-dept').value = c.dept || Object.keys(DB.DEPTS)[0];
             document.getElementById('ep-before').value = c.before || '';
             document.getElementById('ep-after').value = c.after || '';
-            switchTab('edit-pain');
+            document.getElementById('editPainModal').classList.add('open');
         }
 
         async function handleUpdateTool(e) {
@@ -1474,15 +1608,15 @@
                 url: document.getElementById('et-url').value.trim() || '#',
                 tags: document.getElementById('et-tags').value.split(',').map(s => s.trim()).filter(Boolean),
                 steps: document.getElementById('et-steps').value.split(',').map(s => s.trim()).filter(Boolean),
+                versions: getVersionsData()
             };
             if (isAdmin) data.status = document.getElementById('et-status')?.value || 'live';
 
             try {
                 await FireDB.updateTool(editingToolId, data);
                 showToast('✅ 工具已更新');
-                editingToolId = null;
+                closeEditModal('tool');
                 await initDashboard();
-                switchTab(isAdmin ? 'manage-all' : 'my-tools');
             } catch (err) {
                 showToast('❌ 更新失敗：' + err.message);
             } finally {
@@ -1504,16 +1638,121 @@
             try {
                 await FireDB.updatePainCard(editingPainId, data);
                 showToast('✅ 痛點卡片已更新');
-                editingPainId = null;
+                closeEditModal('pain');
                 await initDashboard();
-                switchTab(isAdmin ? 'manage-all' : 'my-pain');
             } catch (err) {
                 showToast('❌ 更新失敗：' + err.message);
             } finally {
                 btn.disabled = false;
             }
         }
-    </script>
+    <!-- Edit Tool Modal -->
+    <div class="edit-modal-overlay" id="editToolModal">
+        <form class="edit-modal" id="editToolForm" onsubmit="handleUpdateTool(event)">
+            <div class="edit-modal-header">
+                <h3>✏️ 編輯工具</h3>
+                <button type="button" class="edit-modal-close" onclick="closeEditModal('tool')">×</button>
+            </div>
+            <div class="edit-modal-body">
+                <div class="fg-row">
+                    <div class="fg">
+                        <label>工具名稱</label>
+                        <input type="text" id="et-title" required>
+                    </div>
+                    <div class="fg">
+                        <label>圖示 (Emoji)</label>
+                        <input type="text" id="et-icon" required>
+                    </div>
+                </div>
+                <div class="fg">
+                    <label>一句話賣點</label>
+                    <input type="text" id="et-tagline" required>
+                </div>
+                <div class="fg">
+                    <label>詳細說明</label>
+                    <textarea id="et-desc" rows="3" required></textarea>
+                </div>
+                <div class="fg-row">
+                    <div class="fg">
+                        <label>所屬部門</label>
+                        <select id="et-dept" required>
+                            <script>document.write(Object.entries(DB.DEPTS).map(([k, v]) => \`<option value="\${k}">\${v.icon} \${v.name}</option>\`).join(''))</script>
+    </select>
+    </div>
+    <div class="fg">
+        <label>工具類型</label>
+        <select id="et-type" required>
+            <option value="webapp">網頁應用 (WebApp)</option>
+            <option value="desktop">電腦軟體 (Desktop)</option>
+            <option value="prompt">提示詞 (Prompt)</option>
+            <option value="api">API 服務</option>
+            <option value="gpts">GPTs</option>
+        </select>
+    </div>
+    </div>
+    <div class="fg" id="et-status-container" style="display:none">
+        <label>上架狀態 (管理員專用)</label>
+        <select id="et-status">
+            <option value="live">✅ 正常上架</option>
+            <option value="dev">🚧 開發中</option>
+            <option value="terminated">🔕 已下架</option>
+        </select>
+    </div>
+    <div class="fg">
+        <label>主要連結 (URL)</label>
+        <input type="url" id="et-url">
+    </div>
+    <div class="fg">
+        <label>標籤 (用逗號分隔)</label>
+        <input type="text" id="et-tags">
+    </div>
+    <div class="fg">
+        <label>步驟 (用逗號分隔)</label>
+        <input type="text" id="et-steps">
+    </div>
+    <div class="fg">
+        <label>歷史版本 (下載連結)</label>
+        <div class="versions-wrap" id="et-versions-wrap"></div>
+        <button type="button" class="add-version-btn" onclick="addVersionRow()">+ 新增版本</button>
+        <div class="hint" style="font-size:0.8rem;color:#888;margin-top:4px;">若為下載軟體，請填寫版本號、更新說明與下載連結。</div>
+    </div>
+    </div>
+    <div class="edit-modal-footer">
+        <button type="button" class="act-btn" onclick="closeEditModal('tool')">取消</button>
+        <button type="submit" class="submit-btn" id="etSubmit" style="padding:8px 16px;margin:0;">儲存變更</button>
+    </div>
+    </form>
+    </div>
+
+    <!-- Edit Pain Modal -->
+    <div class="edit-modal-overlay" id="editPainModal">
+        <form class="edit-modal" id="editPainForm" onsubmit="handleUpdatePain(event)">
+            <div class="edit-modal-header">
+                <h3>✏️ 編輯痛點卡片</h3>
+                <button type="button" class="edit-modal-close" onclick="closeEditModal('pain')">×</button>
+            </div>
+            <div class="edit-modal-body">
+                <div class="fg">
+                    <label>相關部門</label>
+                    <select id="ep-dept" required>
+                        <script>document.write(Object.entries(DB.DEPTS).map(([k, v]) => \`<option value="\${k}">\${v.icon} \${v.name}</option>\`).join(''))</script>
+                    </select>
+                </div>
+                <div class="fg">
+                    <label>痛點 (Before)</label>
+                    <textarea id="ep-before" rows="3" required></textarea>
+                </div>
+                <div class="fg">
+                    <label>解決方案 (After)</label>
+                    <textarea id="ep-after" rows="3" required></textarea>
+                </div>
+            </div>
+            <div class="edit-modal-footer">
+                <button type="button" class="act-btn" onclick="closeEditModal('pain')">取消</button>
+                <button type="submit" class="submit-btn" id="epSubmit" style="padding:8px 16px;margin:0;">儲存變更</button>
+            </div>
+        </form>
+    </div>
 </body>
 
 </html>

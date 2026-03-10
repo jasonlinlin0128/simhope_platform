@@ -72,7 +72,20 @@ const Auth = {
 const FireDB = {
     // ── Tools ──
     async getApprovedTools() {
-        const snap = await db.collection('tools').where('approval', '==', 'approved').get();
+        let isAdmin = false;
+        try {
+            if (auth.currentUser) {
+                const profile = await Auth.getUserProfile(auth.currentUser.uid);
+                isAdmin = profile && profile.role === 'admin';
+            }
+        } catch (e) { }
+
+        let snap;
+        if (isAdmin) {
+            snap = await db.collection('tools').get();
+        } else {
+            snap = await db.collection('tools').where('approval', '==', 'approved').get();
+        }
         return snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (a.order || 0) - (b.order || 0));
     },
 
@@ -151,7 +164,20 @@ const FireDB = {
 
     // ── Pain Cards ──
     async getApprovedPainCards() {
-        const snap = await db.collection('painCards').where('approval', '==', 'approved').get();
+        let isAdmin = false;
+        try {
+            if (auth.currentUser) {
+                const profile = await Auth.getUserProfile(auth.currentUser.uid);
+                isAdmin = profile && profile.role === 'admin';
+            }
+        } catch (e) { }
+
+        let snap;
+        if (isAdmin) {
+            snap = await db.collection('painCards').get();
+        } else {
+            snap = await db.collection('painCards').where('approval', '==', 'approved').get();
+        }
         return snap.docs.map(d => ({ id: d.id, ...d.data() }));
     },
 
@@ -206,6 +232,38 @@ const FireDB = {
 
     async deletePainCard(cardId) {
         await db.collection('painCards').doc(cardId).delete();
+    },
+
+    // ── Reviews & Ratings ──
+    async addReview(toolId, reviewData) {
+        // reviewData: { uid, name, rating, comment, createdAt }
+        const ref = await db.collection('tools').doc(toolId).collection('reviews').add({
+            ...reviewData,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        await this.updateToolAverageRating(toolId);
+        return ref.id;
+    },
+
+    async getReviews(toolId) {
+        const snap = await db.collection('tools').doc(toolId).collection('reviews').orderBy('createdAt', 'desc').get();
+        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    },
+
+    async updateToolAverageRating(toolId) {
+        const snap = await db.collection('tools').doc(toolId).collection('reviews').get();
+        if (snap.empty) {
+            await db.collection('tools').doc(toolId).update({ ratingAvg: 0, ratingCount: 0 });
+            return;
+        }
+
+        let sum = 0;
+        snap.docs.forEach(d => {
+            sum += d.data().rating || 0;
+        });
+        const ratingAvg = +(sum / snap.size).toFixed(1);
+        await db.collection('tools').doc(toolId).update({ ratingAvg, ratingCount: snap.size });
     },
 
     // ── Users ──
