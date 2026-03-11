@@ -1711,7 +1711,11 @@
             let c = myPainCards.find(x => x.id === id) || allPainCardsAdmin.find(x => x.id === id);
             if (!c) return;
             editingPainId = id;
-            document.getElementById('ep-dept').value = c.dept || Object.keys(DB.DEPTS)[0];
+
+            const deptSelect = document.getElementById('ep-dept');
+            deptSelect.innerHTML = Object.entries(DB.DEPTS).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('');
+
+            deptSelect.value = c.dept || Object.keys(DB.DEPTS)[0];
             document.getElementById('ep-before').value = c.before || '';
             document.getElementById('ep-after').value = c.after || '';
             document.getElementById('editPainModal').classList.add('open');
@@ -1768,7 +1772,6 @@
                 <div class="fg">
                     <label>相關部門</label>
                     <select id="ep-dept" required>
-                        <script>document.write(Object.entries(DB.DEPTS).map(([k, v]) => `<option value="${k}">${v.icon} ${v.name}</option>`).join(''))</script>
                     </select>
                 </div>
                 <div class="fg">

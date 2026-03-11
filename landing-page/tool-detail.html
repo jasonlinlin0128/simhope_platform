@@ -13,6 +13,11 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap"
         rel="stylesheet" />
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
     <style>
         *,
         *::before,
@@ -1331,31 +1336,52 @@
         // ── Get tool ──
         const params = new URLSearchParams(location.search);
         const toolId = params.get('id');
-        const tool = toolId ? DB.getTools().find(t => t.id === toolId) : null;
+        let tool = null;
         const isAdmin = sessionStorage.getItem('admin_auth') === '1';
         if (isAdmin) document.body.classList.add('admin-logged-in');
 
-        if (!tool) {
-            document.title = '找不到工具 — SimHope';
-            document.getElementById('mainTitle').textContent = '找不到此工具';
-            document.getElementById('mainSummary').textContent = '請確認連結是否正確，或返回工具總覽。';
+        async function loadToolData() {
+            try {
+                const tools = await FireDB.getAllTools();
+                tool = tools.find(t => t.id === toolId) || null;
+
+                if (!tool) {
+                    document.title = '找不到工具 — SimHope';
+                    document.getElementById('mainTitle').textContent = '找不到此工具';
+                    document.getElementById('mainSummary').textContent = '請確認連結是否正確，或返回工具總覽。';
+                    hideSkeleton();
+                    return;
+                }
+
+                // Populate Blocks
+                const blog = tool.blog || {};
+                if (blog.blocks && blog.blocks.length) {
+                    blocks = blog.blocks;
+                } else if (blog.sections && blog.sections.length) {
+                    blocks = blog.sections.map(s => {
+                        if (s.type === 'text') return { type: 'text', content: s.content || '' };
+                        if (s.type === 'image') return { type: 'image', url: s.url || '', caption: s.caption || '' };
+                        if (s.type === 'video') return { type: 'video', url: s.url || '', caption: s.caption || '' };
+                        return { type: 'text', content: '' };
+                    });
+                }
+
+                initPage(tool);
+                hideSkeleton();
+            } catch (err) {
+                console.error("Failed to load tool data:", err);
+                showToast('❌ 載入失敗');
+                hideSkeleton();
+            }
+        }
+
+        function hideSkeleton() {
+            document.querySelectorAll('.skeleton-box').forEach(el => el.style.display = 'none');
+            // Show previously hidden elements that might have relied on skeleton overlay (if any)
         }
 
         // ── Blocks state (MUST be before initPage) ──
         let blocks = [];
-        if (tool) {
-            const blog = tool.blog || {};
-            if (blog.blocks && blog.blocks.length) {
-                blocks = blog.blocks;
-            } else if (blog.sections && blog.sections.length) {
-                blocks = blog.sections.map(s => {
-                    if (s.type === 'text') return { type: 'text', content: s.content || '' };
-                    if (s.type === 'image') return { type: 'image', url: s.url || '', caption: s.caption || '' };
-                    if (s.type === 'video') return { type: 'video', url: s.url || '', caption: s.caption || '' };
-                    return { type: 'text', content: '' };
-                });
-            }
-        }
 
         function renderSidebarTags() {
             const tagsWrap = document.getElementById('sbTags');
@@ -2181,11 +2207,11 @@
         // SAVE
         // ═══════════════════════════════
 
-        function saveBlog() {
+        async function saveBlog() {
             if (!tool) return;
             // Sync all contenteditable blocks
             document.querySelectorAll('.block-content[contenteditable]').forEach(el => syncBlockContent(el));
-            const tools = DB.getTools();
+            const tools = await FireDB.getAllTools();
             const idx = tools.findIndex(t => t.id === tool.id);
             if (idx < 0) return;
 
@@ -2231,7 +2257,7 @@
             tools[idx].blog.blocks = blocks;
             tools[idx].blog.summary = tools[idx].desc; // keep them in sync
 
-            DB.saveTools(tools);
+            await FireDB.updateTool(tool.id, tools[idx]);
 
             // Re-render CTA and Title instantly
             document.getElementById('adminBarTitle').textContent = '✏️ 編輯：' + tools[idx].title;
@@ -2261,7 +2287,7 @@
         });
 
         // ── INIT (must be AFTER all declarations) ──
-        if (tool) initPage(tool);
+        loadToolData();
     </script>
 
     <!-- Floating Toolbar -->

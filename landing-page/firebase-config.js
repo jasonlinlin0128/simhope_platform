@@ -234,6 +234,10 @@ const FireDB = {
         await db.collection('painCards').doc(cardId).delete();
     },
 
+    async updatePainCard(cardId, data) {
+        await db.collection('painCards').doc(cardId).update(data);
+    },
+
     // ── Reviews & Ratings ──
     async addReview(toolId, reviewData) {
         // reviewData: { uid, name, rating, comment, createdAt }
