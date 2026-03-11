@@ -1139,7 +1139,7 @@
             if (ni) ni.classList.add('active');
             const pane = document.getElementById('pane-' + tabKey);
             if (pane) pane.classList.add('active');
-
+            if (tabKey === 'chatbot-config') loadChatbotConfig();
             if (updateHash) {
                 window.location.hash = tabKey;
             }
@@ -1209,6 +1209,7 @@
                         <button class="nav-item" data-tab="manage-all" onclick="switchTab('manage-all')">⚙️ 管理所有項目</button>
                         <button class="nav-item" data-tab="all-users" onclick="switchTab('all-users')">👥 所有開發者</button>
                         <button class="nav-item" data-tab="add-dev" onclick="switchTab('add-dev')">➕ 新增開發者</button>
+                        <button class="nav-item" data-tab="chatbot-config" onclick="switchTab('chatbot-config')">🤖 Chatbot 設定</button>
                     </div>
                 </div>
                 ` : ''}
@@ -1241,6 +1242,7 @@
                 ${isAdmin ? `<div class="tab-pane" id="pane-manage-all">${renderManageAll()}</div>` : ''}
                 ${isAdmin ? `<div class="tab-pane" id="pane-all-users">${renderAllUsers()}</div>` : ''}
                 ${isAdmin ? `<div class="tab-pane" id="pane-add-dev">${renderAddDeveloper()}</div>` : ''}
+                ${isAdmin ? `<div class="tab-pane" id="pane-chatbot-config"><div id="chatbotConfigPane">載入中...</div></div>` : ''}
             `;
         }
 
@@ -1884,6 +1886,83 @@
             </div>
         </form>
     </div>
+
+    <script>
+        // ── Chatbot Config Panel ──
+        async function loadChatbotConfig() {
+            const pane = document.getElementById('chatbotConfigPane');
+            if (!pane) return;
+            let cfg = { ollamaUrl: '', geminiKey: '', defaultBackend: 'local' };
+            try {
+                const db = firebase.firestore();
+                const doc = await db.collection('chatConfig').doc('settings').get();
+                if (doc.exists) cfg = { ...cfg, ...doc.data() };
+            } catch (e) { }
+
+            pane.innerHTML = `
+                <div class="form-card">
+                    <h3 style="margin-bottom:16px;">🤖 Chatbot 後端設定</h3>
+                    <p style="font-size:.82rem;color:var(--text-mid);margin-bottom:20px;">這些設定儲存於 Firestore，即時生效，不需要改 code 或重新部署。</p>
+                    <div class="fg">
+                        <label>預設後端</label>
+                        <select id="cfg-backend">
+                            <option value="local" ${cfg.defaultBackend === 'local' ? 'selected' : ''}>🏠 本地 Ollama（私有，資料不上雲）</option>
+                            <option value="cloud" ${cfg.defaultBackend === 'cloud' ? 'selected' : ''}>☁️ 雲端 Gemini API（需要 API Key）</option>
+                        </select>
+                    </div>
+                    <div class="fg">
+                        <label>🏠 Ollama Tunnel URL</label>
+                        <input id="cfg-ollama" type="url" value="${cfg.ollamaUrl || ''}" placeholder="https://xxxx.trycloudflare.com" />
+                        <small style="color:var(--text-mid);font-size:.75rem;">Cloudflare tunnel 重啟後在這裡更新 → 馬上生效</small>
+                    </div>
+                    <div class="fg">
+                        <label>☁️ Gemini API Key</label>
+                        <input id="cfg-gemini" type="password" value="${cfg.geminiKey || ''}" placeholder="AIza..." />
+                        <small style="color:var(--text-mid);font-size:.75rem;">Key 只存在 Firestore，不暴露在前端 code。免費額度：15 次/分鐘、1500 次/天</small>
+                    </div>
+                    <div class="fg" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                        <button class="submit-btn" style="width:auto;padding:10px 20px;" onclick="saveChatbotConfig()">💾 儲存設定</button>
+                        <button class="act-btn" style="border:1.5px solid var(--border)" onclick="testOllama()">🔌 測試 Ollama 連線</button>
+                        <span id="cfg-status" style="font-size:.8rem;"></span>
+                    </div>
+                </div>`;
+        }
+
+        async function saveChatbotConfig() {
+            const ollamaUrl = document.getElementById('cfg-ollama')?.value.trim() || '';
+            const geminiKey = document.getElementById('cfg-gemini')?.value.trim() || '';
+            const defaultBackend = document.getElementById('cfg-backend')?.value || 'local';
+            const status = document.getElementById('cfg-status');
+            try {
+                const db = firebase.firestore();
+                await db.collection('chatConfig').doc('settings').set({ ollamaUrl, geminiKey, defaultBackend }, { merge: true });
+                if (status) status.textContent = '✅ 已儲存';
+                setTimeout(() => { if (status) status.textContent = ''; }, 3000);
+            } catch (e) {
+                if (status) status.textContent = '❌ 儲存失敗：' + e.message;
+            }
+        }
+
+        async function testOllama() {
+            const url = document.getElementById('cfg-ollama')?.value.trim();
+            const status = document.getElementById('cfg-status');
+            if (!url) { if (status) status.textContent = '⚠️ 請先輸入 URL'; return; }
+            if (status) status.textContent = '🔌 連線中...';
+            try {
+                const res = await fetch(url + '/api/tags', { signal: AbortSignal.timeout(5000) });
+                if (res.ok) {
+                    const data = await res.json();
+                    const models = (data.models || []).map(m => m.name).join(', ') || '無模型';
+                    if (status) status.textContent = `✅ 已連線！模型：${models}`;
+                } else {
+                    if (status) status.textContent = `❌ 回應 ${res.status}`;
+                }
+            } catch (e) {
+                if (status) status.textContent = `❌ 連線失敗：${e.message}`;
+            }
+        }
+    </script>
+
 </body>
 
 </html>

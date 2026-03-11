@@ -4892,6 +4892,8 @@ ${toolsSummary}
         <div class="chat-header-title">🤖 SimHope AI 助理</div>
         <!-- 右側按鈕 -->
         <div class="chat-header-right">
+          <button id="chatBackendToggle" class="chat-header-close" onclick="promptSwitchBackend()" title="切換 AI 後端"
+            style="font-size:.7rem;padding:2px 6px;border-radius:6px;">🏠 本地</button>
           <button class="chat-header-close" onclick="chatClearHistory()" title="清除對話">🗑️</button>
         </div>
       </div>
@@ -4945,6 +4947,25 @@ ${toolsSummary}
       ],
     };
     let chatCurrentModel = CHAT_CONFIG.defaultModels[0].id;
+    let chatBackend = 'local'; // 'local' | 'cloud' — loaded from Firestore chatConfig/settings
+    let chatGeminiKey = '';   // loaded from Firestore, not in code
+    const CLOUD_CONSENT_KEY = 'simhope_cloud_consent';
+
+    // Load backend config from Firestore on init
+    async function loadChatBackendConfig() {
+      try {
+        if (typeof firebase !== 'undefined') {
+          const doc = await firebase.firestore().collection('chatConfig').doc('settings').get();
+          if (doc.exists) {
+            const d = doc.data();
+            if (d.ollamaUrl) CHAT_CONFIG.ollamaUrl = d.ollamaUrl;
+            if (d.geminiKey) chatGeminiKey = d.geminiKey;
+            if (d.defaultBackend) chatBackend = d.defaultBackend;
+          }
+        }
+      } catch (_) { }
+      updateBackendToggleUI();
+    }
 
     const CHAT_SYSTEM_PROMPT = `你是 SimHope AI 工具中心的智慧助理，協助台灣製造業工廠同仁。
             你的職責：
@@ -5232,11 +5253,7 @@ ${toolList ? '目前可用工具：\n' + toolList + '\n\n' : ''} 重要規則：
     function renderChatContent() {
       const msgs = document.getElementById('chatMessages');
       const inputRow = document.querySelector('.chat-input-row');
-      if (!chatUser) {
-        msgs.innerHTML = `<div class="chat-login-prompt" >🔐 請先登入才能使用 AI 助理 <br > <a href="auth.html">前往登入</a></div> `;
-        if (inputRow) inputRow.style.display = 'none';
-        return;
-      }
+      // All visitors can chat — no login required
       if (inputRow) inputRow.style.display = 'flex';
       if (chatMessages.length === 0) {
         loadChatHistory().then(() => {
@@ -5304,7 +5321,6 @@ ${toolList ? '目前可用工具：\n' + toolList + '\n\n' : ''} 重要規則：
     // 送出訊息
     // ════════════════════════════════
     async function chatSend() {
-      if (!chatUser) return;
       const input = document.getElementById('chatInput');
       const text = input.value.trim();
       if (!text || chatIsTyping) return;
@@ -5319,73 +5335,95 @@ ${toolList ? '目前可用工具：\n' + toolList + '\n\n' : ''} 重要規則：
       showTyping();
 
       try {
-        const payload = {
-          model: chatCurrentModel,
-          messages: [
-            { role: 'system', content: buildSystemPrompt() },
-            ...chatMessages.slice(-10)  // 最近 10 輪保持 context
-          ],
-          stream: true,
-          options: { temperature: 0.7 }
-        };
+        if (chatBackend === 'cloud') {
+          // ── Cloud: Gemini API ──
+          if (!chatGeminiKey) throw new Error('後台尚未設定 Gemini API Key，請聯絡管理員。');
+          const contents = chatMessages.slice(-10).map(m => ({
+            role: m.role === 'user' ? 'user' : 'model',
+            parts: [{ text: m.content }]
+          }));
+          const res = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${chatGeminiKey}`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                systemInstruction: { parts: [{ text: buildSystemPrompt() }] },
+                contents,
+                generationConfig: { temperature: 0.7, maxOutputTokens: 512 }
+              })
+            }
+          );
+          if (res.status === 429) throw new Error('免費額度已用完，請稍後再試或切回本地模式。');
+          if (!res.ok) throw new Error('Gemini API 錯誤 ' + res.status);
+          const data = await res.json();
+          const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || '（無回應）';
+          removeTyping();
+          addBotMessage(reply);
+          saveChatHistory();
+        } else {
+          // ── Local: Ollama streaming ──
+          const payload = {
+            model: chatCurrentModel,
+            messages: [
+              { role: 'system', content: buildSystemPrompt() },
+              ...chatMessages.slice(-10)
+            ],
+            stream: true,
+            options: { temperature: 0.7 }
+          };
 
-        const res = await fetch(CHAT_CONFIG.ollamaUrl + '/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
+          const res = await fetch(CHAT_CONFIG.ollamaUrl + '/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
 
-        if (!res.ok) throw new Error('API 回應失敗 ' + res.status);
+          if (!res.ok) throw new Error('API 回應失敗 ' + res.status);
 
-        // 候變、streaming 讀取
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder();
-        let fullContent = '';
-        let isThinking = false;
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder();
+          let fullContent = '';
+          let isThinking = false;
 
-        removeTyping();
+          removeTyping();
+          chatMessages.push({ role: 'assistant', content: '__thinking__' });
+          const lastIdx = chatMessages.length - 1;
+          rerenderMessages();
 
-        // 新增 bot 訊息佔位
-        chatMessages.push({ role: 'assistant', content: '__thinking__' });
-        const lastIdx = chatMessages.length - 1;
-        rerenderMessages();
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          const lines = decoder.decode(value).split('\n').filter(Boolean);
-          for (const line of lines) {
-            try {
-              const chunk = JSON.parse(line);
-              if (chunk.message?.content) {
-                fullContent += chunk.message.content;
-
-                // 偵測 think 階段
-                const hasOpenThink = fullContent.includes('<think>');
-                const hasCloseThink = fullContent.includes('</think>');
-                isThinking = hasOpenThink && !hasCloseThink;
-
-                if (isThinking) {
-                  chatMessages[lastIdx].content = '__thinking__';
-                } else {
-                  const cleaned = fullContent.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
-                  chatMessages[lastIdx].content = cleaned || '__thinking__';
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            const lines = decoder.decode(value).split('\n').filter(Boolean);
+            for (const line of lines) {
+              try {
+                const chunk = JSON.parse(line);
+                if (chunk.message?.content) {
+                  fullContent += chunk.message.content;
+                  const hasOpenThink = fullContent.includes('<think>');
+                  const hasCloseThink = fullContent.includes('</think>');
+                  isThinking = hasOpenThink && !hasCloseThink;
+                  if (isThinking) {
+                    chatMessages[lastIdx].content = '__thinking__';
+                  } else {
+                    const cleaned = fullContent.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+                    chatMessages[lastIdx].content = cleaned || '__thinking__';
+                  }
+                  rerenderMessages();
                 }
-                rerenderMessages();
-              }
-            } catch (_) { }
+              } catch (_) { }
+            }
           }
-        }
 
-        // 最終清理 thinking 標籤
-        const cleaned = fullContent.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
-        chatMessages[lastIdx].content = cleaned || '（無回應）';
-        rerenderMessages();
-        saveChatHistory();
+          const cleaned = fullContent.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+          chatMessages[lastIdx].content = cleaned || '（無回應）';
+          rerenderMessages();
+          saveChatHistory();
+        }
 
       } catch (err) {
         removeTyping();
-        addBotMessage('⚠️ 連線錯誤，請稍後再試。\n(' + err.message + ')');
+        addBotMessage('⚠️ ' + err.message);
         console.error('ChatBot error:', err);
       } finally {
         chatIsTyping = false;
@@ -5472,8 +5510,44 @@ ${toolList ? '目前可用工具：\n' + toolList + '\n\n' : ''} 重要規則：
     // ════════════════════════════════
     // Enter 送出
     // ════════════════════════════════
+    function updateBackendToggleUI() {
+      const btn = document.getElementById('chatBackendToggle');
+      if (!btn) return;
+      if (chatBackend === 'cloud') {
+        btn.textContent = '☁️ Gemini';
+        btn.style.background = 'rgba(99,102,241,0.15)';
+        btn.style.color = 'var(--accent)';
+      } else {
+        btn.textContent = '🏠 本地';
+        btn.style.background = '';
+        btn.style.color = '';
+      }
+    }
+
+    function promptSwitchBackend() {
+      if (chatBackend === 'local') {
+        // 準備切換到 cloud
+        if (!localStorage.getItem(CLOUD_CONSENT_KEY)) {
+          const ok = confirm(
+            '⚠️ 使用雲端 Gemini AI 的提醒\n\n' +
+            '您的對話內容將傳送至 Google Gemini API 進行處理。\n' +
+            '本平台不保留任何對話紀錄，但請避免輸入個人敏感資料。\n\n' +
+            'Google API 免費額度：15 次/分鐘、1500 次/天\n\n' +
+            '是否繼續使用雲端模式？'
+          );
+          if (!ok) return;
+          localStorage.setItem(CLOUD_CONSENT_KEY, '1');
+        }
+        chatBackend = 'cloud';
+      } else {
+        chatBackend = 'local';
+      }
+      updateBackendToggleUI();
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       initChatBot();
+      loadChatBackendConfig(); // load Ollama URL + Gemini key from Firestore
       const input = document.getElementById('chatInput');
       if (input) {
         input.addEventListener('keydown', e => {
