@@ -204,7 +204,7 @@
         .sidebar-label {
             color: var(--text-mid);
             font-weight: 700;
-            min-width: 48px;
+            min-width: 60px;
         }
 
         .sidebar-val {
@@ -1494,13 +1494,13 @@
                     </select>
                 `;
             } else {
-                document.getElementById('sbType').textContent = typeLabels[t.type] || '工具';
+                document.getElementById('sbTypeWrap').textContent = typeLabels[t.type] || '工具';
                 const scs = t.scenarios && Array.isArray(t.scenarios) ? t.scenarios : (t.dept ? [(DB.DEPTS[t.dept]?.label || t.dept).replace(/^.*? /, '')] : ['其他']);
-                const fHTML = t.folder ? `<span style="opacity:0.6">📁 ${t.folder}</span><br>` : '';
-                document.getElementById('sbDept').innerHTML = fHTML + scs.join(', ');
+                const fHTML = t.folder ? `<span style="display:inline-block; margin-right:6px; color:var(--accent);">📁 ${t.folder}</span>` : '';
+                document.getElementById('sbDeptWrap').innerHTML = fHTML + scs.join(', ');
                 const sCls = { live: 's-live', beta: 's-beta', new: 's-new', dev: 's-dev', pending: 's-pending', terminated: 's-terminated' };
                 const sLabel = DB.STATUSES[t.status]?.label || t.status;
-                document.getElementById('sbStatus').innerHTML = `<span class="s-badge ${sCls[t.status] || 's-live'}"><span class="s-dot"></span>${sLabel}</span>`;
+                document.getElementById('sbStatusWrap').innerHTML = `<span class="s-badge ${sCls[t.status] || 's-live'}"><span class="s-dot"></span>${sLabel}</span>`;
             }
 
             renderSidebarTags();
