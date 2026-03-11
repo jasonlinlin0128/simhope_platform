@@ -24,90 +24,7 @@
             --bg: linear-gradient(135deg, #E0E7FF 0%, #F0FDF4 40%, #FEF9C3 100%);
             --white: #fff;
             --radius: 16px;
-            --shadow: 0 6px 24px rgba(30, 27, 75, 0.06);
-            --nav-bg: rgba(255, 255, 255, 0.82);
-            --nav-border: rgba(30, 27, 75, 0.06);
-            --card-border: rgba(255, 255, 255, 0.9);
-            --border-light: rgba(30, 27, 75, 0.1);
-        }
-
-        :root.dark {
-            --bg: #111827;
-            --text-dark: #F9FAFB;
-            --text-mid: #9CA3AF;
-            --white: #1F2937;
-            --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
-            --nav-bg: rgba(17, 24, 39, 0.85);
-            --nav-border: rgba(255, 255, 255, 0.05);
-            --card-border: rgba(255, 255, 255, 0.05);
-            --border-light: rgba(255, 255, 255, 0.1);
-        }
-
-        .dark nav {
-            background: var(--nav-bg);
-            border-color: var(--nav-border);
-        }
-
-        .dark .stat-box,
-        .dark .dash-sidebar,
-        .dark .form-card,
-        .dark .user-card,
-        .dark .item-card,
-        .dark .edit-modal {
-            background: var(--white);
-            border-color: var(--card-border);
-        }
-
-        .dark .empty-state {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: var(--border-light);
-        }
-
-        .dark .fg input,
-        .dark .fg select,
-        .dark .fg textarea,
-        .dark .act-btn,
-        .dark .home-btn,
-        .dark .nav-group-toggle {
-            background: rgba(0, 0, 0, 0.2);
-            border-color: var(--border-light);
-            color: var(--text-dark);
-        }
-
-        .dark .sidebar-profile,
-        .dark .sidebar-footer,
-        .dark .edit-modal-header,
-        .dark .edit-modal-footer {
-            border-color: var(--border-light);
-        }
-
-        .dark .edit-modal-footer {
-            background: var(--bg);
-        }
-
-        .dark .user-card-name span {
-            color: var(--text-mid);
-        }
-
-        .theme-btn {
-            background: none;
-            border: 2px solid rgba(99, 102, 241, 0.3);
-            border-radius: 50%;
-            width: 32px;
-            height: 32px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.05rem;
-            cursor: pointer;
-            color: var(--text-dark);
-            transition: all 0.2s;
-            margin-right: 8px;
-        }
-
-        .theme-btn:hover {
-            background: rgba(99, 102, 241, 0.1);
-            transform: rotate(15deg);
+            --shadow: 0 6px 24px rgba(30, 27, 75, 0.06)
         }
 
         body {
@@ -123,9 +40,9 @@
             align-items: center;
             justify-content: space-between;
             padding: 16px 5%;
-            background: var(--nav-bg);
+            background: rgba(255, 255, 255, 0.82);
             backdrop-filter: blur(20px);
-            border-bottom: 1.5px solid var(--nav-border);
+            border-bottom: 1.5px solid rgba(30, 27, 75, 0.06);
             position: sticky;
             top: 0;
             z-index: 100
@@ -267,7 +184,7 @@
             border-radius: 12px;
             padding: 16px 20px;
             box-shadow: var(--shadow);
-            border: 1.5px solid var(--card-border);
+            border: 1.5px solid rgba(255, 255, 255, 0.9);
             flex: 1;
             text-align: center
         }
@@ -540,46 +457,6 @@
 
         .tab-pane.active {
             display: block
-        }
-
-        /* Empty States */
-        .empty-state {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 60px 20px;
-            background: rgba(255, 255, 255, 0.4);
-            border: 2px dashed rgba(30, 27, 75, 0.1);
-            border-radius: 16px;
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        .empty-state-svg {
-            width: 120px;
-            height: 120px;
-            margin-bottom: 16px;
-            opacity: 0.8;
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .empty-state:hover .empty-state-svg {
-            transform: scale(1.05) translateY(-5px);
-        }
-
-        .empty-state-title {
-            font-size: 1.1rem;
-            font-weight: 800;
-            color: var(--text-dark);
-            margin-bottom: 6px;
-        }
-
-        .empty-state-text {
-            font-size: 0.85rem;
-            color: var(--text-mid);
-            max-width: 300px;
-            line-height: 1.5;
         }
 
         /* Cards list */
@@ -1027,8 +904,6 @@
         <a class="nav-logo" href="index.html">🏭 SimHope AI 工具中心</a>
         <div class="nav-right">
             <div class="nav-user" id="navUser"></div>
-            <button id="themeToggle" class="theme-btn" aria-label="Toggle Dark Mode" title="切換深色模式">🌙</button>
-            <button class="nav-btn nav-btn-ghost" onclick="location.href='index.html'">回前台</button>
         </div>
     </nav>
 
@@ -1113,44 +988,16 @@
             }
 
             renderDashboard();
-
-            // Handle URL Hash for tab selection
-            const hash = window.location.hash.slice(1);
-            if (hash && document.querySelector(`.nav-item[data-tab="${hash}"]`)) {
-                switchTab(hash, false);
-
-                // Expand parent group if needed
-                const activeNav = document.querySelector(`.nav-item[data-tab="${hash}"]`);
-                if (activeNav) {
-                    const group = activeNav.closest('.nav-group-items');
-                    if (group && group.classList.contains('collapsed')) {
-                        toggleGroup(group.id);
-                    }
-                }
-            } else {
-                switchTab('my-tools', false); // default
-            }
         }
 
-        function switchTab(tabKey, updateHash = true) {
+        function switchTab(tabKey) {
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
             const ni = document.querySelector(`.nav-item[data-tab="${tabKey}"]`);
             if (ni) ni.classList.add('active');
             const pane = document.getElementById('pane-' + tabKey);
             if (pane) pane.classList.add('active');
-
-            if (updateHash) {
-                window.location.hash = tabKey;
-            }
         }
-
-        window.addEventListener('hashchange', () => {
-            const hash = window.location.hash.slice(1);
-            if (hash && document.querySelector(`.nav-item[data-tab="${hash}"]`)) {
-                switchTab(hash, false);
-            }
-        });
 
         function toggleGroup(id) {
             const el = document.getElementById(id);
@@ -1246,101 +1093,53 @@
 
         // ── Render: My Tools ──
         function renderMyTools() {
-            if (!myTools.length) return `
-                <div class="empty-state">
-                    <svg class="empty-state-svg" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="100" cy="100" r="80" fill="#EEF2FF"/>
-                        <path d="M120 70L80 110M80 70L120 110" stroke="#C7D2FE" stroke-width="8" stroke-linecap="round"/>
-                        <rect x="70" y="130" width="60" height="12" rx="6" fill="#C7D2FE"/>
-                    </svg>
-                    <div class="empty-state-title">尚未提交任何工具</div>
-                    <div class="empty-state-text">點擊左側「新增工具」將您的絕佳想法轉換為實用的 AI 工具吧！</div>
-                </div>`;
-            // Group by folder
-            const groups = {};
-            myTools.forEach(t => {
-                const f = t.folder || '未分類專案';
-                if (!groups[f]) groups[f] = [];
-                groups[f].push(t);
-            });
-
-            return Object.entries(groups).sort().map(([folder, items]) => `
-                <div class="folder-group" style="margin-bottom:1.5rem">
-                    <h4 style="font-size:1rem;color:var(--text-dark);margin-bottom:0.8rem;display:flex;align-items:center;cursor:pointer;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'">
-                         📁 ${folder} <span style="font-size:0.75rem;color:var(--text-mid);margin-left:8px;">(${items.length}) ▾</span>
-                    </h4>
-                    <div class="card-list" style="display:block;">${items.map(t => {
+            if (!myTools.length) return `<div class="empty-state"><div class="empty-state-icon">🔧</div><div class="empty-state-text">尚未提交任何工具</div></div>`;
+            return `<div class="card-list">${myTools.map(t => {
                 const badgeCls = { approved: 'badge-approved', pending: 'badge-pending', rejected: 'badge-rejected' }[t.approval] || 'badge-pending';
                 const badgeLabel = { approved: '✅ 已上架', pending: '⏳ 待審核', rejected: '❌ 未通過' }[t.approval] || '⏳ 待審核';
                 return `<div class="item-card">
-                            <div class="item-icon">${t.icon || '🛠️'}</div>
-                            <div class="item-body">
-                                <div class="item-title">${t.title || '無標題'}</div>
-                                <div class="item-sub">${t.tagline || t.desc || ''}</div>
-                                <div class="item-badges">
-                                    <span class="badge ${badgeCls}">${badgeLabel}</span>
-                                    ${t.rejectReason ? `<span class="badge badge-rejected">退回原因：${t.rejectReason}</span>` : ''}
-                                </div>
-                            </div>
-                            <div class="item-actions">
-                                <button class="act-btn" onclick="window.open('tool-detail.html?id=${t.id}', '_blank')">✏️ 編輯</button>
-                                <button class="act-btn act-btn-reject" onclick="deleteItem('tool','${t.id}')">🗑️ 刪除</button>
-                            </div>
-                        </div>`;
-            }).join('')}</div>
-                </div>
-            `).join('');
+                    <div class="item-icon">${t.icon || '🛠️'}</div>
+                    <div class="item-body">
+                        <div class="item-title">${t.title || '無標題'}</div>
+                        <div class="item-sub">${t.tagline || t.desc || ''}</div>
+                        <div class="item-badges">
+                            <span class="badge ${badgeCls}">${badgeLabel}</span>
+                            ${t.rejectReason ? `<span class="badge badge-rejected">退回原因：${t.rejectReason}</span>` : ''}
+                        </div>
+                    </div>
+                    <div class="item-actions">
+                        <button class="act-btn" onclick="editTool('${t.id}')">✏️ 編輯</button>
+                        <button class="act-btn act-btn-reject" onclick="deleteItem('tool','${t.id}')">🗑️ 刪除</button>
+                    </div>
+                </div>`;
+            }).join('')}</div>`;
         }
 
         // ── Render: My Pain Cards ──
         function renderMyPainCards() {
-            if (!myPainCards.length) return `
-                <div class="empty-state">
-                    <svg class="empty-state-svg" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="100" cy="100" r="80" fill="#FEF3C7"/>
-                        <path d="M70 90C70 90 85 80 100 90C115 100 130 90 130 90" stroke="#FDE68A" stroke-width="8" stroke-linecap="round"/>
-                        <circle cx="85" cy="120" r="8" fill="#FDE68A"/>
-                        <circle cx="115" cy="120" r="8" fill="#FDE68A"/>
-                    </svg>
-                    <div class="empty-state-title">尚未提交任何痛點卡片</div>
-                    <div class="empty-state-text">發現了流程中的不便？點擊「新增痛點」讓我們知道您的困擾。</div>
-                </div>`;
-            // Group by folder
-            const groups = {};
-            myPainCards.forEach(c => {
-                const f = c.folder || '未分類專案';
-                if (!groups[f]) groups[f] = [];
-                groups[f].push(c);
-            });
-
-            return Object.entries(groups).sort().map(([folder, items]) => `
-                <div class="folder-group" style="margin-bottom:1.5rem">
-                    <h4 style="font-size:1rem;color:var(--text-dark);margin-bottom:0.8rem;display:flex;align-items:center;cursor:pointer;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'">
-                         📁 ${folder} <span style="font-size:0.75rem;color:var(--text-mid);margin-left:8px;">(${items.length}) ▾</span>
-                    </h4>
-                    <div class="card-list" style="display:block;">${items.map(c => {
+            if (!myPainCards.length) return `<div class="empty-state"><div class="empty-state-icon">😤</div><div class="empty-state-text">尚未提交任何痛點卡片</div></div>`;
+            return `<div class="card-list">${myPainCards.map(c => {
                 const badgeCls = { approved: 'badge-approved', pending: 'badge-pending', rejected: 'badge-rejected' }[c.approval] || 'badge-pending';
                 const badgeLabel = { approved: '✅ 已上架', pending: '⏳ 待審核', rejected: '❌ 未通過' }[c.approval] || '⏳ 待審核';
                 return `<div class="item-card">
-                            <div class="item-icon">😓</div>
-                            <div class="item-body">
-                                <div class="item-title">${c.before || ''}</div>
-                                <div class="item-sub">✅ ${c.after || ''}</div>
-                                <div class="item-badges"><span class="badge ${badgeCls}">${badgeLabel}</span></div>
-                            </div>
-                            <div class="item-actions">
-                                <button class="act-btn" onclick="editPain('${c.id}')">✏️ 編輯</button>
-                                <button class="act-btn act-btn-reject" onclick="deleteItem('pain','${c.id}')">🗑️ 刪除</button>
-                            </div>
-                        </div>`;
-            }).join('')}</div>
-                </div>
-            `).join('');
+                    <div class="item-icon">😓</div>
+                    <div class="item-body">
+                        <div class="item-title">${c.before || ''}</div>
+                        <div class="item-sub">✅ ${c.after || ''}</div>
+                        <div class="item-badges"><span class="badge ${badgeCls}">${badgeLabel}</span></div>
+                    </div>
+                    <div class="item-actions">
+                        <button class="act-btn" onclick="editPain('${c.id}')">✏️ 編輯</button>
+                        <button class="act-btn act-btn-reject" onclick="deleteItem('pain','${c.id}')">🗑️ 刪除</button>
+                    </div>
+                </div>`;
+            }).join('')}</div>`;
         }
 
         // ── Render: New Tool Form ──
         function renderNewToolForm() {
             const isAdmin = currentProfile.role === 'admin';
+            const depts = DB.DEPTS;
             const statuses = DB.STATUSES;
             return `<div class="form-card">
                 <h3>➕ 提交新工具</h3>
@@ -1351,10 +1150,9 @@
                     </div>
                     <div class="fg"><label>一句話介紹 *</label><input id="nt-tagline" required placeholder="泰文 ↔ 中文 ↔ 英文，三語即時切換" /></div>
                     <div class="fg"><label>詳細描述 *</label><textarea id="nt-desc" required placeholder="說明這個工具解決什麼問題…"></textarea></div>
-                    <div class="fg"><label>類型</label><select id="nt-type"><option value="webapp">🌐 Web App</option><option value="download">⬇️ 下載工具</option><option value="showcase">📺 展示型</option></select></div>
                     <div class="fg-row">
-                        <div class="fg"><label>所屬專案目錄（選填）</label><input id="nt-folder" placeholder="例：預設專案" /></div>
-                        <div class="fg"><label>適用場景（逗號分隔）</label><input id="nt-dept" placeholder="例：生產現場, 文書作業" /></div>
+                        <div class="fg"><label>部門</label><select id="nt-dept">${Object.entries(depts).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('')}</select></div>
+                        <div class="fg"><label>類型</label><select id="nt-type"><option value="webapp">🌐 Web App</option><option value="download">⬇️ 下載工具</option><option value="showcase">📺 展示型</option></select></div>
                         ${isAdmin ? `<div class="fg"><label>狀態</label><select id="nt-status">${Object.entries(statuses).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('')}</select></div>` : ''}
                     </div>
                     <div class="fg"><label>工具網址</label><input id="nt-url" placeholder="https://..." /></div>
@@ -1367,13 +1165,11 @@
 
         function renderNewPainForm() {
             const isAdmin = currentProfile.role === 'admin';
+            const depts = DB.DEPTS;
             return `<div class="form-card">
                 <h3>➕ 提交新痛點卡片</h3>
                 <form id="newPainForm" onsubmit="handleSubmitPain(event)">
-                    <div class="fg-row">
-                        <div class="fg"><label>所屬專案目錄（選填）</label><input id="np-folder" placeholder="例：預設專案" /></div>
-                        <div class="fg"><label>適用場景（逗號分隔）</label><input id="np-dept" placeholder="例：生產現場, 文書作業" /></div>
-                    </div>
+                    <div class="fg"><label>部門</label><select id="np-dept">${Object.entries(depts).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('')}</select></div>
                     <div class="fg"><label>😓 痛點描述（使用前） *</label><textarea id="np-before" required placeholder="例：泰籍員工溝通靠比手畫腳，品質問題說不清楚…"></textarea></div>
                     <div class="fg"><label>✅ 解決後效益（使用後） *</label><textarea id="np-after" required placeholder="例：即時雙語翻譯，泰文中文一鍵切換…"></textarea></div>
                     <button class="submit-btn" type="submit" id="npSubmit">${isAdmin ? '🚀 直接上架' : '📤 提交審核'}</button>
@@ -1383,12 +1179,14 @@
 
         // ── Render: Edit Tool Form ──
         function renderEditToolForm() {
-            return `<div style="display:none"></div>`;
+            // Unused since we're using modals now. Kept empty to not break tab switching if called.
+            return \`<div style="display:none"></div>\`;
         }
 
         // ── Render: Edit Pain Form ──
         function renderEditPainForm() {
-            return `<div style="display:none"></div>`;
+            // Unused since we're using modals now.
+            return \`<div style="display:none"></div>\`;
         }
 
         // ── Render: Review Queue (Admin) ──
@@ -1397,64 +1195,43 @@
                 ...pendingTools.map(t => ({ ...t, _type: 'tool' })),
                 ...pendingPainCards.map(c => ({ ...c, _type: 'pain' }))
             ];
-            if (!all.length) return `
-                <div class="empty-state">
-                    <svg class="empty-state-svg" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="100" cy="100" r="80" fill="#DCFCE7"/>
-                        <path d="M65 105L85 125L135 75" stroke="#86EFAC" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    <div class="empty-state-title">太棒了，全部審核完畢！</div>
-                    <div class="empty-state-text">目前沒有待審核的工具或痛點卡片，大家都很乖😎</div>
-                </div>`;
-            // Group by folder
-            const groups = {};
-            all.forEach(item => {
-                const f = item.folder || '未分類專案';
-                if (!groups[f]) groups[f] = [];
-                groups[f].push(item);
-            });
-
-            return Object.entries(groups).sort().map(([folder, items]) => `
-                <div class="folder-group" style="margin-bottom:1.5rem">
-                    <h4 style="font-size:1rem;color:var(--text-dark);margin-bottom:0.8rem;display:flex;align-items:center;cursor:pointer;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'">
-                         📁 ${folder} <span style="font-size:0.75rem;color:var(--text-mid);margin-left:8px;">(${items.length}) ▾</span>
-                    </h4>
-                    <div class="card-list" style="display:block;">${items.map(item => {
-                if (item._type === 'tool') {
-                    return `<div class="item-card">
-                                <div class="item-icon">${item.icon || '🛠️'}</div>
-                                <div class="item-body">
-                                    <div class="item-title">${item.title}</div>
-                                    <div class="item-sub">${item.tagline || item.desc || ''}</div>
-                                    <div class="item-badges"><span class="badge badge-pending">⏳ 工具待審</span></div>
-                                </div>
-                                <div class="item-actions">
-                                    <button class="act-btn act-btn-approve" onclick="approveItem('tool','${item.id}')">✅ 通過</button>
-                                    <button class="act-btn act-btn-reject" onclick="rejectItem('tool','${item.id}')">❌ 退回</button>
-                                </div>
-                            </div>`;
-                } else {
-                    return `<div class="item-card">
-                                <div class="item-icon">😤</div>
-                                <div class="item-body">
-                                    <div class="item-title">${item.before}</div>
-                                    <div class="item-sub">✅ ${item.after}</div>
-                                    <div class="item-badges"><span class="badge badge-pending">⏳ 痛點待審</span></div>
-                                </div>
-                                <div class="item-actions">
-                                    <button class="act-btn act-btn-approve" onclick="approveItem('pain','${item.id}')">✅ 通過</button>
-                                    <button class="act-btn act-btn-reject" onclick="rejectItem('pain','${item.id}')">❌ 退回</button>
-                                </div>
-                            </div>`;
-                }
-            }).join('')}</div>
-                </div>
-            `).join('');
+            if (!all.length) return `< div class="empty-state" ><div class="empty-state-icon">✅</div><div class="empty-state-text">沒有待審核的項目</div></div > `;
+            return `< div class="card-list" > ${
+                all.map(item => {
+                    if (item._type === 'tool') {
+                        return `<div class="item-card">
+                        <div class="item-icon">${item.icon || '🛠️'}</div>
+                        <div class="item-body">
+                            <div class="item-title">${item.title}</div>
+                            <div class="item-sub">${item.tagline || item.desc || ''}</div>
+                            <div class="item-badges"><span class="badge badge-pending">⏳ 工具待審</span></div>
+                        </div>
+                        <div class="item-actions">
+                            <button class="act-btn act-btn-approve" onclick="approveItem('tool','${item.id}')">✅ 通過</button>
+                            <button class="act-btn act-btn-reject" onclick="rejectItem('tool','${item.id}')">❌ 退回</button>
+                        </div>
+                    </div>`;
+                    } else {
+                        return `<div class="item-card">
+                        <div class="item-icon">😤</div>
+                        <div class="item-body">
+                            <div class="item-title">${item.before}</div>
+                            <div class="item-sub">✅ ${item.after}</div>
+                            <div class="item-badges"><span class="badge badge-pending">⏳ 痛點待審</span></div>
+                        </div>
+                        <div class="item-actions">
+                            <button class="act-btn act-btn-approve" onclick="approveItem('pain','${item.id}')">✅ 通過</button>
+                            <button class="act-btn act-btn-reject" onclick="rejectItem('pain','${item.id}')">❌ 退回</button>
+                        </div>
+                    </div>`;
+                    }
+                }).join('')
+            }</div > `;
         }
 
         // ── Render: Add Developer (Admin) ──
         function renderAddDeveloper() {
-            return `<div class="form-card" >
+            return `< div class="form-card" >
                 <h3>➕ 新增開發者帳號</h3>
                 <p style="font-size:.82rem;color:var(--text-mid);margin-bottom:18px">管理員直接建立開發者帳號，指定密碼後通知對方登入。</p>
                 <form id="addDevForm" onsubmit="handleAddDeveloper(event)">
@@ -1481,103 +1258,63 @@
                     </div>
                     <button class="submit-btn" type="submit" id="adSubmit">+ 建立帳號</button>
                 </form>
-            </div> `;
+            </div > `;
         }
 
         // ── Render: Manage All (Admin) ──
         function renderManageAll() {
             const tools = allToolsAdmin;
             const pains = allPainCardsAdmin;
-            if (!tools.length && !pains.length) return `
-                <div class="empty-state">
-                    <svg class="empty-state-svg" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="100" cy="100" r="80" fill="#F3F4F6"/>
-                        <circle cx="100" cy="100" r="30" stroke="#D1D5DB" stroke-width="12"/>
-                        <path d="M120 120L150 150" stroke="#D1D5DB" stroke-width="12" stroke-linecap="round"/>
-                    </svg>
-                    <div class="empty-state-title">平台尚無任何內容</div>
-                    <div class="empty-state-text">目前還沒有任何使用者提交工具或痛點卡片。</div>
-                </div>`;
-            const toolGroups = {};
-            tools.forEach(t => {
-                const f = t.folder || '未分類專案';
-                if (!toolGroups[f]) toolGroups[f] = [];
-                toolGroups[f].push(t);
-            });
-
-            const toolGroupsHtml = Object.entries(toolGroups).sort().map(([folder, items]) => `
-                <div class="folder-group" style="margin-bottom:1.5rem">
-                    <h4 style="font-size:1rem;color:var(--text-dark);margin-bottom:0.8rem;display:flex;align-items:center;cursor:pointer;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'">
-                         📁 ${folder} <span style="font-size:0.75rem;color:var(--text-mid);margin-left:8px;">(${items.length}) ▾</span>
-                    </h4>
-                    <div class="card-list" style="display:block;">${items.map(t => {
-                const statusBadge = { live: '✅ 上線', beta: '🟡 測試中', evaluating: '🔵 評估中', dev: '🔨 開發中', terminated: '❌ 已停止' }[t.status] || t.status;
-                return `<div class="item-card">
-                                <div class="item-icon">${t.icon || '🛠️'}</div>
-                                <div class="item-body">
-                                    <div class="item-title">${t.title || '無標題'}</div>
-                                    <div class="item-sub">${t.tagline || t.desc || ''}</div>
-                                    <div class="item-badges">
-                                        <span class="badge badge-approved">✅ 已上架</span>
-                                        <span class="badge" style="background:rgba(30,27,75,0.06);color:var(--text-mid)">${statusBadge}</span>
-                                    </div>
-                                </div>
-                                <div class="item-actions">
-                                    <button class="act-btn" onclick="window.open('tool-detail.html?id=${t.id}', '_blank')" title="編輯">✏️ 編輯</button>
-                                    <button class="act-btn" onclick="changeToolStatus('${t.id}', 'terminated')" title="下架" style="border-color:#D97706;color:#D97706">🔕 下架</button>
-                                    <button class="act-btn act-btn-reject" onclick="deleteItem('tool','${t.id}')" title="刪除">🗑️ 刪除</button>
-                                </div>
-                            </div>`;
-            }).join('')}</div>
-                </div>
-            `).join('');
-
-            const painGroups = {};
-            pains.forEach(c => {
-                const f = c.folder || '未分類專案';
-                if (!painGroups[f]) painGroups[f] = [];
-                painGroups[f].push(c);
-            });
-
-            const painGroupsHtml = Object.entries(painGroups).sort().map(([folder, items]) => `
-                <div class="folder-group" style="margin-bottom:1.5rem">
-                    <h4 style="font-size:1rem;color:var(--text-dark);margin-bottom:0.8rem;display:flex;align-items:center;cursor:pointer;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'">
-                         📁 ${folder} <span style="font-size:0.75rem;color:var(--text-mid);margin-left:8px;">(${items.length}) ▾</span>
-                    </h4>
-                    <div class="card-list" style="display:block;">${items.map(c => {
-                return `<div class="item-card">
-                                <div class="item-icon">😓</div>
-                                <div class="item-body">
-                                    <div class="item-title">${c.before || ''}</div>
-                                    <div class="item-sub">✅ ${c.after || ''}</div>
-                                    <div class="item-badges"><span class="badge badge-approved">✅ 已上架</span></div>
-                                </div>
-                                <div class="item-actions">
-                                    <button class="act-btn" onclick="editPain('${c.id}')" title="編輯">✏️ 編輯</button>
-                                    <button class="act-btn act-btn-reject" onclick="deleteItem('pain','${c.id}')" title="刪除">🗑️ 刪除</button>
-                                </div>
-                            </div>`;
-            }).join('')}</div>
-                </div>
-            `).join('');
-
+            if (!tools.length && !pains.length) return `< div class="empty-state" ><div class="empty-state-icon">⚙️</div><div class="empty-state-text">尚無任何已上架的工具或痛點</div></div > `;
             return `
-                <h3 style = "font-size:.88rem;font-weight:900;color:var(--text-mid);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px" >🔧 工具列表 (${tools.length})</h3>
-                <div style="margin-bottom:24px">${toolGroupsHtml}</div>
+                < h3 style = "font-size:.88rem;font-weight:900;color:var(--text-mid);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px" >🔧 工具列表(${ tools.length })</h3 >
+                <div class="card-list" style="margin-bottom:24px">${tools.map(t => {
+                const statusBadge = { live: '✅ 上線', beta: '🟡 湋試中', evaluating: '🔵 評估中', dev: '🔨 開發中', terminated: '❌ 已停止' }[t.status] || t.status;
+                return `<div class="item-card">
+                        <div class="item-icon">${t.icon || '🛠️'}</div>
+                        <div class="item-body">
+                            <div class="item-title">${t.title || '無標題'}</div>
+                            <div class="item-sub">${t.tagline || t.desc || ''}</div>
+                            <div class="item-badges">
+                                <span class="badge badge-approved">✅ 已上架</span>
+                                <span class="badge" style="background:rgba(30,27,75,0.06);color:var(--text-mid)">${statusBadge}</span>
+                            </div>
+                        </div>
+                        <div class="item-actions">
+                            <button class="act-btn" onclick="editTool('${t.id}')" title="編輯">✏️ 編輯</button>
+                            <button class="act-btn" onclick="changeToolStatus('${t.id}', 'terminated')" title="下架" style="border-color:#D97706;color:#D97706">🔕 下架</button>
+                            <button class="act-btn act-btn-reject" onclick="deleteItem('tool','${t.id}')" title="刪除">🗑️ 刪除</button>
+                        </div>
+                    </div>`;
+            }).join('')}</div>
                 <h3 style="font-size:.88rem;font-weight:900;color:var(--text-mid);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px">🤕 痛點卡片 (${pains.length})</h3>
-                <div>${painGroupsHtml}</div>
+                <div class="card-list">${pains.map(c => {
+                return `<div class="item-card">
+                        <div class="item-icon">😓</div>
+                        <div class="item-body">
+                            <div class="item-title">${c.before || ''}</div>
+                            <div class="item-sub">✅ ${c.after || ''}</div>
+                            <div class="item-badges"><span class="badge badge-approved">✅ 已上架</span></div>
+                        </div>
+                        <div class="item-actions">
+                            <button class="act-btn" onclick="editPain('${c.id}')" title="編輯">✏️ 編輯</button>
+                            <button class="act-btn act-btn-reject" onclick="deleteItem('pain','${c.id}')" title="刪除">🗑️ 刪除</button>
+                        </div>
+                    </div>`;
+            }).join('')}</div>
             `;
         }
 
         // ── Render: All Users (Admin) ──
         function renderAllUsers() {
-            if (!allUsers.length) return `<div class="empty-state" ><div class="empty-state-icon">👥</div><div class="empty-state-text">尚無使用者</div></div> `;
-            return `<div class="users-grid" > ${allUsers.map(u => {
-                const name = u.displayName || u.email;
-                const isAdmin = u.role === 'admin';
-                const isSelf = u.uid === currentUser.uid;
-                const roleLabel = isAdmin ? '🛡️ 管理員' : '👨‍💻 開發者';
-                return `<div class="user-card">
+            if (!allUsers.length) return `< div class="empty-state" ><div class="empty-state-icon">👥</div><div class="empty-state-text">尚無使用者</div></div > `;
+            return `< div class="users-grid" > ${
+                allUsers.map(u => {
+                    const name = u.displayName || u.email;
+                    const isAdmin = u.role === 'admin';
+                    const isSelf = u.uid === currentUser.uid;
+                    const roleLabel = isAdmin ? '🛡️ 管理員' : '👨‍💻 開發者';
+                    return `<div class="user-card">
                     <div class="user-card-avatar">${name.charAt(0).toUpperCase()}</div>
                     <div class="user-card-info">
                         <div class="user-card-name">${name} <span style="font-size:.65rem;color:var(--text-mid)">${roleLabel}</span>${isSelf ? ' <span style="font-size:.58rem;color:#6366F1;font-weight:700">(You)</span>' : ''}</div>
@@ -1589,8 +1326,8 @@
                         ${!isAdmin && !isSelf ? `<button class="act-btn act-btn-reject" onclick="revokeAccess('${u.uid}')">⛔ 移除權限</button>` : ''}
                     </div>
                 </div>`;
-            }).join('')
-                }</div> `;
+                }).join('')
+            }</div > `;
         }
 
         // ── Handlers ──
@@ -1604,8 +1341,7 @@
                 icon: document.getElementById('nt-icon').value.trim() || '🛠️',
                 tagline: document.getElementById('nt-tagline').value.trim(),
                 desc: document.getElementById('nt-desc').value.trim(),
-                scenarios: document.getElementById('nt-dept').value.split(/[,，]/).map(s => s.trim()).filter(Boolean),
-                folder: document.getElementById('nt-folder').value.trim() || '未分類專案',
+                dept: document.getElementById('nt-dept').value,
                 type: document.getElementById('nt-type').value,
                 status: isAdmin ? (document.getElementById('nt-status')?.value || 'live') : 'dev',
                 url: document.getElementById('nt-url').value.trim() || '#',
@@ -1636,8 +1372,7 @@
             btn.disabled = true;
             const isAdmin = currentProfile.role === 'admin';
             const data = {
-                folder: document.getElementById('np-folder').value.trim() || '未分類專案',
-                scenarios: document.getElementById('np-dept').value.split(/[,，]/).map(s => s.trim()).filter(Boolean),
+                dept: document.getElementById('np-dept').value,
                 before: document.getElementById('np-before').value.trim(),
                 after: document.getElementById('np-after').value.trim()
             };
@@ -1678,10 +1413,10 @@
 
         async function changeToolStatus(toolId, newStatus) {
             const label = newStatus === 'terminated' ? '下架' : '上架';
-            if (!confirm(`確定要將此工具「${label}」？`)) return;
+            if (!confirm(`確定要將此工具「${ label }」？`)) return;
             try {
                 await FireDB.updateTool(toolId, { status: newStatus });
-                showToast(`✅ 工具已${label} `);
+                showToast(`✅ 工具已${ label } `);
                 await initDashboard();
             } catch (err) { showToast('❌ 操作失敗：' + err.message); }
         }
@@ -1698,10 +1433,10 @@
 
         async function setUserRole(uid, role) {
             const label = role === 'admin' ? '管理員' : '開發者';
-            if (!confirm(`確定要將此使用者設為「${label}」？`)) return;
+            if (!confirm(`確定要將此使用者設為「${ label }」？`)) return;
             try {
                 await FireDB.setUserRole(uid, role);
-                showToast(`✅ 已設為${label} `);
+                showToast(`✅ 已設為${ label } `);
                 await initDashboard();
             } catch (err) { showToast('❌ 操作失敗：' + err.message); }
         }
@@ -1736,69 +1471,161 @@
             try {
                 const res = await fetch(
                     `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${apiKey}`,
-                    {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email, password: pass, returnSecureToken: false })
-                    }
-                );
-                const data = await res.json();
-                if (data.error) throw new Error(data.error.message);
-
-                const newUid = data.localId;
-                // 建立 Firestore user doc
-                await firebase.firestore().collection('users').doc(newUid).set({
-                    email,
-                    displayName: name,
-                    role,
-                    avatarUrl: '',
-                    bio: '',
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-
-                // 更新 displayName（via REST）
-                await fetch(
-                    `https://identitytoolkit.googleapis.com/v1/accounts:update?key=${apiKey}`,
-                    {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ idToken: data.idToken, displayName: name })
-                    }
-                );
-
-                const roleLabel = role === 'admin' ? '管理員' : '開發者';
-                showToast(`✅ ${roleLabel}帳號「${name}」已建立！`);
-                document.getElementById('addDevForm').reset();
-                await initDashboard();
-            } catch (err) {
-                const msg = err.message === 'EMAIL_EXISTS' ? 'Email 已被使用' : err.message;
-                showToast('❌ 建立失敗：' + msg);
-            } finally {
-                btn.disabled = false;
-                btn.textContent = '+ 建立帳號';
+            {
+                method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password: pass, returnSecureToken: false })
             }
+                );
+            const data = await res.json();
+            if (data.error) throw new Error(data.error.message);
+
+            const newUid = data.localId;
+            // 建立 Firestore user doc
+            await firebase.firestore().collection('users').doc(newUid).set({
+                email,
+                displayName: name,
+                role,
+                avatarUrl: '',
+                bio: '',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            // 更新 displayName（via REST）
+            await fetch(
+                `https://identitytoolkit.googleapis.com/v1/accounts:update?key=${apiKey}`,
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ idToken: data.idToken, displayName: name })
+                }
+            );
+
+            const roleLabel = role === 'admin' ? '管理員' : '開發者';
+            showToast(`✅ ${roleLabel}帳號「${name}」已建立！`);
+            document.getElementById('addDevForm').reset();
+            await initDashboard();
+        } catch (err) {
+            const msg = err.message === 'EMAIL_EXISTS' ? 'Email 已被使用' : err.message;
+            showToast('❌ 建立失敗：' + msg);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '+ 建立帳號';
+        }
         }
 
         // ── Modals logic ──
         function closeEditModal(type) {
-            if (type === 'pain') {
-                document.getElementById('editPainModal').classList.remove('open');
-                editingPainId = null;
+            document.getElementById('edit' + (type === 'tool' ? 'Tool' : 'Pain') + 'Modal').classList.remove('open');
+            editingToolId = null;
+            editingPainId = null;
+        }
+
+        function addVersionRow(version = '', releaseNotes = '', fileUrl = '') {
+            const wrap = document.getElementById('et-versions-wrap');
+            const row = document.createElement('div');
+            row.className = 'version-row';
+            row.style.display = 'flex';
+            row.style.gap = '8px';
+            row.style.marginBottom = '8px';
+            row.style.alignItems = 'center';
+            row.innerHTML = \`
+                <input type="text" placeholder="版號(如v1)" value="\${version}" class="v-ver d-input" required style="width:70px; padding: 6px;">
+                <input type="text" placeholder="更新說明" value="\${releaseNotes}" class="v-note d-input" style="flex:1; padding: 6px;">
+                <input type="url" placeholder="下載連結URL" value="\${fileUrl}" class="v-url d-input" required style="flex:2; padding: 6px;">
+                <button type="button" class="act-btn act-btn-reject" onclick="this.parentElement.remove()" style="padding: 6px 10px; flex-shrink:0;">✕</button>
+            \`;
+            wrap.appendChild(row);
+        }
+
+        function getVersionsData() {
+            const rows = document.querySelectorAll('#et-versions-wrap .version-row');
+            const versions = [];
+            rows.forEach(r => {
+                versions.push({
+                    version: r.querySelector('.v-ver').value.trim(),
+                    releaseNotes: r.querySelector('.v-note').value.trim(),
+                    fileUrl: r.querySelector('.v-url').value.trim(),
+                });
+            });
+            return versions;
+        }
+
+        // ── Edit Handlers ──
+        function editTool(id) {
+            let t = myTools.find(x => x.id === id) || allToolsAdmin.find(x => x.id === id);
+            if (!t) return;
+            editingToolId = id;
+            document.getElementById('et-title').value = t.title || '';
+            document.getElementById('et-icon').value = t.icon || '';
+            document.getElementById('et-tagline').value = t.tagline || '';
+            document.getElementById('et-desc').value = t.desc || '';
+            document.getElementById('et-dept').value = t.dept || Object.keys(DB.DEPTS)[0];
+            document.getElementById('et-type').value = t.type || 'webapp';
+            if (currentProfile?.role === 'admin') {
+                document.getElementById('et-status-container').style.display = 'block';
+                const st = document.getElementById('et-status');
+                if (st) st.value = t.status || 'live';
+            } else {
+                if(document.getElementById('et-status-container')) {
+                    document.getElementById('et-status-container').style.display = 'none';
+                }
             }
+            document.getElementById('et-url').value = t.url || '';
+            document.getElementById('et-tags').value = (t.tags || []).join(', ');
+            document.getElementById('et-steps').value = (t.steps || []).join(', ');
+            
+            const vWrap = document.getElementById('et-versions-wrap');
+            if (vWrap) {
+                vWrap.innerHTML = '';
+                if (t.versions && t.versions.length) {
+                    t.versions.forEach(v => addVersionRow(v.version, v.releaseNotes, v.fileUrl));
+                }
+            }
+
+            document.getElementById('editToolModal').classList.add('open');
         }
 
         function editPain(id) {
             let c = myPainCards.find(x => x.id === id) || allPainCardsAdmin.find(x => x.id === id);
             if (!c) return;
             editingPainId = id;
-
-            const deptInput = document.getElementById('ep-dept');
-            const scs = c.scenarios && Array.isArray(c.scenarios) ? c.scenarios : (c.dept ? [(DB.DEPTS[c.dept]?.label || c.dept).replace(/^.*? /, '')] : ['其他']);
-            deptInput.value = scs.join(', ');
-
+            document.getElementById('ep-dept').value = c.dept || Object.keys(DB.DEPTS)[0];
             document.getElementById('ep-before').value = c.before || '';
             document.getElementById('ep-after').value = c.after || '';
             document.getElementById('editPainModal').classList.add('open');
+        }
+
+        async function handleUpdateTool(e) {
+            e.preventDefault();
+            if (!editingToolId) return;
+            const btn = document.getElementById('etSubmit');
+            btn.disabled = true;
+            const isAdmin = currentProfile.role === 'admin';
+            const data = {
+                title: document.getElementById('et-title').value.trim(),
+                icon: document.getElementById('et-icon').value.trim() || '🛠️',
+                tagline: document.getElementById('et-tagline').value.trim(),
+                desc: document.getElementById('et-desc').value.trim(),
+                dept: document.getElementById('et-dept').value,
+                type: document.getElementById('et-type').value,
+                url: document.getElementById('et-url').value.trim() || '#',
+                tags: document.getElementById('et-tags').value.split(',').map(s => s.trim()).filter(Boolean),
+                steps: document.getElementById('et-steps').value.split(',').map(s => s.trim()).filter(Boolean),
+                versions: getVersionsData()
+            };
+            if (isAdmin) data.status = document.getElementById('et-status')?.value || 'live';
+
+            try {
+                await FireDB.updateTool(editingToolId, data);
+                showToast('✅ 工具已更新');
+                closeEditModal('tool');
+                await initDashboard();
+            } catch (err) {
+                showToast('❌ 更新失敗：' + err.message);
+            } finally {
+                btn.disabled = false;
+            }
         }
 
         async function handleUpdatePain(e) {
@@ -1808,8 +1635,7 @@
             btn.disabled = true;
             const isAdmin = currentProfile.role === 'admin';
             const data = {
-                folder: document.getElementById('ep-folder').value.trim() || '未分類專案',
-                scenarios: document.getElementById('ep-dept').value.split(/[,，]/).map(s => s.trim()).filter(Boolean),
+                dept: document.getElementById('ep-dept').value,
                 before: document.getElementById('ep-before').value.trim(),
                 after: document.getElementById('ep-after').value.trim()
             };
@@ -1824,23 +1650,83 @@
                 btn.disabled = false;
             }
         }
-
-        function initTheme() {
-            const themeBtn = document.getElementById('themeToggle');
-            if (!themeBtn) return;
-            const isDark = localStorage.getItem('simhope_theme') === 'dark';
-            if (isDark) {
-                document.documentElement.classList.add('dark');
-                themeBtn.textContent = '☀️';
-            }
-            themeBtn.addEventListener('click', () => {
-                const darkEnabled = document.documentElement.classList.toggle('dark');
-                localStorage.setItem('simhope_theme', darkEnabled ? 'dark' : 'light');
-                themeBtn.textContent = darkEnabled ? '☀️' : '🌙';
-            });
-        }
-        document.addEventListener('DOMContentLoaded', initTheme);
-    </script>
+    <!-- Edit Tool Modal -->
+    <div class="edit-modal-overlay" id="editToolModal">
+        <form class="edit-modal" id="editToolForm" onsubmit="handleUpdateTool(event)">
+            <div class="edit-modal-header">
+                <h3>✏️ 編輯工具</h3>
+                <button type="button" class="edit-modal-close" onclick="closeEditModal('tool')">×</button>
+            </div>
+            <div class="edit-modal-body">
+                <div class="fg-row">
+                    <div class="fg">
+                        <label>工具名稱</label>
+                        <input type="text" id="et-title" required>
+                    </div>
+                    <div class="fg">
+                        <label>圖示 (Emoji)</label>
+                        <input type="text" id="et-icon" required>
+                    </div>
+                </div>
+                <div class="fg">
+                    <label>一句話賣點</label>
+                    <input type="text" id="et-tagline" required>
+                </div>
+                <div class="fg">
+                    <label>詳細說明</label>
+                    <textarea id="et-desc" rows="3" required></textarea>
+                </div>
+                <div class="fg-row">
+                    <div class="fg">
+                        <label>所屬部門</label>
+                        <select id="et-dept" required>
+                            <script>document.write(Object.entries(DB.DEPTS).map(([k, v]) => \`<option value="\${k}">\${v.icon} \${v.name}</option>\`).join(''))</script>
+    </select>
+    </div>
+    <div class="fg">
+        <label>工具類型</label>
+        <select id="et-type" required>
+            <option value="webapp">網頁應用 (WebApp)</option>
+            <option value="desktop">電腦軟體 (Desktop)</option>
+            <option value="prompt">提示詞 (Prompt)</option>
+            <option value="api">API 服務</option>
+            <option value="gpts">GPTs</option>
+        </select>
+    </div>
+    </div>
+    <div class="fg" id="et-status-container" style="display:none">
+        <label>上架狀態 (管理員專用)</label>
+        <select id="et-status">
+            <option value="live">✅ 正常上架</option>
+            <option value="dev">🚧 開發中</option>
+            <option value="terminated">🔕 已下架</option>
+        </select>
+    </div>
+    <div class="fg">
+        <label>主要連結 (URL)</label>
+        <input type="url" id="et-url">
+    </div>
+    <div class="fg">
+        <label>標籤 (用逗號分隔)</label>
+        <input type="text" id="et-tags">
+    </div>
+    <div class="fg">
+        <label>步驟 (用逗號分隔)</label>
+        <input type="text" id="et-steps">
+    </div>
+    <div class="fg">
+        <label>歷史版本 (下載連結)</label>
+        <div class="versions-wrap" id="et-versions-wrap"></div>
+        <button type="button" class="add-version-btn" onclick="addVersionRow()">+ 新增版本</button>
+        <div class="hint" style="font-size:0.8rem;color:#888;margin-top:4px;">若為下載軟體，請填寫版本號、更新說明與下載連結。</div>
+    </div>
+    </div>
+    <div class="edit-modal-footer">
+        <button type="button" class="act-btn" onclick="closeEditModal('tool')">取消</button>
+        <button type="submit" class="submit-btn" id="etSubmit" style="padding:8px 16px;margin:0;">儲存變更</button>
+    </div>
+    </form>
+    </div>
 
     <!-- Edit Pain Modal -->
     <div class="edit-modal-overlay" id="editPainModal">
@@ -1850,15 +1736,11 @@
                 <button type="button" class="edit-modal-close" onclick="closeEditModal('pain')">×</button>
             </div>
             <div class="edit-modal-body">
-                <div class="fg-row">
-                    <div class="fg">
-                        <label>所屬專案目錄</label>
-                        <input type="text" id="ep-folder" placeholder="例：預設專案" />
-                    </div>
-                    <div class="fg">
-                        <label>適用場景（逗號分隔）</label>
-                        <input type="text" id="ep-dept" required placeholder="例：生產現場, 文書作業" />
-                    </div>
+                <div class="fg">
+                    <label>相關部門</label>
+                    <select id="ep-dept" required>
+                        <script>document.write(Object.entries(DB.DEPTS).map(([k, v]) => \`<option value="\${k}">\${v.icon} \${v.name}</option>\`).join(''))</script>
+                    </select>
                 </div>
                 <div class="fg">
                     <label>痛點 (Before)</label>

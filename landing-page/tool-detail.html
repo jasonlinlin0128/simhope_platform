@@ -1480,11 +1480,12 @@
                     </select>
                 `;
 
-                // Editable Department and Status via Selects
+                // Editable Scenarios via Text Input
+                const scs = t.scenarios && Array.isArray(t.scenarios) ? t.scenarios : (t.dept ? [(DB.DEPTS[t.dept]?.label || t.dept).replace(/^.*? /, '')] : ['其他']);
                 document.getElementById('sbDeptWrap').innerHTML = `
-                    <select id="editDeptSelect" class="sb-select">
-                        ${Object.entries(DB.DEPTS).map(([k, v]) => `<option value="${k}" ${k === t.dept ? 'selected' : ''}>${v.label}</option>`).join('')}
-                    </select>
+                    <div style="font-size:0.75rem;margin-bottom:2px;color:var(--text-mid)">目錄 / 場景</div>
+                    <input type="text" id="editFolderSelect" class="sb-select" value="${t.folder || ''}" placeholder="專案目錄(選填)">
+                    <input type="text" id="editDeptSelect" class="sb-select" value="${scs.join(', ')}" placeholder="例：生產現場, 文書作業" style="margin-top:4px;">
                 `;
 
                 document.getElementById('sbStatusWrap').innerHTML = `
@@ -1494,8 +1495,9 @@
                 `;
             } else {
                 document.getElementById('sbType').textContent = typeLabels[t.type] || '工具';
-                const dept = DB.DEPTS[t.dept] || DB.DEPTS.other;
-                document.getElementById('sbDept').textContent = dept.label;
+                const scs = t.scenarios && Array.isArray(t.scenarios) ? t.scenarios : (t.dept ? [(DB.DEPTS[t.dept]?.label || t.dept).replace(/^.*? /, '')] : ['其他']);
+                const fHTML = t.folder ? `<span style="opacity:0.6">📁 ${t.folder}</span><br>` : '';
+                document.getElementById('sbDept').innerHTML = fHTML + scs.join(', ');
                 const sCls = { live: 's-live', beta: 's-beta', new: 's-new', dev: 's-dev', pending: 's-pending', terminated: 's-terminated' };
                 const sLabel = DB.STATUSES[t.status]?.label || t.status;
                 document.getElementById('sbStatus').innerHTML = `<span class="s-badge ${sCls[t.status] || 's-live'}"><span class="s-dot"></span>${sLabel}</span>`;
@@ -2225,8 +2227,11 @@
             const typeSel = document.getElementById('editTypeSelect');
             if (typeSel) tools[idx].type = typeSel.value;
 
-            const deptSel = document.getElementById('editDeptSelect');
-            if (deptSel) tools[idx].dept = deptSel.value;
+            const deptInput = document.getElementById('editDeptSelect');
+            if (deptInput) tools[idx].scenarios = deptInput.value.split(/[,，]/).map(s => s.trim()).filter(Boolean);
+
+            const folderInput = document.getElementById('editFolderSelect');
+            if (folderInput) tools[idx].folder = folderInput.value.trim() || '未分類專案';
 
             const statusSel = document.getElementById('editStatusSelect');
             if (statusSel) tools[idx].status = statusSel.value;
