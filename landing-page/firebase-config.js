@@ -194,7 +194,15 @@ const FireDB = {
         } else {
             snap = await db.collection('painCards').where('approval', '==', 'approved').get();
         }
-        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const defaultPains = (typeof DB !== 'undefined' && DB.DEFAULT_SITE && DB.DEFAULT_SITE.painCards) ? DB.DEFAULT_SITE.painCards : [];
+        return snap.docs.map(d => {
+            const data = { id: d.id, ...d.data() };
+            if (!data.folder) {
+                const def = defaultPains.find(p => p.id === data.id);
+                if (def && def.folder) data.folder = def.folder;
+            }
+            return data;
+        });
     },
 
     async getPainCardsByAuthor(uid) {

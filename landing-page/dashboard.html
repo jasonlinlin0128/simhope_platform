@@ -1351,11 +1351,18 @@
                     </div>
                     <div class="fg"><label>一句話介紹 *</label><input id="nt-tagline" required placeholder="泰文 ↔ 中文 ↔ 英文，三語即時切換" /></div>
                     <div class="fg"><label>詳細描述 *</label><textarea id="nt-desc" required placeholder="說明這個工具解決什麼問題…"></textarea></div>
-                    <div class="fg"><label>類型</label><select id="nt-type"><option value="webapp">🌐 Web App</option><option value="download">⬇️ 下載工具</option><option value="showcase">📺 展示型</option></select></div>
                     <div class="fg-row">
-                        <div class="fg"><label>所屬專案目錄（選填）</label><input id="nt-folder" placeholder="例：預設專案" /></div>
+                        <div class="fg"><label>所屬專案目錄（選填）</label><input id="nt-folder" placeholder="例：日報表專案" /></div>
                         <div class="fg"><label>適用場景（逗號分隔）</label><input id="nt-dept" placeholder="例：生產現場, 文書作業" /></div>
-                        ${isAdmin ? `<div class="fg"><label>狀態</label><select id="nt-status">${Object.entries(statuses).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('')}</select></div>` : ''}
+                    </div>
+                    <div class="fg-row">
+                        <div class="fg"><label>工具類型</label><select id="nt-type"><option value="webapp">🌐 Web App</option><option value="download">⬇️ 下載工具</option><option value="showcase">📺 展示型</option></select></div>
+                        <div class="fg"><label>狀態</label><select id="nt-status">
+                            ${isAdmin
+                    ? Object.entries(statuses).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('')
+                    : `<option value="dev">🔨 開發中</option><option value="beta">🧪 測試中</option><option value="pending">⏳ 待驗收</option>`
+                }
+                        </select></div>
                     </div>
                     <div class="fg"><label>工具網址</label><input id="nt-url" placeholder="https://..." /></div>
                     <div class="fg"><label>標籤（逗號分隔）</label><input id="nt-tags" placeholder="翻譯, 多語言, 現場使用" /></div>
@@ -1371,11 +1378,12 @@
                 <h3>➕ 提交新痛點卡片</h3>
                 <form id="newPainForm" onsubmit="handleSubmitPain(event)">
                     <div class="fg-row">
-                        <div class="fg"><label>所屬專案目錄（選填）</label><input id="np-folder" placeholder="例：預設專案" /></div>
+                        <div class="fg"><label>所屬專案目錄（選填）</label><input id="np-folder" placeholder="例：跨國溝通專案" /></div>
                         <div class="fg"><label>適用場景（逗號分隔）</label><input id="np-dept" placeholder="例：生產現場, 文書作業" /></div>
                     </div>
                     <div class="fg"><label>😓 痛點描述（使用前） *</label><textarea id="np-before" required placeholder="例：泰籍員工溝通靠比手畫腳，品質問題說不清楚…"></textarea></div>
                     <div class="fg"><label>✅ 解決後效益（使用後） *</label><textarea id="np-after" required placeholder="例：即時雙語翻譯，泰文中文一鍵切換…"></textarea></div>
+                    <div class="fg"><label>🖼️ 示意圖片 URL（選填）</label><input id="np-image" type="url" placeholder="https://... 或留空（不加圖片）" /></div>
                     <button class="submit-btn" type="submit" id="npSubmit">${isAdmin ? '🚀 直接上架' : '📤 提交審核'}</button>
                 </form>
             </div>`;
@@ -1607,7 +1615,7 @@
                 scenarios: document.getElementById('nt-dept').value.split(/[,，]/).map(s => s.trim()).filter(Boolean),
                 folder: document.getElementById('nt-folder').value.trim() || '未分類專案',
                 type: document.getElementById('nt-type').value,
-                status: isAdmin ? (document.getElementById('nt-status')?.value || 'live') : 'dev',
+                status: document.getElementById('nt-status')?.value || (isAdmin ? 'live' : 'dev'),
                 url: document.getElementById('nt-url').value.trim() || '#',
                 tags: document.getElementById('nt-tags').value.split(',').map(s => s.trim()).filter(Boolean),
                 steps: document.getElementById('nt-steps').value.split(',').map(s => s.trim()).filter(Boolean),
@@ -1639,7 +1647,8 @@
                 folder: document.getElementById('np-folder').value.trim() || '未分類專案',
                 scenarios: document.getElementById('np-dept').value.split(/[,，]/).map(s => s.trim()).filter(Boolean),
                 before: document.getElementById('np-before').value.trim(),
-                after: document.getElementById('np-after').value.trim()
+                after: document.getElementById('np-after').value.trim(),
+                imageUrl: document.getElementById('np-image')?.value.trim() || ''
             };
             try {
                 if (isAdmin) {
