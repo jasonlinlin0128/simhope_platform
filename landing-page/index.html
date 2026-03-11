@@ -3700,6 +3700,7 @@
   <div class="admin-toolbar" id="adminToolbar">
     <span class="admin-toolbar-label">✏️ 管理員模式</span>
     <div class="admin-toolbar-sep"></div>
+    <button class="atb-btn edit-mode" id="editToggleBtn" onclick="toggleEditMode()">✏️ 開始編輯</button>
     <button class="atb-btn save-mode" onclick="saveContent()">💾 儲存文字</button>
     <button class="atb-btn reset-mode" onclick="resetContent()">🗑️ 重置</button>
   </div>
@@ -3862,12 +3863,19 @@
     loadContent();
 
     // ── Save content ──
-    function saveContent() {
+    async function saveContent() {
       const data = {};
       document.querySelectorAll('[data-editable]').forEach(el => {
         data[el.getAttribute('data-key')] = el.innerHTML;
       });
+      // Save to localStorage as fallback
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      // Save to Firestore as primary (for cross-device sync)
+      try {
+        if (typeof firebase !== 'undefined' && firebase.auth().currentUser) {
+          await firebase.firestore().collection('site').doc('content').set(data, { merge: true });
+        }
+      } catch (e) { console.warn('Firestore save failed, kept localStorage:', e); }
       showToast('💾 已儲存！');
     }
 
@@ -5005,16 +5013,38 @@ ${toolList ? '目前可用工具：\n' + toolList + '\n\n' : ''} 重要規則：
           if (btnLogout) btnLogout.style.display = 'none';
         }
 
-        // 判斷是否為管理員展示歷史按鈕
+        // 判斷是否為管理員展示編輯和歷史按鈕
         if (user) {
           try {
             const db = firebase.firestore();
             const profile = await db.collection('users').doc(user.uid).get();
             const role = profile.data()?.role;
-            const isAdmin = role === 'admin' || role === 'developer';
+            const isAdminRole = role === 'admin';
+            const isStaff = role === 'admin' || role === 'developer';
+            // Admin inline editing toolbar
+            if (isAdminRole) {
+              document.body.classList.add('admin-logged-in');
+              // load saved content from Firestore
+              try {
+                const siteDoc = await db.collection('site').doc('content').get();
+                if (siteDoc.exists) {
+                  const saved = siteDoc.data();
+                  document.querySelectorAll('[data-key]').forEach(el => {
+                    if (saved[el.getAttribute('data-key')] !== undefined) {
+                      el.innerHTML = saved[el.getAttribute('data-key')];
+                    }
+                  });
+                }
+              } catch (_) { /* fallback to localStorage */ loadContent(); }
+            } else {
+              document.body.classList.remove('admin-logged-in');
+            }
+            // Chat sidebar toggle for staff
             const toggleBtn = document.getElementById('chatSidebarToggle');
-            if (toggleBtn) toggleBtn.style.display = isAdmin ? 'inline-flex' : 'none';
+            if (toggleBtn) toggleBtn.style.display = isStaff ? 'inline-flex' : 'none';
           } catch (_) { }
+        } else {
+          document.body.classList.remove('admin-logged-in');
         }
         if (chatOpen) renderChatContent();
       });
