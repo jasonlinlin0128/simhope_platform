@@ -412,6 +412,12 @@
             background: rgba(30, 27, 75, 0.02);
         }
 
+        .block-row.drag-over {
+            background: rgba(99, 102, 241, 0.08);
+            border-radius: 8px;
+            box-shadow: inset 0 0 0 1.5px rgba(99, 102, 241, 0.4);
+        }
+
         /* Drag handle + menu (admin only) */
         .block-handle {
             display: none;
@@ -877,6 +883,101 @@
             z-index: 9999;
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
             transition: opacity .4s;
+        }
+
+        .floating-toolbar {
+            position: absolute;
+            z-index: 1000;
+            background: #1F2937;
+            border-radius: 8px;
+            padding: 4px;
+            display: flex;
+            gap: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform: translateY(10px);
+        }
+
+        .floating-toolbar.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+
+        .ft-btn {
+            background: transparent;
+            border: none;
+            color: #D1D5DB;
+            cursor: pointer;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ft-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #F9FAFB;
+        }
+
+        .slash-menu {
+            position: absolute;
+            z-index: 1000;
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 8px;
+            width: 220px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            display: none;
+            flex-direction: column;
+        }
+
+        .slash-menu.active {
+            display: flex;
+        }
+
+        .slash-item {
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: background 0.1s;
+        }
+
+        .slash-item:hover,
+        .slash-item.selected {
+            background: #F3F4F6;
+        }
+
+        .slash-item-icon {
+            font-size: 1.2rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .slash-item-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .slash-item-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #1F2937;
+        }
+
+        .slash-item-desc {
+            font-size: 0.7rem;
+            color: #6B7280;
         }
 
         .sidebar-steps-input {
@@ -1410,6 +1511,71 @@
             image: "", video: "", divider: "", table: ""
         };
 
+        // --- Floating Toolbar Logic ---
+        let selectionTimeout = null;
+        function handleSelectionChange() {
+            if (!isAdmin) return;
+            clearTimeout(selectionTimeout);
+            selectionTimeout = setTimeout(() => {
+                const ft = document.getElementById('floatingToolbar');
+                if (!ft) return;
+
+                const selection = window.getSelection();
+                if (!selection.rangeCount || selection.isCollapsed) {
+                    hideFloatingToolbar();
+                    return;
+                }
+
+                const range = selection.getRangeAt(0);
+                const rect = range.getBoundingClientRect();
+
+                // check if we are inside a valid contenteditable
+                const anchorNode = selection.anchorNode;
+                const activeEl = anchorNode.nodeType === 3 ? anchorNode.parentNode : anchorNode;
+                const isBlockContent = activeEl.closest('.block-content[contenteditable="true"]');
+                const isMainSummary = activeEl.closest('#mainSummary[contenteditable="true"]');
+
+                if (!isBlockContent && !isMainSummary) {
+                    hideFloatingToolbar();
+                    return;
+                }
+
+                // Show toolbar
+                const scrollX = window.scrollX || window.pageXOffset;
+                const scrollY = window.scrollY || window.pageYOffset;
+
+                ft.style.left = (rect.left + scrollX + (rect.width / 2) - (ft.offsetWidth / 2)) + 'px';
+                ft.style.top = (rect.top + scrollY - ft.offsetHeight - 10) + 'px';
+                ft.classList.add('active');
+            }, 100);
+        }
+
+        function hideFloatingToolbar() {
+            const ft = document.getElementById('floatingToolbar');
+            if (ft) ft.classList.remove('active');
+        }
+
+        function execFormat(command) {
+            document.execCommand(command, false, null);
+            saveBlog();
+        }
+
+        function execLink() {
+            const url = prompt('請輸入連結網址:', 'https://');
+            if (url) {
+                document.execCommand('createLink', false, url);
+                saveBlog();
+            }
+        }
+
+        document.addEventListener('selectionchange', handleSelectionChange);
+        document.addEventListener('mousedown', (e) => {
+            const ft = document.getElementById('floatingToolbar');
+            if (ft && !ft.contains(e.target) && !e.target.closest('[contenteditable="true"]')) {
+                hideFloatingToolbar();
+            }
+        });
+
         function renderBlocks() {
             const wrap = document.getElementById('blocksWrap');
             if (!blocks.length && !isAdmin) {
@@ -1437,20 +1603,20 @@
         }
 
         function renderBlockRow(b, i) {
-            const cls = `block-row block - ${b.type} `;
-            const handle = `<div class="block-handle" draggable = "true" ondragstart = "dragBlock(event,${i})" >⠿</div> `;
-            const actions = `<div class="block-actions" >
+            const cls = `block-row block-${b.type}`;
+            const handle = `<div class="block-handle" draggable="true" ondragstart="dragBlock(event,${i})">⠿</div>`;
+            const actions = `<div class="block-actions">
                 ${i > 0 ? `<button class="ba-btn" onclick="moveBlock(${i},-1)" title="上移">↑</button>` : ''}
                 ${i < blocks.length - 1 ? `<button class="ba-btn" onclick="moveBlock(${i},1)" title="下移">↓</button>` : ''}
             <button class="ba-btn" onclick="deleteBlock(${i})" title="刪除">🗑</button>
-            </div> `;
+            </div>`;
 
             let content = '';
             if (b.type === 'divider') {
-                content = `<div class="block-content" style = "flex:1" > <hr /></div> `;
+                content = `<div class="block-content" style="flex:1"><hr /></div>`;
             } else if (b.type === 'image') {
                 const hasImg = b.url && b.url.length > 0;
-                content = `<div class="block-content" style = "padding:8px 0" >
+                content = `<div class="block-content" style="padding:8px 0">
                 ${hasImg ? `<img src="${b.url}" alt="${b.caption || ''}" style="max-width:100%;border-radius:10px;display:block;box-shadow:0 2px 12px rgba(0,0,0,0.08)"/>` : ''}
                     ${isAdmin ? `<div style="display:flex;gap:8px;align-items:center;margin-top:8px">
                         <label style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:var(--accent);color:white;border-radius:10px;cursor:pointer;font-size:.82rem;font-weight:700;transition:opacity .2s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
@@ -1462,10 +1628,10 @@
                     </div>` : ''
                     }
                     ${isAdmin ? `<input value="${b.caption || ''}" placeholder="圖片說明（選填）" style="width:100%;margin-top:6px;padding:4px 10px;font-size:.75rem;border:1px solid rgba(30,27,75,0.08);border-radius:6px;font-family:inherit;outline:none;color:var(--text-mid)" onchange="updateImageCaption(${i},this.value)"/>` : (b.caption ? `<div class="img-caption">${b.caption}</div>` : '')}
-                </div> `;
+                </div>`;
             } else if (b.type === 'video') {
                 const embed = buildVideoEmbed(b.url || '');
-                content = `<div class="block-content" style = "padding:8px 0" >
+                content = `<div class="block-content" style="padding:8px 0">
                 ${embed}
                     ${isAdmin ? `<div style="display:flex;gap:8px;align-items:center;margin-top:8px">
                         <label style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#8B5CF6;color:white;border-radius:10px;cursor:pointer;font-size:.82rem;font-weight:700;transition:opacity .2s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
@@ -1477,28 +1643,28 @@
                     </div>` : ''
                     }
                     ${b.caption ? `<div class="vid-caption">${b.caption}</div>` : ''}
-                </div> `;
+                </div>`;
             } else if (b.type === 'table') {
                 const rows = b.rows || [['', '', ''], ['', '', ''], ['', '', '']];
-                const tableHtml = `< table > ${rows.map((r, ri) => `<tr>${r.map((c, ci) => `<${ri === 0 ? 'th' : 'td'} ${isAdmin ? `contenteditable="true" onblur="updateTableCell(${i},${ri},${ci},this.textContent)"` : ''} style="min-width:60px">${c}</${ri === 0 ? 'th' : 'td'}>`).join('')}</tr>`).join('')}</table > `;
-                content = `<div class="block-content block-table" style = "padding:8px 0;overflow-x:auto" > ${tableHtml}${isAdmin ? `<div style="display:flex;gap:6px;margin-top:8px"><button class="ba-btn" onclick="addTableRow(${i})" style="width:auto;padding:4px 10px;font-size:.7rem">+ 行</button><button class="ba-btn" onclick="addTableCol(${i})" style="width:auto;padding:4px 10px;font-size:.7rem">+ 列</button></div>` : ''}</div> `;
+                const tableHtml = `<table>${rows.map((r, ri) => `<tr>${r.map((c, ci) => `<${ri === 0 ? 'th' : 'td'} ${isAdmin ? `contenteditable="true" onblur="updateTableCell(${i},${ri},${ci},this.textContent)"` : ''} style="min-width:60px">${c}</${ri === 0 ? 'th' : 'td'}>`).join('')}</tr>`).join('')}</table>`;
+                content = `<div class="block-content block-table" style="padding:8px 0;overflow-x:auto">${tableHtml}${isAdmin ? `<div style="display:flex;gap:6px;margin-top:8px"><button class="ba-btn" onclick="addTableRow(${i})" style="width:auto;padding:4px 10px;font-size:.7rem">+ 行</button><button class="ba-btn" onclick="addTableCol(${i})" style="width:auto;padding:4px 10px;font-size:.7rem">+ 列</button></div>` : ''}</div>`;
             } else {
                 // text, h1, h2, h3, bullet, numbered, code, callout
-                const editable = isAdmin ? `contenteditable = "true"` : '';
+                const editable = isAdmin ? `contenteditable="true"` : '';
                 const ph = BLOCK_PH[b.type] || '';
-                content = `<div class="block-content" ${editable} data-idx="${i}" data-ph="${ph}" > ${escHtml(b.content || '')}</div> `;
+                content = `<div class="block-content" ${editable} data-idx="${i}" data-ph="${ph}">${escHtml(b.content || '')}</div>`;
             }
 
-            return `<div class="${cls}" data-idx="${i}" ondragover = "event.preventDefault()" ondrop = "dropBlock(event,${i})" > ${handle}${content}${actions}</div> `;
+            return `<div class="${cls}" data-idx="${i}" ondragover="handleDragOver(event, ${i})" ondragleave="handleDragLeave(event, ${i})" ondrop="dropBlock(event,${i})">${handle}${content}${actions}</div>`;
         }
 
         function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
         function buildVideoEmbed(url) {
             const yt = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([A-Za-z0-9_-]{11})/);
-            if (yt) return `<iframe src = "https://www.youtube.com/embed/${yt[1]}" allowfullscreen ></iframe> `;
-            if (url) return `<video controls src = "${url}" ></video> `;
-            return `<div style = "background:#F3F4F6;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;border-radius:12px;color:#9CA3AF;font-size:.9rem" > 尚未設定影片連結</div> `;
+            if (yt) return `<iframe src="https://www.youtube.com/embed/${yt[1]}" allowfullscreen></iframe>`;
+            if (url) return `<video controls src="${url}"></video>`;
+            return `<div style="background:#F3F4F6;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;border-radius:12px;color:#9CA3AF;font-size:.9rem">尚未設定影片連結</div>`;
         }
 
         // ═══════════════════════════════
@@ -1558,13 +1724,61 @@
         // ── Drag & Drop ──
         let dragIdx = -1;
         function dragBlock(e, i) { dragIdx = i; e.dataTransfer.effectAllowed = 'move'; }
+
+        function handleDragOver(e, i) {
+            e.preventDefault();
+            if (e.dataTransfer.types && e.dataTransfer.types.includes('Files')) {
+                e.currentTarget.classList.add('drag-over');
+            }
+        }
+
+        function handleDragLeave(e, i) {
+            e.currentTarget.classList.remove('drag-over');
+        }
+
         function dropBlock(e, i) {
             e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+
+            // Check if dropped item is a file
+            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                const file = e.dataTransfer.files[0];
+                if (file.type.startsWith('image/')) {
+                    handleDirectImageUpload(file, i);
+                } else {
+                    showToast('⚠️ 請拖曳圖片檔案');
+                }
+                return;
+            }
+
+            // Normal block sorting
             if (dragIdx < 0 || dragIdx === i) return;
             const [moved] = blocks.splice(dragIdx, 1);
             blocks.splice(i, 0, moved);
             dragIdx = -1;
             renderBlocks();
+            saveBlog();
+        }
+
+        function handleDirectImageUpload(file, insertIdx) {
+            if (file.size > 3 * 1024 * 1024) {
+                showToast('⚠️ 圖片過大，最大 3 MB');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = () => {
+                const newBlock = { type: 'image', url: reader.result, caption: '' };
+                // If dropping on an empty text block, replace it. Otherwise insert after.
+                if (blocks[insertIdx] && blocks[insertIdx].type === 'text' && !blocks[insertIdx].content) {
+                    blocks[insertIdx] = newBlock;
+                } else {
+                    blocks.splice(insertIdx + 1, 0, newBlock);
+                }
+                renderBlocks();
+                saveBlog();
+                showToast('✅ 圖片已成功插入');
+            };
+            reader.readAsDataURL(file);
         }
 
         // ═══════════════════════════════
@@ -1578,6 +1792,28 @@
 
         function handleBlockInput(e) {
             const el = e.target;
+            if (!el.classList.contains('block-content') || !el.hasAttribute('contenteditable')) return;
+
+            const text = el.textContent;
+            const selection = window.getSelection();
+            const range = selection.getRangeAt(0);
+            const caretPos = range.startOffset;
+
+            // Check for '/' at the beginning of a new line or block
+            if (caretPos === 1 && text === '/' && el.dataset.idx) {
+                const rect = el.getBoundingClientRect();
+                slashMenu.style.left = rect.left + 'px';
+                slashMenu.style.top = (rect.bottom + 4) + 'px';
+                slashMenu.classList.add('active');
+                slashTarget = el;
+                slashActiveIdx = 0;
+                renderSlashMenu('');
+            } else if (text.startsWith('/') && slashMenu.classList.contains('active')) {
+                renderSlashMenu(text.slice(1));
+            } else {
+                closeSlashMenu();
+            }
+
             syncBlockContent(el);
         }
 
@@ -1585,23 +1821,57 @@
             const el = e.target;
             const idx = parseInt(el.dataset.idx);
 
+            // Slash menu navigation
+            if (slashMenu.classList.contains('active')) {
+                const items = [...slashMenu.querySelectorAll('.slash-item')].filter(i => i.style.display !== 'none');
+                if (e.key === 'ArrowDown') { e.preventDefault(); slashActiveIdx = Math.min(slashActiveIdx + 1, items.length - 1); highlightSlashItem(items); }
+                if (e.key === 'ArrowUp') { e.preventDefault(); slashActiveIdx = Math.max(slashActiveIdx - 1, 0); highlightSlashItem(items); }
+                if (e.key === 'Enter') { e.preventDefault(); if (items[slashActiveIdx]) convertBlock(items[slashActiveIdx].dataset.type); }
+                if (e.key === 'Escape') { e.preventDefault(); closeSlashMenu(); }
+                return; // Prevent other keydown actions if slash menu is active
+            }
+
             // Enter → new block below
             if (e.key === 'Enter' && !e.shiftKey) {
                 if (blocks[idx]?.type === 'code') return; // allow newlines in code
+                if (blocks[idx]?.type === 'table') return; // handle inside table normally
                 e.preventDefault();
                 syncBlockContent(el);
                 insertBlockAt(idx + 1, blocks[idx]?.type === 'bullet' ? 'bullet' : blocks[idx]?.type === 'numbered' ? 'numbered' : 'text');
             }
 
-            // Backspace on empty → delete block
-            if (e.key === 'Backspace' && el.textContent === '' && blocks.length > 1) {
-                e.preventDefault();
-                deleteBlock(idx);
-                // Focus previous block
-                setTimeout(() => {
-                    const prev = document.querySelector(`.block-row[data-idx="${Math.max(0, idx - 1)}"] .block-content[contenteditable]`);
-                    if (prev) prev.focus();
-                }, 50);
+            // Backspace on empty → delete block or convert to text
+            if (e.key === 'Backspace') {
+                const sel = window.getSelection();
+                if (sel.isCollapsed && sel.getRangeAt(0).startOffset === 0) {
+                    if (el.textContent === '' && blocks[idx].type !== 'text') {
+                        // just revert to text block
+                        e.preventDefault();
+                        blocks[idx].type = 'text';
+                        blocks[idx].content = '';
+                        saveBlog();
+                        renderBlocks();
+                        setTimeout(() => {
+                            const pEl = document.querySelector(`.block-row[data-idx="${idx}"] .block-content[contenteditable]`);
+                            if (pEl) pEl.focus();
+                        }, 50);
+                    } else if (idx > 0 && el.textContent === '') {
+                        e.preventDefault();
+                        deleteBlock(idx);
+                        setTimeout(() => {
+                            const prev = document.querySelector(`.block-row[data-idx="${Math.max(0, idx - 1)}"] .block-content[contenteditable]`);
+                            if (prev) {
+                                prev.focus();
+                                const range = document.createRange();
+                                range.selectNodeContents(prev);
+                                range.collapse(false);
+                                const selection = window.getSelection();
+                                selection.removeAllRanges();
+                                selection.addRange(range);
+                            }
+                        }, 50);
+                    }
+                }
             }
 
             // ArrowUp at start → focus previous
@@ -1624,6 +1894,35 @@
             }
         }
 
+        // Paste to Upload Interceptor
+        document.addEventListener('paste', function (e) {
+            if (!isAdmin) return;
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            for (let index in items) {
+                const item = items[index];
+                if (item.kind === 'file' && item.type.startsWith('image/')) {
+                    e.preventDefault();
+                    const file = item.getAsFile();
+                    let targetIdx = -1;
+
+                    // define where to insert based on active focus
+                    const activeEl = document.activeElement;
+                    if (activeEl && activeEl.dataset.idx) {
+                        targetIdx = parseInt(activeEl.dataset.idx);
+                    } else if (blocks.length > 0) {
+                        targetIdx = blocks.length - 1; // append at bottom if no focus
+                    } else {
+                        targetIdx = 0; // completely empty
+                    }
+
+                    if (targetIdx !== -1) {
+                        handleDirectImageUpload(file, targetIdx);
+                    }
+                    return; // stop standard paste
+                }
+            }
+        });
+
         // ═══════════════════════════════
         // SLASH COMMAND MENU
         // ═══════════════════════════════
@@ -1632,81 +1931,125 @@
         let slashTarget = null;
         let slashActiveIdx = 0;
 
-        document.addEventListener('input', e => {
-            if (!isAdmin) return;
-            const el = e.target;
-            if (!el.classList.contains('block-content') || !el.hasAttribute('contenteditable')) return;
-            const text = el.textContent;
-            if (text === '/') {
-                const rect = el.getBoundingClientRect();
-                slashMenu.style.left = rect.left + 'px';
-                slashMenu.style.top = (rect.bottom + 4) + 'px';
-                slashMenu.classList.add('open');
-                slashTarget = el;
-                slashActiveIdx = 0;
-                filterSlashItems('');
-            } else if (text.startsWith('/') && slashMenu.classList.contains('open')) {
-                filterSlashItems(text.slice(1));
-            } else {
-                closeSlashMenu();
-            }
-        });
+        const slashCommands = [
+            { type: 'text', icon: '📝', label: '段落文字', desc: '一般內文段落', section: '基本' },
+            { type: 'h1', icon: 'H1', label: '大標題', desc: '章節主標題', section: '基本' },
+            { type: 'h2', icon: 'H2', label: '中標題', desc: '子標題', section: '基本' },
+            { type: 'h3', icon: 'H3', label: '小標題', desc: '段落標題', section: '基本' },
+            { type: 'bullet', icon: '•', label: '無序清單', desc: '項目符號清單', section: '列表' },
+            { type: 'numbered', icon: '1.', label: '有序清單', desc: '編號清單', section: '列表' },
+            { type: 'image', icon: '🖼️', label: '圖片', desc: '貼上圖片網址', section: '媒體' },
+            { type: 'video', icon: '🎬', label: '影片', desc: 'YouTube 或影片連結', section: '媒體' },
+            { type: 'code', icon: '{ }', label: '程式碼', desc: '程式碼區塊', section: '進階' },
+            { type: 'callout', icon: '💡', label: '提示框', desc: '重點提示或備註', section: '進階' },
+            { type: 'divider', icon: '—', label: '分隔線', desc: '視覺分隔', section: '進階' },
+            { type: 'table', icon: '📊', label: '表格', desc: '3×3 表格', section: '進階' }
+        ];
 
-        function filterSlashItems(q) {
-            const items = slashMenu.querySelectorAll('.slash-item');
-            let visCount = 0;
-            items.forEach(it => {
-                const label = it.querySelector('.slash-item-label').textContent.toLowerCase();
-                const match = !q || label.includes(q.toLowerCase());
-                it.style.display = match ? 'flex' : 'none';
-                if (match) visCount++;
+        function renderSlashMenu(query) {
+            let html = '';
+            let currentSection = '';
+            const filteredCommands = slashCommands.filter(cmd =>
+                cmd.label.toLowerCase().includes(query.toLowerCase()) ||
+                cmd.desc.toLowerCase().includes(query.toLowerCase())
+            );
+
+            if (filteredCommands.length === 0) {
+                slashMenu.classList.remove('active');
+                return;
+            }
+
+            filteredCommands.forEach((cmd, i) => {
+                if (cmd.section !== currentSection) {
+                    html += `<div class="slash-section" style="font-size:0.7rem;font-weight:700;color:#9CA3AF;margin: 8px 4px 4px;">${cmd.section}</div>`;
+                    currentSection = cmd.section;
+                }
+                html += `
+                    <div class="slash-item" data-type="${cmd.type}" data-idx="${i}">
+                        <span class="slash-item-icon">${cmd.icon}</span>
+                        <div class="slash-item-text">
+                            <div class="slash-item-title">${cmd.label}</div>
+                            <div class="slash-item-desc">${cmd.desc}</div>
+                        </div>
+                    </div>
+                `;
             });
-            if (!visCount) closeSlashMenu();
+            slashMenu.innerHTML = html;
+            slashMenu.classList.add('active');
+            slashActiveIdx = 0;
+            highlightSlashItem([...slashMenu.querySelectorAll('.slash-item')].filter(i => i.style.display !== 'none'));
         }
 
-        slashMenu.addEventListener('click', e => {
+        slashMenu.addEventListener('mousedown', e => {
             const item = e.target.closest('.slash-item');
             if (!item) return;
-            selectSlashItem(item.dataset.type);
+            e.preventDefault();
+            convertBlock(item.dataset.type);
         });
 
-        document.addEventListener('keydown', e => {
-            if (!slashMenu.classList.contains('open')) return;
-            if (e.key === 'Escape') { closeSlashMenu(); e.preventDefault(); return; }
+        slashMenu.addEventListener('mouseover', e => {
+            const item = e.target.closest('.slash-item');
+            if (!item) return;
             const items = [...slashMenu.querySelectorAll('.slash-item')].filter(i => i.style.display !== 'none');
-            if (e.key === 'ArrowDown') { e.preventDefault(); slashActiveIdx = Math.min(slashActiveIdx + 1, items.length - 1); highlightSlashItem(items); }
-            if (e.key === 'ArrowUp') { e.preventDefault(); slashActiveIdx = Math.max(slashActiveIdx - 1, 0); highlightSlashItem(items); }
-            if (e.key === 'Enter') { e.preventDefault(); if (items[slashActiveIdx]) selectSlashItem(items[slashActiveIdx].dataset.type); }
+            slashActiveIdx = items.indexOf(item);
+            highlightSlashItem(items);
         });
 
         function highlightSlashItem(items) {
-            items.forEach((it, i) => it.classList.toggle('active', i === slashActiveIdx));
+            items.forEach((it, i) => {
+                if (i === slashActiveIdx) {
+                    it.classList.add('selected');
+                    it.scrollIntoView({ block: 'nearest' });
+                } else {
+                    it.classList.remove('selected');
+                }
+            });
         }
 
-        function selectSlashItem(type) {
+        function convertBlock(type) {
             if (!slashTarget) return;
             const idx = parseInt(slashTarget.dataset.idx);
+            let originalContent = slashTarget.textContent.replace(/^\/[^\s\n]*/, '').trim(); // Remove '/' and any query
+
             closeSlashMenu();
+
             // Convert current block to selected type
-            blocks[idx] = { type, content: '' };
+            blocks[idx] = { type, content: originalContent };
             if (type === 'table') blocks[idx].rows = [['欄位1', '欄位2', '欄位3'], ['', '', ''], ['', '', '']];
             if (type === 'image') { blocks[idx].url = ''; blocks[idx].caption = ''; }
             if (type === 'video') { blocks[idx].url = ''; blocks[idx].caption = ''; }
+
+            saveBlog();
             renderBlocks();
+
             setTimeout(() => {
                 const el = document.querySelector(`.block-row[data-idx="${idx}"] .block-content[contenteditable]`);
-                if (el) el.focus();
+                if (el) {
+                    el.focus();
+                    try {
+                        const range = document.createRange();
+                        const sel = window.getSelection();
+                        if (el.childNodes.length > 0) {
+                            range.selectNodeContents(el);
+                            range.collapse(false); // Collapse to the end
+                        }
+                        sel.removeAllRanges();
+                        sel.addRange(range);
+                    } catch (e) { }
+                }
             }, 50);
         }
 
         function closeSlashMenu() {
-            slashMenu.classList.remove('open');
+            if (slashMenu) slashMenu.classList.remove('active');
             slashTarget = null;
         }
 
         // Close slash menu on outside click
-        document.addEventListener('click', e => {
-            if (!slashMenu.contains(e.target)) closeSlashMenu();
+        document.addEventListener('mousedown', e => {
+            if (slashMenu.classList.contains('active') && !slashMenu.contains(e.target) && !e.target.closest('.block-content[contenteditable]')) {
+                closeSlashMenu();
+            }
         });
 
         // ═══════════════════════════════
@@ -1795,6 +2138,22 @@
         // ── INIT (must be AFTER all declarations) ──
         if (tool) initPage(tool);
     </script>
+
+    <!-- Floating Toolbar -->
+    <div id="floatingToolbar" class="floating-toolbar">
+        <button class="ft-btn" onmousedown="event.preventDefault(); execFormat('bold')" title="粗體 (Ctrl+B)">B</button>
+        <button class="ft-btn" onmousedown="event.preventDefault(); execFormat('italic')" title="斜體 (Ctrl+I)"
+            style="font-style:italic">I</button>
+        <button class="ft-btn" onmousedown="event.preventDefault(); execFormat('underline')" title="底線 (Ctrl+U)"
+            style="text-decoration:underline">U</button>
+        <button class="ft-btn" onmousedown="event.preventDefault(); execFormat('strikeThrough')" title="刪除線"
+            style="text-decoration:line-through">S</button>
+        <button class="ft-btn" onmousedown="event.preventDefault(); execLink()" title="加入連結">🔗</button>
+    </div>
+
+    <!-- Slash Menu -->
+    <div id="slashMenu" class="slash-menu"></div>
 </body>
 
 </html>
+```
