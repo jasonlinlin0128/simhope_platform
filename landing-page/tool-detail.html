@@ -1337,8 +1337,7 @@
         const params = new URLSearchParams(location.search);
         const toolId = params.get('id');
         let tool = null;
-        const isAdmin = sessionStorage.getItem('admin_auth') === '1';
-        if (isAdmin) document.body.classList.add('admin-logged-in');
+        let isAdmin = false;
 
         async function loadToolData() {
             try {
@@ -2292,7 +2291,23 @@
         });
 
         // ── INIT (must be AFTER all declarations) ──
-        loadToolData();
+        // 等待 Firebase Auth 狀態載入後再繪製頁面內容
+        firebase.auth().onAuthStateChanged(async (user) => {
+            if (user) {
+                try {
+                    const db = firebase.firestore();
+                    const profile = await db.collection('users').doc(user.uid).get();
+                    const role = profile.data()?.role;
+                    if (role === 'admin' || role === 'developer') {
+                        isAdmin = true;
+                        document.body.classList.add('admin-logged-in');
+                    }
+                } catch (e) {
+                    console.error('Failed to get user role:', e);
+                }
+            }
+            loadToolData();
+        });
     </script>
 
     <!-- Floating Toolbar -->
