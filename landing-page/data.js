@@ -1,6 +1,6 @@
-﻿/**
- * SimHope 撌亙蝞????梁鞈?撅?
- * ???????localStorage嚗ndex.html ??admin.html ?曹澈??
+/**
+ * SimHope 工具箱 — 共用資料層
+ * 所有資料存於 localStorage，index.html 與 admin.html 共享。
  */
 
 const DB = {
@@ -10,219 +10,219 @@ const DB = {
         PAIN: 'simhope_pain_v2',
     },
 
-    // ?? ?身撌亙鞈? ??
+    // ── 預設工具資料 ──
     DEFAULT_TOOLS: [
-        // ?? 撌脖?蝺極????
+        // ── 已上線工具 ──
         {
             id: 't1', order: 0, color: 'c1', type: 'webapp',
-            icon: '??', title: '?曉?單?蝧餉陌',
-            tagline: '瘜唳? ??銝剜? ???望?嚗?隤????,
-            desc: '撠撌亙??曉皞身閮???隞頞之摮???憿荔?撣怠??芸楛撠梯??嚗??閬?蝧餉陌鈭箏頧???,
-            folder: '頝典?皞?獢?, scenarios: ['??曉', '頝典?皞?], steps: ['?貉?閮', '隤芾店??摮?, '?蕃霅舐???],
-            status: 'live', url: '#', tags: ['蝧餉陌', '憭?閮', '?曉雿輻']
+            icon: '🌏', title: '現場即時翻譯',
+            tagline: '泰文 ↔ 中文 ↔ 英文，三語即時切換',
+            desc: '專為工廠現場溝通設計，操作介面超大字、按鈕明顯，師傅自己就能操作，不需要透過翻譯人員轉達。',
+            folder: '跨國溝通專案', scenarios: ['生產現場', '跨國溝通'], steps: ['選語言', '說話或打字', '看翻譯結果'],
+            status: 'live', url: '#', tags: ['翻譯', '多語言', '現場使用']
         },
         {
             id: 't2', order: 1, color: 'c2', type: 'webapp',
-            icon: '??', title: '??敹恍祟??,
-            tagline: '5 ???曉??鋆∠??圈璇狡',
-            desc: '銝 PDF ??Word ??嚗I ?芸???銝衣暺璅??啣虜?刻?????璇辣??賜?瘜?憸券嚗?靘耨?孵遣霅啜?,
-            folder: '瘜?撠?', scenarios: ['瘜???', '憸券?抒恣'], steps: ['銝??', '蝑?AI ??', '?亦?憸券暺?],
-            status: 'live', url: '#', tags: ['??', '瘜?', '憸券??']
+            icon: '📄', title: '合約快速審查',
+            tagline: '5 分鐘找出合約裡的地雷條款',
+            desc: '上傳 PDF 或 Word 合約，AI 自動掃描並用黃色標記異常用語、不合理條件、可能的法律風險，提供修改建議。',
+            folder: '法務專案', scenarios: ['法務合約', '風險控管'], steps: ['上傳合約', '等 AI 分析', '查看風險點'],
+            status: 'live', url: '#', tags: ['合約', '法律', '風險分析']
         },
         {
             id: 't3a', order: 2, color: 'c3', type: 'webapp',
-            icon: '??', title: '?極?冽?梯”',
-            tagline: '撌亙?極?極摨?蝺?憛怠?單?蝯梯?',
-            desc: '?極?典撌交??亙‵撖怠極?株??極摨極??銝餌恣?單??亦??Ｙ??脣漲嚗頂蝯梯???湔??梧??蝝?亙??LINE ???,
-            folder: '?亙銵典?獢?, scenarios: ['??曉', '撌交?蝯梯?'], steps: ['憛怠極?桀極摨?, '銝餌恣撖拇', '??臬'],
-            status: 'live', url: 'https://daily-report-staging-ccf2a.web.app/', tags: ['撌交?', '?亙', '?極??]
+            icon: '⚙️', title: '加工部日報表',
+            tagline: '工單、工時、工序，線上填報即時統計',
+            desc: '加工部員工每日填寫工單號、工序、工時，主管即時查看產線進度，系統自動彙整月報，告別紙本日報與 LINE 回報。',
+            folder: '日報表專案', scenarios: ['生產現場', '工時統計'], steps: ['填工單工序', '主管審核', '月報匯出'],
+            status: 'live', url: 'https://daily-report-staging-ccf2a.web.app/', tags: ['工時', '日報', '加工部']
         },
         {
             id: 't3b', order: 3, color: 'c4', type: 'webapp',
-            icon: '??', title: '?餅?冽?梯”',
-            tagline: '撠??極?誨蝣潦遙????銝蝡恣??,
-            desc: '?餅?典撌亦?銝‵撖急??亙?獢極??撌交?隞?Ⅳ嚗?湔??∟??桀??隞餃?嚗蜓蝞∪??脣漲嚗頂蝯梯?絞閮??晞?,
-            folder: '?亙銵典?獢?, scenarios: ['撠?蝞∠?'], steps: ['憛怠?獢極??, '銝餌恣撖拇', '??臬'],
-            status: 'live', url: 'https://daily-report-electrical.web.app/', tags: ['撌交?', '?亙', '?餅??]
+            icon: '📅', title: '電控部日報表',
+            tagline: '專案、工時代碼、任務狀態，一站管理',
+            desc: '電控部員工線上填寫每日專案工時與工時代碼，支援有無訂單單號的任務，主管即時查看進度，系統自動統計月報。',
+            folder: '日報表專案', scenarios: ['專案管理'], steps: ['填專案工時', '主管審核', '月報匯出'],
+            status: 'live', url: 'https://daily-report-electrical.web.app/', tags: ['工時', '日報', '電控部']
         },
         {
             id: 't4', order: 4, color: 'c5', type: 'webapp',
-            icon: '??', title: '?折?辣??摨?,
-            tagline: '??SOP 頝?銵?隞嗉??隞亙?蝑??亥?摨?,
-            desc: '???SOP???Ｚ牧??銵?蝭?其??喉?銋??湔?其葉????嚗I 敺?隞嗉ㄐ?曄?獢?銝????葦??蝧餌??,
-            folder: '?亥?摨怠?獢?, scenarios: ['?銵??, '?閮毀'], steps: ['銝?辣', '頛詨??', '?湔??獢?],
-            status: 'beta', url: '#', tags: ['RAG', '?亥?摨?, 'SOP']
+            icon: '🔍', title: '內部文件問答庫',
+            tagline: '把 SOP 跟技術文件變成可以問答的知識庫',
+            desc: '把公司 SOP、圖面說明、技術規範全部上傳，之後直接用中文問問題，AI 從文件裡找答案，不再靠問老師傅或翻目錄。',
+            folder: '知識庫專案', scenarios: ['技術傳承', '教育訓練'], steps: ['上傳文件', '輸入問題', '直接看答案'],
+            status: 'beta', url: '#', tags: ['RAG', '知識庫', 'SOP']
         },
         {
             id: 't5', order: 5, color: 'c6', type: 'webapp',
-            icon: '??', title: '隤芣??貉????,
-            tagline: '頛詨閬嚗?撓?箔葉?望銝??阮',
-            desc: '頛詨?Ｗ??????澆??貉?瘜冽?鈭?嚗I 靘璅??澆???摰隤芣??貉?蝔選?蝭??80% ?撖急????銵撠?胯?,
-            scenarios: ['???', '銵?舀'], steps: ['憛怠閬', '?豢?隤?', '銝??阮'],
-            status: 'new', url: '#', tags: ['?辣', '憭?閮', '?芸???]
+            icon: '📝', title: '說明書自動生成',
+            tagline: '輸入規格，自動輸出中英日三語草稿',
+            desc: '輸入產品型號、規格參數與注意事項，AI 依照標準格式生成完整說明書草稿，節省 80% 的撰寫時間，再自行校對即可。',
+            folder: '文書作業專案', scenarios: ['文書處理', '行銷支援'], steps: ['填入規格', '選擇語言', '下載草稿'],
+            status: 'new', url: '#', tags: ['文件', '多語言', '自動化']
         },
         {
             id: 't6', order: 6, color: 'c1', type: 'webapp',
-            icon: '?', title: '憭?? AI 瑼Ｘ葫',
-            tagline: '??撘萇嚗I 撟思??曄??萄?雿蔭',
-            desc: '???Ｗ?憭??抒?銝嚗I 撠?璅?敶勗?嚗??閮??萇?雿蔭????頛詨蝯??炎皜砍??,
-            scenarios: ['?恣瑼ａ?'], steps: ['??銝?抒?', 'AI 瘥???', '?亦?瑼Ｘ葫?勗?'],
-            status: 'beta', url: '#', tags: ['?恣', '閬死AI', '瑼Ｘ葫']
+            icon: '🔬', title: '外觀瑕疵 AI 檢測',
+            tagline: '拍一張照，AI 幫你找瑕疵和位置',
+            desc: '拍攝產品外觀照片上傳，AI 對比標準影像，自動標記瑕疵的位置與類型，輸出結構化檢測報告。',
+            folder: '品管專案', scenarios: ['品管檢驗'], steps: ['拍/上傳照片', 'AI 比對分析', '查看檢測報告'],
+            status: 'beta', url: '#', tags: ['品管', '視覺AI', '檢測']
         },
 
-        // ?? 撌脖?蝺?銝? / 撅內????
+        // ── 已上線：下載 / 展示型 ──
         {
             id: 't12', order: 7, color: 'c2', type: 'download',
-            icon: '??', title: '?寥??餃?蝪賜?撌亙',
-            tagline: '??PDF 銝????偷??銝甈∟?????,
-            desc: '?賢???PDF 銝憓遙??摮?蝪賢?瑼????祆?蝔雿?嚗??餅????啁蔡?????獄?押?,
-            folder: '銵雿平撠?', scenarios: ['銵蝪賣'], steps: ['??撌亙', '??PDF', '?偷敺??],
-            status: 'live', url: '', tags: ['蝪賜?', 'PDF', '銵'],
+            icon: '✍️', title: '批量電子簽章工具',
+            tagline: '在 PDF 上加文字、簽名，一次處理多頁',
+            desc: '能夠在 PDF 上新增任意文字及簽名檔，加速紙本流程數位化，免去手動列印署名再掃描的麻煩。',
+            folder: '行政作業專案', scenarios: ['行政簽核'], steps: ['開啟工具', '選 PDF', '加簽後匯出'],
+            status: 'live', url: '', tags: ['簽章', 'PDF', '行政'],
             files: []
         },
         {
             id: 't13', order: 8, color: 'c3', type: 'webapp',
-            icon: '??儭?, title: '蝛箇???文極??,
-            tagline: '銝?萄?之??PDF / ??銝剔?蝛箇??,
-            desc: '憭折??辣嚗?pdf嚗?憭折???嚗?jpg/.png/.jpeg嚗憭?文??冽??摰對?蝛箇嚗??嚗??????,
-            folder: '?雿平撠?', scenarios: ['???'], steps: ['銝瑼?', '?芸??菜葫', '銝?蝯?'],
+            icon: '🗑️', title: '空白頁清除工具',
+            tagline: '一鍵刪掉大量 PDF / 圖檔中的空白頁',
+            desc: '大量文件（.pdf）或大量圖檔（.jpg/.png/.jpeg）能夠刪除完全沒有內容（空白）的頁面，節省整理時間。',
+            folder: '文書作業專案', scenarios: ['文書處理'], steps: ['上傳檔案', '自動偵測', '下載結果'],
             status: 'live', url: 'https://ai.studio/apps/drive/1zUeMtM4QwhzuASpy3-xdCAIL2tFC4sdh',
-            tags: ['PDF', '??', '?芸???]
+            tags: ['PDF', '圖檔', '自動化']
         },
         {
             id: 't14', order: 9, color: 'c4', type: 'download',
-            icon: '??', title: '靽格瑼??交?撌亙',
-            tagline: '隞餅?隤踵?餉瑼??遣蝡?靽格??',
-            desc: '?賢?靽格?餉瑼??遣蝡???靽格??嚗?券?閬?朣?隞嗆???渡?甇瑕瑼???胯?,
-            scenarios: ['瑼?蝞∠?'], steps: ['??撌亙', '?貊璅?獢?, '閮剖??交?摮?'],
-            status: 'live', url: '', tags: ['蝟餌絞撌亙', '瑼?蝞∠?', '銵'],
+            icon: '🕐', title: '修改檔案日期工具',
+            tagline: '任意調整電腦檔案的建立與修改時間',
+            desc: '能夠修改電腦檔案的建立時間跟修改時間，適用需要對齊文件日期或整理歷史檔案的場景。',
+            folder: '文書作業專案', scenarios: ['檔案管理'], steps: ['開啟工具', '選目標檔案', '設定日期存檔'],
+            status: 'live', url: '', tags: ['系統工具', '檔案管理', '行政'],
             files: []
         },
         {
             id: 't15', order: 10, color: 'c5', type: 'showcase',
-            icon: '??', title: 'Teams Bot嚗AG ?予璈鈭綽?',
-            tagline: '?湔??Teams 鋆∪???嚗I 敺?豢?隞嗆蝑?',
-            desc: '?? Teams 隞??蝔?閮剖? RAG ??chatbot嚗? User ?賢?雿輻?砍?亥?摨恬??⊿????嗡?撟喳??,
-            scenarios: ['?銵??, '?折撟喳'], steps: ['??Teams ??', 'AI ???辣', '???單???'],
+            icon: '🤖', title: 'Teams Bot（RAG 聊天機器人）',
+            tagline: '直接在 Teams 裡問問題，AI 從公司文件找答案',
+            desc: '透過 Teams 代理程式設定 RAG 及 chatbot，讓 User 能夠使用公司知識庫，無需切換其他平台。',
+            folder: '知識庫專案', scenarios: ['技術傳承', '內部平台'], steps: ['在 Teams 提問', 'AI 搜尋文件', '取得即時回答'],
             status: 'live', url: '', tags: ['Teams', 'RAG', 'chatbot'],
-            blog: { summary: '?? Teams 銝??RAG ?予璈鈭箇?摰甇瑞?嚗??銵??蝯?蝺?, sections: [] }
+            blog: { summary: '這是我在 Teams 上整合 RAG 聊天機器人的完整歷程，從技術選型到最終上線。', sections: [] }
         },
         {
             id: 't16', order: 11, color: 'c6', type: 'download',
-            icon: '??', title: '頧?撌亙',
-            tagline: '?? ??PDF ?澆?鈭?嚗????鞎餃?',
-            desc: '?賢???瑼? PDF 瑼?獢撘?頧??舀?寥???嚗撣豢?隞嗆????撌亙??,
-            folder: '?雿平撠?', scenarios: ['???'], steps: ['?豢?獢?, '?貊璅撘?, '銝?頧?蝯?'],
-            status: 'live', url: '', tags: ['頧?', 'PDF', '??'],
+            icon: '🔄', title: '轉檔工具',
+            tagline: '圖片 ↔ PDF 格式互轉，批量處理不費力',
+            desc: '能夠圖片檔與 PDF 檔檔案格式互轉，支援批量操作，日常文件整理必備小工具。',
+            folder: '文書作業專案', scenarios: ['文書處理'], steps: ['選檔案', '選目標格式', '下載轉檔結果'],
+            status: 'live', url: '', tags: ['轉檔', 'PDF', '圖片'],
             files: []
         },
 
-        // ?? 敺?????
+        // ── 待驗收 ──
         {
             id: 't11', order: 12, color: 'c1', type: 'webapp',
-            icon: '??', title: '??箏榆撌亙',
-            tagline: '?箏榆?格雿?嚗蜇?????踵???,
-            desc: '??箏榆?格雿?嚗蜇?憭????踵???皜?蝝?格?敺餈?蝺?憛怠神??銝祟?詻?,
-            scenarios: ['銵蝪賣'], steps: ['憛怠撌桃隢?, '銝餌恣撖拇', '蝮賢?蝣箄?'],
-            status: 'pending', url: 'https://travel-allowance-system.vercel.app/', tags: ['?箏榆', '銵', '?訾???]
+            icon: '✈️', title: '遠地出差工具',
+            tagline: '出差單數位化，總務提升行政效率',
+            desc: '遠地出差單數位化，總務能夠提升行政效率，減少紙本單據往返，線上填寫、線上審核。',
+            folder: '行政作業專案', scenarios: ['行政簽核'], steps: ['填出差申請', '主管審核', '總務確認'],
+            status: 'pending', url: 'https://travel-allowance-system.vercel.app/', tags: ['出差', '行政', '數位化']
         },
 
-        // ?? ?銝???
+        // ── 開發中 ──
         {
             id: 't8', order: 13, color: 'c2', type: 'webapp',
-            icon: '?儭?, title: '璈?颲血摰文蔣?唳?瘚格偌??,
-            tagline: '璈??敶勗?芸????瘚格偌??,
-            desc: '?曄蔭?冽??????曉??蔣?唳?嚗?犖雿輻敶勗璈??啣???祆???yyyy/mm/dd/hh/mm/ss ?筑瘞游?刻??荔?撘瑕?鞈?餈質馱??,
-            scenarios: ['璈?鞈?', '鞈??抒恣'], steps: ['甇?虜雿輻敶勗璈?, '?辣?芸??筑瘞游', '瘚格偌?啣????],
+            icon: '🖨️', title: '機敏辦公室影印機浮水印',
+            tagline: '機敏區影印自動加時間戳浮水印',
+            desc: '放置在機敏資料存放區的影印機，若有人使用影印機，印出的紙本會有 yyyy/mm/dd/hh/mm/ss 的浮水印在背景，強化資安追蹤。',
+            folder: '資安專案', scenarios: ['機敏資料', '資安控管'], steps: ['正常使用影印機', '文件自動加浮水印', '浮水印含時間戳'],
             status: 'dev', url: 'https://ai.studio/apps/drive/1o5dgQuyKjMCVZJ3Pn9_RXidP8usVX27C',
-            tags: ['鞈?', '瘚格偌??, '敶勗璈?]
+            tags: ['資安', '浮水印', '影印機']
         },
         {
             id: 't9', order: 14, color: 'c3', type: 'showcase',
-            icon: '??儭?, title: 'MasterCAM2025 憭??梯”',
-            tagline: '霈?撌仿頛詨?渡泵?撌梢?瘙??極璈銵?,
-            desc: '霈?撌仿???賢?頛詨?渡泵?撌梢?瘙??極璈銵刻????誨??????蝔?,
-            scenarios: ['??曉', '?梯”頧?'], steps: ['??MasterCAM ??', '閫貊憭?', '?臬摰Ｚˊ?梯”'],
-            status: 'dev', url: '', tags: ['MasterCAM', '?極', '?梯”'],
-            blog: { summary: 'MasterCAM 2025 憭??閮?嚗??急?銵?蝛園?蝔??芸???, sections: [] }
+            icon: '🛠️', title: 'MasterCAM2025 外掛報表',
+            tagline: '讓加工部輸出更符合自己需求的加工機報表',
+            desc: '讓加工部同仁能夠輸出更符合自己需求的加工機報表資料，取代原本的手動整理流程。',
+            folder: '日報表專案', scenarios: ['生產現場', '報表轉換'], steps: ['在 MasterCAM 操作', '觸發外掛', '匯出客製報表'],
+            status: 'dev', url: '', tags: ['MasterCAM', '加工', '報表'],
+            blog: { summary: 'MasterCAM 2025 外掛開發記錄，包含技術研究過程與截圖。', sections: [] }
         },
         {
             id: 't10', order: 15, color: 'c4', type: 'webapp',
-            icon: '??', title: 'SimHope 銵???,
-            tagline: '?芾??嚗?頞?TimeTree ??Notion ??頞?,
-            desc: '?芾??銵????剁?鋆雲 TimeTree ??Notion ?典?訾蝙?冽?憓?銝雲銋?嚗擃?隞雿輻??,
-            scenarios: ['撠?蝞∠?', '頝券???'], steps: ['?餃銵???, '?啣????蝔?, '?曹澈蝯血?隞?],
-            status: 'dev', url: 'https://simhope-calendar.vercel.app', tags: ['銵???, '??', '?芸遣撌亙']
+            icon: '📆', title: 'SimHope 行事曆',
+            tagline: '自行開發，補足 TimeTree 與 Notion 的不足',
+            desc: '自行開發行事曆應用，補足 TimeTree 及 Notion 在公司使用情境的不足之處，全體同仁可使用。',
+            folder: '內部平台專案', scenarios: ['專案管理', '跨部門協作'], steps: ['登入行事曆', '新增或查看行程', '共享給同仁'],
+            status: 'dev', url: 'https://simhope-calendar.vercel.app', tags: ['行事曆', '協作', '自建工具']
         },
 
-        // ?? 撌脩?甇???
+        // ── 已終止 ──
         {
             id: 't7', order: 16, color: 'c1', type: 'webapp',
-            icon: '?', title: '?拍恣蝐??訾???璆剔頂蝯?,
-            tagline: '?單?憿舐內??極?桃?蝐??脣漲?',
-            desc: '撱箇?銝?雿??嚗?＊蝷箸??極?桃?蝐??脣漲嚗?????銝?撌脣?朣?嚗圾瘙箇??????鞈港犖撌亦??祇??郊?喲???憿?,
-            scenarios: ['??曉', '?拍恣'], steps: ['??撌亙', '?湔?????, '?Ｙ??單??脩'],
-            status: 'terminated', url: 'https://gemini.google.com/u/1/share/12af59b97d59', tags: ['?拍恣', '?恣', '?']
+            icon: '📦', title: '物管籌料數位化作業系統',
+            tagline: '即時顯示所有工單的籌料進度看板',
+            desc: '建立一個數位化看板，即時顯示所有工單的籌料進度（待料/備料中/已備齊），解決物料籌備狀態依賴人工紙本非同步傳遞的問題。',
+            folder: '生產現場專案', scenarios: ['生產現場', '物管'], steps: ['掃描工單', '更新備料狀態', '產線即時獲知'],
+            status: 'terminated', url: 'https://gemini.google.com/u/1/share/12af59b97d59', tags: ['物管', '生管', '看板']
         },
     ],
 
-    // ?? ?身蝬脩?閮剖? ??
+    // ── 預設網站設定 ──
     DEFAULT_SITE: {
-        siteName: 'SimHope AI 撌亙銝剖?',
-        heroTitle: '?亙虜??憭芸?嚗ㄐ??? AI 閫??',
-        heroDesc: '??撌亙?賣?寞??砍撖阡?瘚????銝?閬? AI嚗??停?賜??,
-        heroEyebrow: '? 撠?砍??閮剛???AI 撌亙銝剖?',
+        siteName: 'SimHope AI 工具中心',
+        heroTitle: '日常痛點太多？這裡有現成的 AI 解法',
+        heroDesc: '這些工具都是根據公司實際流程開發的，不需要懂 AI，打開就能用。',
+        heroEyebrow: '🏭 專為公司同仁設計的 AI 工具中心',
         painChips: [
-            { emoji: '??', text: '?辣?曉?憭? },
-            { emoji: '??', text: '隤?皞?? },
-            { emoji: '??', text: '?梯”閬??‵' },
-            { emoji: '??', text: 'SOP 蝧颱??曆??? },
-            { emoji: '??, text: '撌交?蝯梯???' },
+            { emoji: '📄', text: '文件找半天' },
+            { emoji: '🌏', text: '語言溝通卡關' },
+            { emoji: '📊', text: '報表要手動填' },
+            { emoji: '🔍', text: 'SOP 翻了找不到' },
+            { emoji: '⏰', text: '工時統計耗時' },
         ],
         painCards: [
-            { id: 'pc1', folder: '頝典?皞?獢?, scenarios: ['??曉', '頝典?皞?], before: '瘜啁??∪極皞?瘥??怨嚗?鞈芸?憿牧銝?璆?銝餌恣銋?銝?', after: '?單???蝧餉陌嚗陸?葉???萄????曉???湔?? },
-            { id: 'pc2', folder: '瘜?撠?', scenarios: ['瘜???', '憸券?抒恣'], before: '???辣撟曉?????閬末撟曉?????蝣箏?????憿?甈?, after: '銝??嚗? ????AI 璅??撣豢?甈曇?憸券暺? },
-            { id: 'pc3', folder: '?亙銵典?獢?, scenarios: ['撠?蝞∠?', '銝餌恣蝔賣'], before: '撌交???LINE ?嚗?甈⊥?摨絞閮閬??唳???航炊銝??, after: '瘥犖?湔蝺?憛恬?銝餌恣?單??亦??脣漲嚗??曹??萄?? },
-            { id: 'pc4', scenarios: ['?恣瑼ａ?'], before: '憭?瑼Ｘ?犖撌亦閬?鈭箔?蝝臬停摰寞?瞍嚗恥閮港???, after: '?銝嚗I ?芸?瘥?璅??見嚗??箇??萎?蝵株?憿?' },
-            { id: 'pc5', scenarios: ['???', '銵?舀'], before: '?Ｗ?隤芣??豢?甈⊥閬撠梯??神嚗蕃霅舀??望???憭?嚗祥?祥??, after: '頛詨閬嚗???葉?望銝?隤芣??貉?蝔選??芸楛靽格?喳' },
-            { id: 'pc6', scenarios: ['?銵??, '?閮毀'], before: '?折 SOP??銵?隞嗆?賢????葦??銝摰?敺', after: '??隞嗅?其??喉?撱箇?蝘??亥?摨恬??湔?其葉????' },
-            { id: 'pc7', scenarios: ['銵蝪賣'], before: 'PDF 蝪賢?閬??啜?蝡???嚗?隞賣?隞嗡???20 ??', after: '?餃?蝪賜?撌亙?湔??PDF 銝?蝪踝??寥????????? },
-            { id: 'pc8', scenarios: ['銵蝪賣'], before: '?箏榆?桅??函蝝嚗?頝??雿偷?賂?????勗董', after: '蝺?憛怠撌桃隢?銝餌恣蝺?撖拇嚗蜇??Ⅱ隤? },
-            { id: 'pc9', scenarios: ['璈?鞈?', '鞈??抒恣'], before: '璈??辣敶勗?⊥?餈質馱嚗??仿?隤啣隞暻潭??鈭?暻?, after: '敶勗?芸????瘚格偌?堆????隞嗅餈賣滲' },
-            { id: 'pc10', scenarios: ['???'], before: '????PDF 銝?征?賡?嚗??????敺答鞎餅???, after: '銝?菔?皜砌蒂皜??征?賡?嚗?銝之????? },
-            { id: 'pc11', scenarios: ['??曉', '?梯”頧?'], before: 'MasterCAM ?梯”?澆?銝泵?瘙?瘥活?質????鞈?', after: '憭?銝?萄?箏恥鋆賢??極?梯”嚗撘?亙?朣?瘙? },
+            { id: 'pc1', folder: '跨國溝通專案', scenarios: ['生產現場', '跨國溝通'], before: '泰籍員工溝通靠比手畫腳，品質問題說不清楚，主管也搞不定', after: '即時雙語翻譯，泰文中文一鍵切換，現場手機直接用' },
+            { id: 'pc2', folder: '法務專案', scenarios: ['法務合約', '風險控管'], before: '合約文件幾十頁，看完要好幾小時，還不確定有沒有問題條款', after: '上傳合約，5 分鐘內 AI 標出所有異常條款與風險點' },
+            { id: 'pc3', folder: '日報表專案', scenarios: ['專案管理', '主管稽核'], before: '工時用 LINE 回報，每次月底統計都要重新整理，錯誤一堆', after: '每人直接線上填，主管即時查看進度，月報一鍵匯出' },
+            { id: 'pc4', scenarios: ['品管檢驗'], before: '外觀檢查靠人工目視，人一累就容易漏判，客訴不斷', after: '拍照上傳，AI 自動比對標準圖樣，標出瑕疵位置與類型' },
+            { id: 'pc5', scenarios: ['文書處理', '行銷支援'], before: '產品說明書每次改規格就要重寫，翻譯成英文又要外包，費時費錢', after: '輸入規格，自動生成中英日三語說明書草稿，自己修改即可' },
+            { id: 'pc6', scenarios: ['技術傳承', '教育訓練'], before: '內部 SOP、技術文件散落各處，問老師傅不一定問得到', after: '把文件全部上傳，建立私有知識庫，直接用中文問問題' },
+            { id: 'pc7', scenarios: ['行政簽核'], before: 'PDF 簽名要列印、蓋章、再掃描，一份文件來回 20 分鐘', after: '電子簽章工具直接在 PDF 上加簽，批量處理省三倍時間' },
+            { id: 'pc8', scenarios: ['行政簽核'], before: '出差單還在用紙本，要跑三個單位簽核，回來才能報帳', after: '線上填出差申請，主管線上審核，總務即時確認' },
+            { id: 'pc9', scenarios: ['機敏資料', '資安控管'], before: '機敏文件影印無法追蹤，不知道誰在什麼時候印了什麼', after: '影印自動加時間戳浮水印，所有文件可追溯' },
+            { id: 'pc10', scenarios: ['文書處理'], before: '掃描的 PDF 一堆空白頁，手動一頁一頁刪很浪費時間', after: '一鍵自動偵測並清除所有空白頁，省下大量整理時間' },
+            { id: 'pc11', scenarios: ['生產現場', '報表轉換'], before: 'MasterCAM 報表格式不符需求，每次都要手動重整資料', after: '外掛一鍵匯出客製化加工報表，格式直接對齊需求' },
         ],
         aboutName: 'SimHope',
-        aboutRole: 'AI 撠鞎痊鈭?,
-        aboutDept: '?餅??繚 憯?璈?/ ?撌交平',
-        aboutBio: '?典蝯梯ˊ?平撌乩?嚗?憭拚撠??賣撖阡????Ｚ?蝞∠????像?唳???舀???AI 撌亙撖阡?閫?捱?砍??????strong>銝撅內?銵??航圾瘙箔???撌乩??唳??/strong>',
+        aboutRole: 'AI 導入負責人',
+        aboutDept: '電控部 · 壓鑄機 / 國防工業',
+        aboutBio: '在傳統製造業工作，每天面對的都是實際的生產與管理問題。這個平台收錄的是我用 AI 工具實際解決公司問題的成果。<strong>不是展示技術，是解決你我的工作困擾。</strong>',
         ctaEmail: 'placeholder@company.com',
         statTools: 17,
         statUsers: 12,
         statHours: 8,
     },
 
-    // ?? ?券?摰儔 ??
+    // ── 部門定義 ──
     DEPTS: {
-        factory: { label: '? ??曉', cls: 'dept-factory' },
-        admin: { label: '?? 銵/?', cls: 'dept-admin' },
-        mgmt: { label: '?? 銝餌恣/蝞∠?', cls: 'dept-mgmt' },
-        quality: { label: '? ?恣/撌亦?', cls: 'dept-quality' },
-        defense: { label: '?儭??/撠?', cls: 'dept-defense' },
-        other: { label: '? ?嗡?', cls: 'dept-admin' },
+        factory: { label: '🏭 生產現場', cls: 'dept-factory' },
+        admin: { label: '📋 行政/文書', cls: 'dept-admin' },
+        mgmt: { label: '👔 主管/管理', cls: 'dept-mgmt' },
+        quality: { label: '🔧 品管/工程', cls: 'dept-quality' },
+        defense: { label: '🛡️ 國防/專案', cls: 'dept-defense' },
+        other: { label: '🔹 其他', cls: 'dept-admin' },
     },
 
-    // ?? ???蝢???
+    // ── 狀態定義 ──
     STATUSES: {
-        live: { label: '雿輻銝?, cls: 'status-live' },
-        beta: { label: '皜祈岫銝?, cls: 'status-beta' },
-        new: { label: '?唬?蝺?, cls: 'status-new' },
-        dev: { label: '?銝?, cls: 'status-dev' },
-        pending: { label: '敺???, cls: 'status-pending' },
-        terminated: { label: '撌脩?甇?, cls: 'status-terminated' },
+        live: { label: '使用中', cls: 'status-live' },
+        beta: { label: '測試中', cls: 'status-beta' },
+        new: { label: '新上線', cls: 'status-new' },
+        dev: { label: '開發中', cls: 'status-dev' },
+        pending: { label: '待驗收', cls: 'status-pending' },
+        terminated: { label: '已終止', cls: 'status-terminated' },
     },
 
-    // ?? CRUD ?寞? ??
+    // ── CRUD 方法 ──
     getTools() {
         try {
             const raw = localStorage.getItem(this.KEYS.TOOLS);
@@ -249,4 +249,3 @@ const DB = {
         return 't_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
     },
 };
-
