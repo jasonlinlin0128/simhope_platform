@@ -6,6 +6,7 @@
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏭</text></svg>" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="view-transition" content="same-origin" />
   <title>公司 AI 工具中心 — SimHope</title>
   <script src="data.js"></script>
   <meta name="description" content="集中收錄公司內部 AI 應用工具，解決工廠現場、行政、品管、溝通各種日常痛點。直接找到你需要的工具，打開就用。" />
@@ -39,6 +40,95 @@
       --shadow-clay-lg: 0 16px 48px rgba(0, 0, 0, 0.14), 0 4px 16px rgba(0, 0, 0, 0.1);
       --radius-clay: 24px;
       --radius-pill: 999px;
+      /* Elements */
+      --card-bg: #FFFFFF;
+      --card-border: rgba(255, 255, 255, 0.9);
+      --nav-bg: rgba(255, 248, 240, 0.8);
+      --nav-border: rgba(255, 255, 255, 0.6);
+      --footer-bg: #1E1B4B;
+      --footer-text: #FFFFFF;
+    }
+
+    :root.dark {
+      --bg: #111827;
+      --text-dark: #F9FAFB;
+      --text-mid: #9CA3AF;
+      --white: #1F2937;
+      --shadow-clay: 0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
+      --shadow-clay-lg: 0 16px 48px rgba(0, 0, 0, 0.6), 0 4px 16px rgba(0, 0, 0, 0.4);
+      --card-bg: #1F2937;
+      --card-border: rgba(255, 255, 255, 0.05);
+      --nav-bg: rgba(17, 24, 39, 0.8);
+      --nav-border: rgba(255, 255, 255, 0.05);
+      --clay-green: #10B981;
+      --clay-coral: #EF4444;
+      --clay-yellow: #F59E0B;
+    }
+
+    /* Dark Mode Component Overrides */
+    .dark .pain-chip {
+      background: rgba(31, 41, 55, 0.85);
+      /* Tailwind gray-800 */
+      color: #D1D5DB;
+      /* Tailwind gray-300 */
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .dark .stat-card {
+      background: rgba(31, 41, 55, 0.85);
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .dark .ps-before {
+      background: rgba(153, 27, 27, 0.2);
+      /* Dark red bg */
+    }
+
+    .dark .ps-before-text,
+    .dark .ps-before .ps-x {
+      color: #FCA5A5;
+      /* Light red text */
+    }
+
+    .dark .ps-after {
+      background: rgba(20, 83, 45, 0.2);
+      /* Dark green bg */
+    }
+
+    .dark .ps-after-text,
+    .dark .ps-after .ps-check {
+      color: #86EFAC;
+      /* Light green text */
+    }
+
+    .dark .dept-factory {
+      color: #93C5FD;
+    }
+
+    .dark .dept-admin {
+      color: #C4B5FD;
+    }
+
+    .dark .dept-mgmt {
+      color: #6EE7B7;
+    }
+
+    .dark .dept-quality {
+      color: #FDBA74;
+    }
+
+    .dark .dept-defense {
+      color: #F9A8D4;
+    }
+
+    /* Dark Theme specific adjustments for Tag Pills */
+    .dark .tag-pill {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-dark);
+    }
+
+    .dark .tool-tagline {
+      color: #FCA5A5;
     }
 
     html {
@@ -136,9 +226,10 @@
       align-items: center;
       justify-content: space-between;
       padding: 16px 5%;
-      background: rgba(255, 248, 240, 0.8);
+      background: var(--nav-bg);
       backdrop-filter: blur(16px);
-      border-bottom: 2px solid rgba(255, 255, 255, 0.6);
+      border-bottom: 2px solid var(--nav-border);
+      transition: background 0.3s, border-color 0.3s;
     }
 
     .nav-logo {
@@ -186,7 +277,7 @@
     .nav-cta {
       padding: 10px 22px !important;
       background: var(--text-dark) !important;
-      color: var(--white) !important;
+      color: var(--bg) !important;
       border-radius: var(--radius-pill) !important;
       box-shadow: 0 4px 14px rgba(30, 27, 75, 0.3) !important;
       transition: transform 0.2s, box-shadow 0.2s !important;
@@ -195,6 +286,50 @@
     .nav-cta:hover {
       transform: translateY(-2px) !important;
       box-shadow: 0 8px 20px rgba(30, 27, 75, 0.4) !important;
+    }
+
+    .theme-btn {
+      background: none;
+      border: 2px solid rgba(167, 139, 250, 0.3);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      cursor: pointer;
+      color: var(--text-dark);
+      transition: all 0.2s;
+      margin-left: 4px;
+    }
+
+    .theme-btn:hover {
+      background: rgba(167, 139, 250, 0.1);
+      transform: rotate(15deg);
+    }
+
+    /* ─── Skeleton Loading ─── */
+    .skeleton-box {
+      background: linear-gradient(90deg, rgba(167, 139, 250, 0.1) 25%, rgba(167, 139, 250, 0.2) 37%, rgba(167, 139, 250, 0.1) 63%);
+      background-size: 400% 100%;
+      animation: skeleton-loading 1.4s ease infinite;
+      border-radius: 8px;
+    }
+
+    .dark .skeleton-box {
+      background: linear-gradient(90deg, rgba(167, 139, 250, 0.05) 25%, rgba(167, 139, 250, 0.1) 37%, rgba(167, 139, 250, 0.05) 63%);
+      background-size: 400% 100%;
+    }
+
+    @keyframes skeleton-loading {
+      0% {
+        background-position: 100% 50%;
+      }
+
+      100% {
+        background-position: 0 50%;
+      }
     }
 
     /* ─── HERO ─── */
@@ -394,15 +529,15 @@
     }
 
     .ps-card {
-      background: white;
+      background: var(--card-bg);
       border-radius: 22px;
       padding: 28px;
       box-shadow: var(--shadow-clay);
-      border: 2.5px solid rgba(255, 255, 255, 0.9);
+      border: 2.5px solid var(--card-border);
       display: flex;
       flex-direction: column;
       gap: 16px;
-      transition: transform 0.25s;
+      transition: transform 0.25s, box-shadow 0.2s, background 0.3s, border-color 0.3s;
     }
 
     .ps-card:hover {
@@ -551,10 +686,10 @@
     .tools-sidebar {
       position: sticky;
       top: 80px;
-      background: white;
+      background: var(--card-bg);
       border-radius: var(--radius-clay);
       box-shadow: var(--shadow-clay);
-      border: 2px solid rgba(255, 255, 255, 0.9);
+      border: 2px solid var(--card-border);
       padding: 20px;
       display: flex;
       flex-direction: column;
@@ -654,14 +789,14 @@
     }
 
     .tool-card {
-      background: white;
+      background: var(--card-bg);
       border-radius: var(--radius-clay);
       padding: 28px;
       position: relative;
       overflow: hidden;
       box-shadow: var(--shadow-clay);
-      border: 2.5px solid rgba(255, 255, 255, 0.9);
-      transition: transform 0.25s, box-shadow 0.25s;
+      border: 2.5px solid var(--card-border);
+      transition: transform 0.25s, box-shadow 0.25s, background 0.3s, border-color 0.3s;
       cursor: pointer;
     }
 
@@ -1194,13 +1329,14 @@
     .cta-card {
       max-width: 760px;
       margin: 0 auto;
-      background: white;
+      background: var(--card-bg);
       border-radius: 36px;
       padding: 64px 48px;
       box-shadow: var(--shadow-clay-lg);
-      border: 3px solid rgba(255, 255, 255, 0.9);
+      border: 3px solid var(--card-border);
       position: relative;
       overflow: hidden;
+      transition: background 0.3s, border-color 0.3s;
     }
 
     .cta-card::before {
@@ -1262,9 +1398,10 @@
 
     /* ─── FOOTER ─── */
     footer {
-      background: var(--text-dark);
-      color: white;
+      background: var(--footer-bg);
+      color: var(--footer-text);
       padding: 48px 5% 32px;
+      transition: background 0.3s;
     }
 
     .footer-inner {
@@ -3032,6 +3169,7 @@
         <a href="#about">關於這個平台</a>
         <a href="#voices">同仁回饋</a>
         <a href="#cta" class="nav-cta">找工具 →</a>
+        <button id="themeToggle" class="theme-btn" aria-label="Toggle Dark Mode" title="切換深色模式">🌙</button>
         <a href="auth.html" class="login-btn" id="loginBtn" style="text-decoration:none">🔐 登入</a>
         <a href="dashboard.html" class="login-btn" id="dashBtn" style="text-decoration:none; display:none;">📊 儀表板</a>
         <button class="logout-btn" id="logoutBtn" onclick="doLogout()" style="display:none;">👋 登出</button>
@@ -3085,7 +3223,17 @@
         <h2 class="section-title">這些問題，<br />你每週遇到幾次？</h2>
         <p class="section-desc">每個工具的出發點都是一個真實的工作痛點，不是為了用 AI 而用 AI。</p>
       </div>
-      <div class="ps-grid fade-up" id="psGrid"></div>
+      <div class="ps-grid fade-up" id="psGrid">
+        <!-- Skeleton placeholders -->
+        <div class="ps-card">
+          <div class="skeleton-box" style="height:36px; width:70%; margin-bottom:4px; border-radius:12px;"></div>
+          <div class="skeleton-box" style="height:36px; width:100%; border-radius:12px;"></div>
+        </div>
+        <div class="ps-card">
+          <div class="skeleton-box" style="height:36px; width:80%; margin-bottom:4px; border-radius:12px;"></div>
+          <div class="skeleton-box" style="height:36px; width:90%; border-radius:12px;"></div>
+        </div>
+      </div>
     </section>
 
     <!-- TOOL CARDS -->
@@ -3096,8 +3244,28 @@
         <p class="section-desc">每個工具都標示了適用部門與使用步驟，三步以內就能上手。</p>
       </div>
       <div class="tools-layout fade-up">
-        <aside class="tools-sidebar" id="toolsSidebar"></aside>
-        <div class="tools-grid" id="toolsGrid"></div>
+        <aside class="tools-sidebar" id="toolsSidebar">
+          <div class="skeleton-box" style="height:24px; width:60%; margin-bottom:12px;"></div>
+          <div class="skeleton-box" style="height:30px; width:100%; margin-bottom:8px;"></div>
+          <div class="skeleton-box" style="height:30px; width:80%; margin-bottom:8px;"></div>
+        </aside>
+        <div class="tools-grid" id="toolsGrid">
+          <!-- Skeleton placeholders -->
+          <div class="tool-card">
+            <div class="skeleton-box" style="width:56px; height:56px; border-radius:16px; margin-bottom:16px;"></div>
+            <div class="skeleton-box" style="height:24px; width:60%; margin-bottom:10px;"></div>
+            <div class="skeleton-box" style="height:14px; width:40%; margin-bottom:16px;"></div>
+            <div class="skeleton-box" style="height:60px; width:100%; margin-bottom:20px;"></div>
+            <div class="skeleton-box" style="height:36px; width:100%;"></div>
+          </div>
+          <div class="tool-card">
+            <div class="skeleton-box" style="width:56px; height:56px; border-radius:16px; margin-bottom:16px;"></div>
+            <div class="skeleton-box" style="height:24px; width:70%; margin-bottom:10px;"></div>
+            <div class="skeleton-box" style="height:14px; width:50%; margin-bottom:16px;"></div>
+            <div class="skeleton-box" style="height:60px; width:100%; margin-bottom:20px;"></div>
+            <div class="skeleton-box" style="height:36px; width:100%;"></div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -4244,6 +4412,23 @@ ${toolsSummary}
       renderToolsSidebar();
       renderTools();
     }
+
+    // ── Theme Toggle ──
+    function initTheme() {
+      const themeBtn = document.getElementById('themeToggle');
+      if (!themeBtn) return;
+      const isDark = localStorage.getItem('simhope_theme') === 'dark';
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+        themeBtn.textContent = '☀️';
+      }
+      themeBtn.addEventListener('click', () => {
+        const darkEnabled = document.documentElement.classList.toggle('dark');
+        localStorage.setItem('simhope_theme', darkEnabled ? 'dark' : 'light');
+        themeBtn.textContent = darkEnabled ? '☀️' : '🌙';
+      });
+    }
+    initTheme();
 
     // 初始化
     initFirebaseData();

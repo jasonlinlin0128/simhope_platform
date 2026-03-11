@@ -6,6 +6,7 @@
     <link rel="icon"
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏭</text></svg>" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="view-transition" content="same-origin" />
     <title>工具詳情 — SimHope AI 工具中心</title>
     <script src="data.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -32,6 +33,29 @@
             --radius-sm: 12px;
             --radius-pill: 999px;
             --shadow: 0 4px 24px rgba(30, 27, 75, 0.08);
+
+            /* Elements */
+            --card-bg: #FFFFFF;
+            --card-border: rgba(30, 27, 75, 0.06);
+            --nav-bg: rgba(255, 248, 240, 0.85);
+            --nav-border: rgba(30, 27, 75, 0.06);
+            --dl-bg: #F9FAFB;
+        }
+
+        :root.dark {
+            --bg: #111827;
+            --white: #1F2937;
+            --text-dark: #F9FAFB;
+            --text-mid: #9CA3AF;
+            --accent: #8B5CF6;
+            --accent-light: rgba(139, 92, 246, 0.15);
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+
+            --card-bg: #1F2937;
+            --card-border: rgba(255, 255, 255, 0.05);
+            --nav-bg: rgba(17, 24, 39, 0.85);
+            --nav-border: rgba(255, 255, 255, 0.05);
+            --dl-bg: #374151;
         }
 
         body {
@@ -50,9 +74,10 @@
             align-items: center;
             justify-content: space-between;
             padding: 14px 5%;
-            background: rgba(255, 248, 240, 0.85);
+            background: var(--nav-bg);
             backdrop-filter: blur(16px);
-            border-bottom: 1px solid rgba(30, 27, 75, 0.06);
+            border-bottom: 1px solid var(--nav-border);
+            transition: background 0.3s, border-color 0.3s;
         }
 
         .nav-logo {
@@ -112,15 +137,15 @@
             }
         }
 
-        /* ── Sidebar ── */
         .sidebar {
             position: sticky;
             top: 80px;
-            background: var(--white);
+            background: var(--card-bg);
             border-radius: var(--radius);
             box-shadow: var(--shadow);
-            border: 1.5px solid rgba(30, 27, 75, 0.06);
+            border: 1.5px solid var(--card-border);
             overflow: hidden;
+            transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
         }
 
         .sidebar-hero {
@@ -196,6 +221,51 @@
             width: 6px;
             height: 6px;
             border-radius: 50%;
+        }
+
+        /* ─── Skeleton Loading ─── */
+        .skeleton-box {
+            background: linear-gradient(90deg, rgba(167, 139, 250, 0.1) 25%, rgba(167, 139, 250, 0.2) 37%, rgba(167, 139, 250, 0.1) 63%);
+            background-size: 400% 100%;
+            animation: skeleton-loading 1.4s ease infinite;
+            border-radius: 8px;
+        }
+
+        .dark .skeleton-box {
+            background: linear-gradient(90deg, rgba(167, 139, 250, 0.05) 25%, rgba(167, 139, 250, 0.1) 37%, rgba(167, 139, 250, 0.05) 63%);
+            background-size: 400% 100%;
+        }
+
+        @keyframes skeleton-loading {
+            0% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0 50%;
+            }
+        }
+
+        .theme-btn {
+            background: none;
+            border: 2px solid rgba(167, 139, 250, 0.3);
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            cursor: pointer;
+            color: var(--text-dark);
+            transition: all 0.2s;
+            margin-left: 12px;
+            flex-shrink: 0;
+        }
+
+        .theme-btn:hover {
+            background: rgba(167, 139, 250, 0.1);
+            transform: rotate(15deg);
         }
 
         .s-live {
@@ -300,9 +370,9 @@
             font-size: 0.8rem;
             padding: 2px 4px;
             border-radius: 4px;
-            border: 1px solid rgba(30, 27, 75, 0.1);
+            border: 1px solid var(--card-border);
             outline: none;
-            background: #F9FAFB;
+            background: var(--dl-bg);
             color: var(--text-dark);
             font-weight: 700;
             cursor: pointer;
@@ -315,8 +385,8 @@
             font-size: 0.75rem;
             padding: 6px 8px;
             border-radius: 6px;
-            border: 1px solid rgba(30, 27, 75, 0.1);
-            background: #F9FAFB;
+            border: 1px solid var(--card-border);
+            background: var(--dl-bg);
             color: var(--text-dark);
             outline: none;
             margin-top: 4px;
@@ -830,12 +900,13 @@
 
         /* Download files */
         .dl-section {
-            background: var(--white);
+            background: var(--card-bg);
             border-radius: var(--radius);
             box-shadow: var(--shadow);
-            border: 1.5px solid rgba(30, 27, 75, 0.06);
+            border: 1.5px solid var(--card-border);
             padding: 24px;
             margin-top: 16px;
+            transition: background 0.3s, border-color 0.3s;
         }
 
         .dl-section h2 {
@@ -855,11 +926,11 @@
             align-items: center;
             gap: 14px;
             padding: 16px 20px;
-            background: #F9FAFB;
-            border: 1.5px solid rgba(30, 27, 75, 0.08);
+            background: var(--dl-bg);
+            border: 1.5px solid var(--card-border);
             border-radius: 14px;
             text-decoration: none;
-            color: #1E1B4B;
+            color: var(--text-dark);
             transition: background .15s, border-color .15s;
         }
 
@@ -986,8 +1057,8 @@
             font-size: 0.75rem;
             padding: 6px 8px;
             border-radius: 6px;
-            border: 1px solid rgba(30, 27, 75, 0.1);
-            background: #F9FAFB;
+            border: 1px solid var(--card-border);
+            background: var(--dl-bg);
             color: var(--text-dark);
             outline: none;
             margin-top: 4px;
@@ -1005,7 +1076,15 @@
             padding: 4px;
             border-radius: 4px;
             border: 1px solid rgba(30, 27, 75, 0.1);
-            background: #F9FAFB;
+            background: var(--dl-bg);
+            color: var(--text-dark);
+        }
+
+        .review-form-card {
+            background: var(--dl-bg);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--card-border);
         }
     </style>
 </head>
@@ -1013,10 +1092,15 @@
 <body>
     <nav>
         <a class="nav-logo" href="index.html">🏭 SimHope AI 工具中心</a>
-        <div class="breadcrumb">
-            <a href="index.html" id="bcDashLink">儀表板</a>
-            <span class="breadcrumb-sep">›</span>
-            <span class="breadcrumb-current" id="breadcrumbTitle">載入中…</span>
+        <div style="display: flex; align-items: center;">
+            <div class="breadcrumb">
+                <a href="index.html" id="bcDashLink">儀表板</a>
+                <span class="breadcrumb-sep">›</span>
+                <span class="breadcrumb-current" id="breadcrumbTitle">
+                    <div class="skeleton-box" style="width: 80px; height: 16px; border-radius: 4px;"></div>
+                </span>
+            </div>
+            <button id="themeToggle" class="theme-btn" aria-label="Toggle Dark Mode" title="切換深色模式">🌙</button>
         </div>
     </nav>
 
@@ -1029,17 +1113,28 @@
     <div class="page-wrap">
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-hero">
-                <div class="sidebar-icon" id="sbIcon">…</div>
-                <div class="sidebar-title" id="sbTitle">載入中</div>
-                <div class="sidebar-tagline" id="sbTagline"></div>
+                <div class="sidebar-icon" id="sbIcon">
+                    <div class="skeleton-box" style="width: 48px; height: 48px; border-radius: 12px; margin: 0 auto;">
+                    </div>
+                </div>
+                <div class="sidebar-title" id="sbTitle">
+                    <div class="skeleton-box" style="width: 80%; height: 24px; margin: 4px auto;"></div>
+                </div>
+                <div class="sidebar-tagline" id="sbTagline">
+                    <div class="skeleton-box" style="width: 90%; height: 16px; margin: 4px auto;"></div>
+                    <div class="skeleton-box" style="width: 60%; height: 16px; margin: 4px auto 0;"></div>
+                </div>
             </div>
             <div class="sidebar-body">
-                <div class="sidebar-row"><span class="sidebar-label">分類</span><span class="sidebar-val"
-                        id="sbTypeWrap"><span id="sbType"></span></span></div>
-                <div class="sidebar-row"><span class="sidebar-label">部門</span><span class="sidebar-val"
-                        id="sbDeptWrap"><span id="sbDept"></span></span></div>
-                <div class="sidebar-row"><span class="sidebar-label">狀態</span><span id="sbStatusWrap"><span
-                            id="sbStatus"></span></span></div>
+                <div class="sidebar-row"><span class="sidebar-label">分類</span><span class="sidebar-val" id="sbTypeWrap">
+                        <div class="skeleton-box" style="width: 60px; height: 16px;"></div>
+                    </span></div>
+                <div class="sidebar-row"><span class="sidebar-label">部門</span><span class="sidebar-val" id="sbDeptWrap">
+                        <div class="skeleton-box" style="width: 60px; height: 16px;"></div>
+                    </span></div>
+                <div class="sidebar-row"><span class="sidebar-label">狀態</span><span id="sbStatusWrap">
+                        <div class="skeleton-box" style="width: 60px; height: 16px;"></div>
+                    </span></div>
                 <div class="sidebar-tags" id="sbTags"></div>
 
                 <div id="sbEditExtrasArea"
@@ -1066,20 +1161,34 @@
 
         <main class="main-content">
             <div class="content-header">
-                <h1 id="mainTitle">載入中…</h1>
-                <p class="content-summary" id="mainSummary"></p>
+                <h1 id="mainTitle">
+                    <div class="skeleton-box" style="width: 60%; height: 40px; margin-bottom: 8px;"></div>
+                </h1>
+                <div class="content-summary" id="mainSummary">
+                    <div class="skeleton-box" style="width: 100%; height: 20px; margin-bottom: 6px;"></div>
+                    <div class="skeleton-box" style="width: 80%; height: 20px;"></div>
+                </div>
             </div>
-            <div class="blocks-wrap" id="blocksWrap"></div>
+            <div class="blocks-wrap" id="blocksWrap">
+                <!-- Skeleton Blocks -->
+                <div class="skeleton-box" style="width: 100%; height: 60px; margin-bottom: 12px; border-radius: 8px;">
+                </div>
+                <div class="skeleton-box" style="width: 90%; height: 60px; margin-bottom: 12px; border-radius: 8px;">
+                </div>
+                <div class="skeleton-box" style="width: 95%; height: 100px; margin-bottom: 12px; border-radius: 8px;">
+                </div>
+            </div>
             <div id="ctaArea"></div>
             <div id="dlArea"></div>
 
             <!-- RATINGS AND REVIEWS AREA -->
-            <div id="reviewsArea" style="margin-top: 40px; padding-top: 24px; border-top: 1px solid rgba(0,0,0,0.1);">
+            <div id="reviewsArea"
+                style="margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--card-border);">
                 <h2 style="font-size: 1.3rem; font-weight: 800; margin-bottom: 16px;">💬 使用評價</h2>
 
                 <!-- Average Rating Display -->
                 <div id="avgRatingDisplay" style="display:flex; align-items:center; gap:12px; margin-bottom: 24px;">
-                    <span style="font-size: 2.2rem; font-weight: 800; color: #1E1B4B" id="avgScore">--</span>
+                    <span style="font-size: 2.2rem; font-weight: 800; color: var(--text-dark)" id="avgScore">--</span>
                     <div style="display:flex; flex-direction:column;">
                         <span style="color:#F59E0B; font-size:1.2rem;" id="avgStars">☆☆☆☆☆</span>
                         <span style="font-size:0.85rem; color: #6B7280" id="reviewCount">共 0 則評價</span>
@@ -1092,13 +1201,12 @@
                 </div>
 
                 <!-- Add Review Form -->
-                <div
-                    style="background: #F9FAFB; padding: 20px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.05);">
+                <div class="review-form-card">
                     <h3 style="font-size: 1rem; font-weight: 800; margin-bottom: 12px;">🌟 留下你的評價</h3>
 
                     <div style="margin-bottom: 12px;">
                         <label
-                            style="font-size:0.85rem; font-weight: 700; color: #374151; display:block; margin-bottom:6px;">評分</label>
+                            style="font-size:0.85rem; font-weight: 700; color: var(--text-mid); display:block; margin-bottom:6px;">評分</label>
                         <div class="star-rating" id="reviewStars"
                             style="font-size: 1.5rem; color: #D1D5DB; cursor: pointer;">
                             <span data-val="1">★</span><span data-val="2">★</span><span data-val="3">★</span><span
@@ -1109,9 +1217,9 @@
 
                     <div style="margin-bottom: 15px;">
                         <label
-                            style="font-size:0.85rem; font-weight: 700; color: #374151; display:block; margin-bottom:6px;">使用心得</label>
+                            style="font-size:0.85rem; font-weight: 700; color: var(--text-mid); display:block; margin-bottom:6px;">使用心得</label>
                         <textarea id="reviewText" rows="3"
-                            style="width:100%; padding:10px; border-radius:8px; border:1px solid #D1D5DB; font-family:inherit; resize:vertical; font-size:0.9rem;"
+                            style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--card-border); font-family:inherit; resize:vertical; font-size:0.9rem; background: var(--bg); color: var(--text-dark);"
                             placeholder="你覺得這個工具好用嗎？有什麼建議？"></textarea>
                     </div>
 
@@ -1203,6 +1311,23 @@
     </div>
 
     <script>
+        // ── Theme Toggle ──
+        function initTheme() {
+            const themeBtn = document.getElementById('themeToggle');
+            if (!themeBtn) return;
+            const isDark = localStorage.getItem('simhope_theme') === 'dark';
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+                themeBtn.textContent = '☀️';
+            }
+            themeBtn.addEventListener('click', () => {
+                const darkEnabled = document.documentElement.classList.toggle('dark');
+                localStorage.setItem('simhope_theme', darkEnabled ? 'dark' : 'light');
+                themeBtn.textContent = darkEnabled ? '☀️' : '🌙';
+            });
+        }
+        initTheme();
+
         // ── Get tool ──
         const params = new URLSearchParams(location.search);
         const toolId = params.get('id');

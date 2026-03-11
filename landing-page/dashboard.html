@@ -24,7 +24,90 @@
             --bg: linear-gradient(135deg, #E0E7FF 0%, #F0FDF4 40%, #FEF9C3 100%);
             --white: #fff;
             --radius: 16px;
-            --shadow: 0 6px 24px rgba(30, 27, 75, 0.06)
+            --shadow: 0 6px 24px rgba(30, 27, 75, 0.06);
+            --nav-bg: rgba(255, 255, 255, 0.82);
+            --nav-border: rgba(30, 27, 75, 0.06);
+            --card-border: rgba(255, 255, 255, 0.9);
+            --border-light: rgba(30, 27, 75, 0.1);
+        }
+
+        :root.dark {
+            --bg: #111827;
+            --text-dark: #F9FAFB;
+            --text-mid: #9CA3AF;
+            --white: #1F2937;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+            --nav-bg: rgba(17, 24, 39, 0.85);
+            --nav-border: rgba(255, 255, 255, 0.05);
+            --card-border: rgba(255, 255, 255, 0.05);
+            --border-light: rgba(255, 255, 255, 0.1);
+        }
+
+        .dark nav {
+            background: var(--nav-bg);
+            border-color: var(--nav-border);
+        }
+
+        .dark .stat-box,
+        .dark .dash-sidebar,
+        .dark .form-card,
+        .dark .user-card,
+        .dark .item-card,
+        .dark .edit-modal {
+            background: var(--white);
+            border-color: var(--card-border);
+        }
+
+        .dark .empty-state {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--border-light);
+        }
+
+        .dark .fg input,
+        .dark .fg select,
+        .dark .fg textarea,
+        .dark .act-btn,
+        .dark .home-btn,
+        .dark .nav-group-toggle {
+            background: rgba(0, 0, 0, 0.2);
+            border-color: var(--border-light);
+            color: var(--text-dark);
+        }
+
+        .dark .sidebar-profile,
+        .dark .sidebar-footer,
+        .dark .edit-modal-header,
+        .dark .edit-modal-footer {
+            border-color: var(--border-light);
+        }
+
+        .dark .edit-modal-footer {
+            background: var(--bg);
+        }
+
+        .dark .user-card-name span {
+            color: var(--text-mid);
+        }
+
+        .theme-btn {
+            background: none;
+            border: 2px solid rgba(99, 102, 241, 0.3);
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.05rem;
+            cursor: pointer;
+            color: var(--text-dark);
+            transition: all 0.2s;
+            margin-right: 8px;
+        }
+
+        .theme-btn:hover {
+            background: rgba(99, 102, 241, 0.1);
+            transform: rotate(15deg);
         }
 
         body {
@@ -40,9 +123,9 @@
             align-items: center;
             justify-content: space-between;
             padding: 16px 5%;
-            background: rgba(255, 255, 255, 0.82);
+            background: var(--nav-bg);
             backdrop-filter: blur(20px);
-            border-bottom: 1.5px solid rgba(30, 27, 75, 0.06);
+            border-bottom: 1.5px solid var(--nav-border);
             position: sticky;
             top: 0;
             z-index: 100
@@ -184,7 +267,7 @@
             border-radius: 12px;
             padding: 16px 20px;
             box-shadow: var(--shadow);
-            border: 1.5px solid rgba(255, 255, 255, 0.9);
+            border: 1.5px solid var(--card-border);
             flex: 1;
             text-align: center
         }
@@ -457,6 +540,46 @@
 
         .tab-pane.active {
             display: block
+        }
+
+        /* Empty States */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            background: rgba(255, 255, 255, 0.4);
+            border: 2px dashed rgba(30, 27, 75, 0.1);
+            border-radius: 16px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .empty-state-svg {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 16px;
+            opacity: 0.8;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .empty-state:hover .empty-state-svg {
+            transform: scale(1.05) translateY(-5px);
+        }
+
+        .empty-state-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin-bottom: 6px;
+        }
+
+        .empty-state-text {
+            font-size: 0.85rem;
+            color: var(--text-mid);
+            max-width: 300px;
+            line-height: 1.5;
         }
 
         /* Cards list */
@@ -988,16 +1111,44 @@
             }
 
             renderDashboard();
+
+            // Handle URL Hash for tab selection
+            const hash = window.location.hash.slice(1);
+            if (hash && document.querySelector(`.nav-item[data-tab="${hash}"]`)) {
+                switchTab(hash, false);
+
+                // Expand parent group if needed
+                const activeNav = document.querySelector(`.nav-item[data-tab="${hash}"]`);
+                if (activeNav) {
+                    const group = activeNav.closest('.nav-group-items');
+                    if (group && group.classList.contains('collapsed')) {
+                        toggleGroup(group.id);
+                    }
+                }
+            } else {
+                switchTab('my-tools', false); // default
+            }
         }
 
-        function switchTab(tabKey) {
+        function switchTab(tabKey, updateHash = true) {
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
             const ni = document.querySelector(`.nav-item[data-tab="${tabKey}"]`);
             if (ni) ni.classList.add('active');
             const pane = document.getElementById('pane-' + tabKey);
             if (pane) pane.classList.add('active');
+
+            if (updateHash) {
+                window.location.hash = tabKey;
+            }
         }
+
+        window.addEventListener('hashchange', () => {
+            const hash = window.location.hash.slice(1);
+            if (hash && document.querySelector(`.nav-item[data-tab="${hash}"]`)) {
+                switchTab(hash, false);
+            }
+        });
 
         function toggleGroup(id) {
             const el = document.getElementById(id);
@@ -1093,7 +1244,16 @@
 
         // ── Render: My Tools ──
         function renderMyTools() {
-            if (!myTools.length) return `<div class="empty-state"><div class="empty-state-icon">🔧</div><div class="empty-state-text">尚未提交任何工具</div></div>`;
+            if (!myTools.length) return `
+                <div class="empty-state">
+                    <svg class="empty-state-svg" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="100" cy="100" r="80" fill="#EEF2FF"/>
+                        <path d="M120 70L80 110M80 70L120 110" stroke="#C7D2FE" stroke-width="8" stroke-linecap="round"/>
+                        <rect x="70" y="130" width="60" height="12" rx="6" fill="#C7D2FE"/>
+                    </svg>
+                    <div class="empty-state-title">尚未提交任何工具</div>
+                    <div class="empty-state-text">點擊左側「新增工具」將您的絕佳想法轉換為實用的 AI 工具吧！</div>
+                </div>`;
             return `<div class="card-list">${myTools.map(t => {
                 const badgeCls = { approved: 'badge-approved', pending: 'badge-pending', rejected: 'badge-rejected' }[t.approval] || 'badge-pending';
                 const badgeLabel = { approved: '✅ 已上架', pending: '⏳ 待審核', rejected: '❌ 未通過' }[t.approval] || '⏳ 待審核';
@@ -1117,7 +1277,17 @@
 
         // ── Render: My Pain Cards ──
         function renderMyPainCards() {
-            if (!myPainCards.length) return `<div class="empty-state"><div class="empty-state-icon">😤</div><div class="empty-state-text">尚未提交任何痛點卡片</div></div>`;
+            if (!myPainCards.length) return `
+                <div class="empty-state">
+                    <svg class="empty-state-svg" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="100" cy="100" r="80" fill="#FEF3C7"/>
+                        <path d="M70 90C70 90 85 80 100 90C115 100 130 90 130 90" stroke="#FDE68A" stroke-width="8" stroke-linecap="round"/>
+                        <circle cx="85" cy="120" r="8" fill="#FDE68A"/>
+                        <circle cx="115" cy="120" r="8" fill="#FDE68A"/>
+                    </svg>
+                    <div class="empty-state-title">尚未提交任何痛點卡片</div>
+                    <div class="empty-state-text">發現了流程中的不便？點擊「新增痛點」讓我們知道您的困擾。</div>
+                </div>`;
             return `<div class="card-list">${myPainCards.map(c => {
                 const badgeCls = { approved: 'badge-approved', pending: 'badge-pending', rejected: 'badge-rejected' }[c.approval] || 'badge-pending';
                 const badgeLabel = { approved: '✅ 已上架', pending: '⏳ 待審核', rejected: '❌ 未通過' }[c.approval] || '⏳ 待審核';
@@ -1193,7 +1363,15 @@
                 ...pendingTools.map(t => ({ ...t, _type: 'tool' })),
                 ...pendingPainCards.map(c => ({ ...c, _type: 'pain' }))
             ];
-            if (!all.length) return `<div class="empty-state" ><div class="empty-state-icon">✅</div><div class="empty-state-text">沒有待審核的項目</div></div> `;
+            if (!all.length) return `
+                <div class="empty-state">
+                    <svg class="empty-state-svg" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="100" cy="100" r="80" fill="#DCFCE7"/>
+                        <path d="M65 105L85 125L135 75" stroke="#86EFAC" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <div class="empty-state-title">太棒了，全部審核完畢！</div>
+                    <div class="empty-state-text">目前沒有待審核的工具或痛點卡片，大家都很乖😎</div>
+                </div>`;
             return `<div class="card-list" > ${all.map(item => {
                 if (item._type === 'tool') {
                     return `<div class="item-card">
@@ -1262,7 +1440,16 @@
         function renderManageAll() {
             const tools = allToolsAdmin;
             const pains = allPainCardsAdmin;
-            if (!tools.length && !pains.length) return `<div class="empty-state" ><div class="empty-state-icon">⚙️</div><div class="empty-state-text">尚無任何已上架的工具或痛點</div></div> `;
+            if (!tools.length && !pains.length) return `
+                <div class="empty-state">
+                    <svg class="empty-state-svg" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="100" cy="100" r="80" fill="#F3F4F6"/>
+                        <circle cx="100" cy="100" r="30" stroke="#D1D5DB" stroke-width="12"/>
+                        <path d="M120 120L150 150" stroke="#D1D5DB" stroke-width="12" stroke-linecap="round"/>
+                    </svg>
+                    <div class="empty-state-title">平台尚無任何內容</div>
+                    <div class="empty-state-text">目前還沒有任何使用者提交工具或痛點卡片。</div>
+                </div>`;
             return `
                 <h3 style = "font-size:.88rem;font-weight:900;color:var(--text-mid);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px" >🔧 工具列表(${tools.length})</h3>
                 <div class="card-list" style="margin-bottom:24px">${tools.map(t => {
@@ -1550,8 +1737,23 @@
                 btn.disabled = false;
             }
         }
-    </script>
 
+        function initTheme() {
+            const themeBtn = document.getElementById('themeToggle');
+            if (!themeBtn) return;
+            const isDark = localStorage.getItem('simhope_theme') === 'dark';
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+                themeBtn.textContent = '☀️';
+            }
+            themeBtn.addEventListener('click', () => {
+                const darkEnabled = document.documentElement.classList.toggle('dark');
+                localStorage.setItem('simhope_theme', darkEnabled ? 'dark' : 'light');
+                themeBtn.textContent = darkEnabled ? '☀️' : '🌙';
+            });
+        }
+        document.addEventListener('DOMContentLoaded', initTheme);
+    </script>
 
     <!-- Edit Pain Modal -->
     <div class="edit-modal-overlay" id="editPainModal">
