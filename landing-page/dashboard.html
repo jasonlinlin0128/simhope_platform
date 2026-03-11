@@ -1369,7 +1369,11 @@
                     <div class="fg"><label>工具網址</label><input id="nt-url" placeholder="https://..." /></div>
                     <div class="fg"><label>標籤（逗號分隔）</label><input id="nt-tags" placeholder="翻譯, 多語言, 現場使用" /></div>
                     <div class="fg"><label>使用步驟（逗號分隔，最多三步）</label><input id="nt-steps" placeholder="選語言, 說話或打字, 看翻譯結果" /></div>
-                    <button class="submit-btn" type="submit" id="ntSubmit">${isAdmin ? '🚀 直接上架' : '📤 提交審核'}</button>
+                    <div id="nt-ai-panel"></div>
+                    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                        <button class="submit-btn" type="submit" id="ntSubmit" style="flex:1;">${isAdmin ? '🚀 直接上架' : '📤 提交審核'}</button>
+                        <button type="button" style="padding:11px 18px;border:1.5px dashed var(--accent);border-radius:12px;background:rgba(99,102,241,.06);color:var(--accent);font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;" onclick="aiSuggestTool()">✨ AI 優化文案</button>
+                    </div>
                 </form>
             </div>`;
         }
@@ -1386,7 +1390,11 @@
                     <div class="fg"><label>😓 痛點描述（使用前） *</label><textarea id="np-before" required placeholder="例：泰籍員工溝通靠比手畫腳，品質問題說不清楚…"></textarea></div>
                     <div class="fg"><label>✅ 解決後效益（使用後） *</label><textarea id="np-after" required placeholder="例：即時雙語翻譯，泰文中文一鍵切換…"></textarea></div>
                     <div class="fg"><label>🖼️ 示意圖片 URL（選填）</label><input id="np-image" type="url" placeholder="https://... 或留空（不加圖片）" /></div>
-                    <button class="submit-btn" type="submit" id="npSubmit">${isAdmin ? '🚀 直接上架' : '📤 提交審核'}</button>
+                    <div id="np-ai-panel"></div>
+                    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                        <button class="submit-btn" type="submit" id="npSubmit" style="flex:1;">${isAdmin ? '🚀 直接上架' : '📤 提交審核'}</button>
+                        <button type="button" style="padding:11px 18px;border:1.5px dashed var(--accent);border-radius:12px;background:rgba(99,102,241,.06);color:var(--accent);font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;" onclick="aiSuggestPain()">✨ AI 優化文案</button>
+                    </div>
                 </form>
             </div>`;
         }
@@ -1886,6 +1894,172 @@
             </div>
         </form>
     </div>
+
+    <script>
+        // ── LLM 文案助理 ──
+        let _geminiKeyCache = null;
+
+        async function loadGeminiKey() {
+            if (_geminiKeyCache) return _geminiKeyCache;
+            try {
+                const doc = await firebase.firestore().collection('chatConfig').doc('settings').get();
+                if (doc.exists && doc.data().geminiKey) {
+                    _geminiKeyCache = doc.data().geminiKey;
+                    return _geminiKeyCache;
+                }
+            } catch (_) { }
+            return null;
+        }
+
+        async function callGemini(prompt) {
+            const key = await loadGeminiKey();
+            if (!key) throw new Error('尚未設定 Gemini API Key，請至「Chatbot 設定」頁面設定。');
+            const res = await fetch(
+                `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                        generationConfig: { temperature: 0.6, maxOutputTokens: 800, responseMimeType: 'application/json' }
+                    })
+                }
+            );
+            if (res.status === 429) throw new Error('API 免費額度暫時用完，請稍後再試。');
+            if (!res.ok) throw new Error('Gemini API 錯誤 ' + res.status);
+            const data = await res.json();
+            const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+            return JSON.parse(text.replace(/```json\n?|\n?```/g, '').trim());
+        }
+
+        async function aiSuggestTool() {
+            const panel = document.getElementById('nt-ai-panel');
+            if (!panel) return;
+            const title = document.getElementById('nt-title')?.value.trim();
+            const tagline = document.getElementById('nt-tagline')?.value.trim();
+            const desc = document.getElementById('nt-desc')?.value.trim();
+            if (!title && !tagline && !desc) {
+                panel.innerHTML = `<div style="padding:12px;color:#e57;font-size:.82rem;border:1px solid #fee;border-radius:8px;margin-bottom:12px;">⚠️ 請先填寫工具名稱、介紹或描述，再點 AI 優化。</div>`;
+                return;
+            }
+            panel.innerHTML = `<div style="padding:12px;font-size:.82rem;color:var(--text-mid);display:flex;align-items:center;gap:8px;"><span style="animation:spin 1s linear infinite;display:inline-block;">⏳</span> AI 正在優化文案中...</div>`;
+            try {
+                const prompt = `你是台灣製造業 AI 工具平台的文案顧問。根據以下工具資訊，幫我優化文案，讓同仁容易理解、有共鳴：
+工具名稱：${title || '（未填）'}
+一句話介紹：${tagline || '（未填）'}
+詳細描述：${desc || '（未填）'}
+
+規則：繁體中文、親切口語、不要太技術性、不超過各欄位原本長度的1.5倍。
+請以 JSON 格式回應 {"title":"...","tagline":"...","desc":"..."}`;
+                const suggestions = await callGemini(prompt);
+                renderAiToolPanel(panel, suggestions);
+            } catch (e) {
+                panel.innerHTML = `<div style="padding:12px;color:#e57;font-size:.82rem;border:1px solid #fee;border-radius:8px;margin-bottom:12px;">❌ ${e.message}</div>`;
+            }
+        }
+
+        function renderAiToolPanel(panel, s) {
+            const fields = [
+                { label: '工具名稱', key: 'title', id: 'nt-title', tag: 'input' },
+                { label: '一句話介紹', key: 'tagline', id: 'nt-tagline', tag: 'input' },
+                { label: '詳細描述', key: 'desc', id: 'nt-desc', tag: 'textarea' },
+            ].filter(f => s[f.key]);
+            if (!fields.length) { panel.innerHTML = ''; return; }
+            panel.innerHTML = `
+                <div style="border:1.5px dashed rgba(99,102,241,.35);border-radius:12px;padding:14px;margin-bottom:14px;background:rgba(99,102,241,.03);">
+                    <div style="font-size:.8rem;font-weight:800;color:var(--accent);margin-bottom:10px;">✨ AI 建議（點「套用」填入表單）</div>
+                    ${fields.map(f => `
+                        <div style="margin-bottom:10px;">
+                            <div style="font-size:.72rem;font-weight:700;color:var(--text-mid);margin-bottom:4px;">${f.label}</div>
+                            <div style="font-size:.82rem;background:white;border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:4px;line-height:1.5;">${escapeHtml(s[f.key])}</div>
+                            <button type="button" onclick="applyAiField('${f.id}','${escapeJs(s[f.key])}')" style="font-size:.72rem;padding:3px 10px;border:1px solid var(--accent);background:rgba(99,102,241,.08);color:var(--accent);border-radius:999px;cursor:pointer;font-family:inherit;font-weight:700;">套用</button>
+                        </div>
+                    `).join('')}
+                    <button type="button" onclick="applyAllAiTool()" style="width:100%;margin-top:4px;padding:8px;border:none;background:var(--accent);color:white;border-radius:8px;cursor:pointer;font-weight:700;font-family:inherit;font-size:.82rem;">✅ 全部套用</button>
+                </div>`;
+            panel._suggestions = s;
+        }
+
+        function applyAllAiTool() {
+            const panel = document.getElementById('nt-ai-panel');
+            const s = panel._suggestions;
+            if (!s) return;
+            if (s.title) applyAiField('nt-title', s.title);
+            if (s.tagline) applyAiField('nt-tagline', s.tagline);
+            if (s.desc) applyAiField('nt-desc', s.desc);
+            panel.innerHTML = `<div style="padding:10px;font-size:.8rem;color:var(--green);margin-bottom:8px;">✅ 已套用所有 AI 建議啦！</div>`;
+        }
+
+        async function aiSuggestPain() {
+            const panel = document.getElementById('np-ai-panel');
+            if (!panel) return;
+            const before = document.getElementById('np-before')?.value.trim();
+            const after = document.getElementById('np-after')?.value.trim();
+            if (!before && !after) {
+                panel.innerHTML = `<div style="padding:12px;color:#e57;font-size:.82rem;border:1px solid #fee;border-radius:8px;margin-bottom:12px;">⚠️ 請先填寫使用前困境或使用後效益。</div>`;
+                return;
+            }
+            panel.innerHTML = `<div style="padding:12px;font-size:.82rem;color:var(--text-mid);display:flex;align-items:center;gap:8px;"><span style="animation:spin 1s linear infinite;display:inline-block;">⏳</span> AI 正在優化文案中...</div>`;
+            try {
+                const prompt = `你是台灣製造業 AI 工具平台的文案顧問。根據以下痛點資訊，幫我優化描述，讓同仁更有共鳴、更具體：
+使用前困境：${before || '（未填）'}
+使用後效益：${after || '（未填）'}
+
+規則：繁體中文、具體描述真實場景、帶情感但不誇張、語氣口語。
+請以 JSON 格式回應 {"before":"...","after":"..."}`;
+                const suggestions = await callGemini(prompt);
+                renderAiPainPanel(panel, suggestions);
+            } catch (e) {
+                panel.innerHTML = `<div style="padding:12px;color:#e57;font-size:.82rem;border:1px solid #fee;border-radius:8px;margin-bottom:12px;">❌ ${e.message}</div>`;
+            }
+        }
+
+        function renderAiPainPanel(panel, s) {
+            const fields = [
+                { label: '😓 使用前困境', key: 'before', id: 'np-before' },
+                { label: '✅ 使用後效益', key: 'after', id: 'np-after' },
+            ].filter(f => s[f.key]);
+            if (!fields.length) { panel.innerHTML = ''; return; }
+            panel.innerHTML = `
+                <div style="border:1.5px dashed rgba(99,102,241,.35);border-radius:12px;padding:14px;margin-bottom:14px;background:rgba(99,102,241,.03);">
+                    <div style="font-size:.8rem;font-weight:800;color:var(--accent);margin-bottom:10px;">✨ AI 建議（點「套用」填入表單）</div>
+                    ${fields.map(f => `
+                        <div style="margin-bottom:10px;">
+                            <div style="font-size:.72rem;font-weight:700;color:var(--text-mid);margin-bottom:4px;">${f.label}</div>
+                            <div style="font-size:.82rem;background:white;border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:4px;line-height:1.5;">${escapeHtml(s[f.key])}</div>
+                            <button type="button" onclick="applyAiField('${f.id}','${escapeJs(s[f.key])}')" style="font-size:.72rem;padding:3px 10px;border:1px solid var(--accent);background:rgba(99,102,241,.08);color:var(--accent);border-radius:999px;cursor:pointer;font-family:inherit;font-weight:700;">套用</button>
+                        </div>
+                    `).join('')}
+                    <button type="button" onclick="applyAllAiPain()" style="width:100%;margin-top:4px;padding:8px;border:none;background:var(--accent);color:white;border-radius:8px;cursor:pointer;font-weight:700;font-family:inherit;font-size:.82rem;">✅ 全部套用</button>
+                </div>`;
+            panel._suggestions = s;
+        }
+
+        function applyAllAiPain() {
+            const panel = document.getElementById('np-ai-panel');
+            const s = panel._suggestions;
+            if (!s) return;
+            if (s.before) applyAiField('np-before', s.before);
+            if (s.after) applyAiField('np-after', s.after);
+            panel.innerHTML = `<div style="padding:10px;font-size:.8rem;color:var(--green);margin-bottom:8px;">✅ 已套用所有 AI 建議啦！</div>`;
+        }
+
+        function applyAiField(id, value) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.value = value;
+            el.style.transition = 'background 0.4s';
+            el.style.background = 'rgba(99,102,241,0.08)';
+            setTimeout(() => { el.style.background = ''; }, 800);
+        }
+
+        function escapeHtml(str) {
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+        function escapeJs(str) {
+            return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n');
+        }
+    </script>
 
     <script>
         // ── Chatbot Config Panel ──
