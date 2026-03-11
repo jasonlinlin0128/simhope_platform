@@ -2207,9 +2207,9 @@
     .admin-drawer-toggle {
       display: none;
       position: fixed;
-      bottom: 24px;
+      bottom: 90px;
       right: 24px;
-      z-index: 288;
+      z-index: 289;
       width: 52px;
       height: 52px;
       border-radius: 50%;
@@ -2233,10 +2233,7 @@
       box-shadow: 0 10px 28px rgba(30, 27, 75, 0.5)
     }
 
-    /* hide old bottom toolbar since we replace with drawer */
-    .admin-toolbar {
-      display: none !important;
-    }
+    /* admin-toolbar shown via admin-logged-in class (see line ~1662) */
 
     .edit-badge {
       display: none !important;
