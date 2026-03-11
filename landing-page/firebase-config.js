@@ -86,7 +86,15 @@ const FireDB = {
         } else {
             snap = await db.collection('tools').where('approval', '==', 'approved').get();
         }
-        return snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (a.order || 0) - (b.order || 0));
+        const defaults = (typeof DB !== 'undefined' && DB.DEFAULT_TOOLS) ? DB.DEFAULT_TOOLS : [];
+        return snap.docs.map(d => {
+            const data = { id: d.id, ...d.data() };
+            if (!data.folder) {
+                const def = defaults.find(t => t.id === data.id);
+                if (def && def.folder) data.folder = def.folder;
+            }
+            return data;
+        }).sort((a, b) => (a.order || 0) - (b.order || 0));
     },
 
     async getToolsByAuthor(uid) {
@@ -109,7 +117,15 @@ const FireDB = {
 
     async getAllTools() {
         const snap = await db.collection('tools').get();
-        return snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (a.order || 0) - (b.order || 0));
+        const defaults = (typeof DB !== 'undefined' && DB.DEFAULT_TOOLS) ? DB.DEFAULT_TOOLS : [];
+        return snap.docs.map(d => {
+            const data = { id: d.id, ...d.data() };
+            if (!data.folder) {
+                const def = defaults.find(t => t.id === data.id);
+                if (def && def.folder) data.folder = def.folder;
+            }
+            return data;
+        }).sort((a, b) => (a.order || 0) - (b.order || 0));
     },
 
     async submitTool(toolData, authorUid) {
