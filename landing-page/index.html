@@ -5042,6 +5042,13 @@ ${toolList ? '目前可用工具：\n' + toolList + '\n\n' : ''} 重要規則：
             // Admin inline editing toolbar
             if (isAdminRole) {
               document.body.classList.add('admin-logged-in');
+              // Inject rich editor toolbar (once)
+              if (!document.getElementById('sh-editor-toolbar-script')) {
+                const ts = document.createElement('script');
+                ts.id = 'sh-editor-toolbar-script';
+                ts.src = 'editor-toolbar.js';
+                document.head.appendChild(ts);
+              }
               // load saved content from Firestore
               try {
                 const siteDoc = await db.collection('site').doc('content').get();

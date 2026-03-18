@@ -2301,6 +2301,10 @@
                     if (role === 'admin' || role === 'developer') {
                         isAdmin = true;
                         document.body.classList.add('admin-logged-in');
+                        // Inject rich editor toolbar for admin
+                        const ts = document.createElement('script');
+                        ts.src = 'editor-toolbar.js';
+                        document.head.appendChild(ts);
                     }
                 } catch (e) {
                     console.error('Failed to get user role:', e);
@@ -2310,21 +2314,8 @@
         });
     </script>
 
-    <!-- Floating Toolbar -->
-    <div id="floatingToolbar" class="floating-toolbar">
-        <button class="ft-btn" onmousedown="event.preventDefault(); execFormat('bold')" title="粗體 (Ctrl+B)">B</button>
-        <button class="ft-btn" onmousedown="event.preventDefault(); execFormat('italic')" title="斜體 (Ctrl+I)"
-            style="font-style:italic">I</button>
-        <button class="ft-btn" onmousedown="event.preventDefault(); execFormat('underline')" title="底線 (Ctrl+U)"
-            style="text-decoration:underline">U</button>
-        <button class="ft-btn" onmousedown="event.preventDefault(); execFormat('strikeThrough')" title="刪除線"
-            style="text-decoration:line-through">S</button>
-        <button class="ft-btn" onmousedown="event.preventDefault(); execLink()" title="加入連結">🔗</button>
-    </div>
-
     <!-- Slash Menu -->
     <div id="slashMenu" class="slash-menu"></div>
 </body>
 
 </html>
-```
