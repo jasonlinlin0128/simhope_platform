@@ -1,6 +1,7 @@
 /**
- * SimHope 工具箱 — 共用資料層
- * 所有資料存於 localStorage，index.html 與 admin.html 共享。
+ * SimHope 工具箱 — 靜態預設資料層
+ * DEFAULT_TOOLS 和 DEFAULT_SITE 為首次載入的預設資料。
+ * 實際運行資料以 Firestore 為主，localStorage 為備用。
  */
 
 const DB = {

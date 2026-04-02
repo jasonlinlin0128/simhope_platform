@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-TW">
 
 <head>
@@ -3877,9 +3877,15 @@
     }
 
     // ── Reset content ──
-    function resetContent() {
+    async function resetContent() {
       if (!confirm('確定要重置所有內容回預設值嗎？')) return;
       localStorage.removeItem(STORAGE_KEY);
+      // Also clear Firestore so reload pulls defaults, not stale cloud data
+      try {
+        if (typeof firebase !== 'undefined' && firebase.auth().currentUser) {
+          await firebase.firestore().collection('site').doc('content').delete();
+        }
+      } catch (e) { console.warn('Firestore reset failed:', e); }
       location.reload();
     }
 

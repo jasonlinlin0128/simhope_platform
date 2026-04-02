@@ -1,6 +1,10 @@
 /**
  * SimHope Firebase 設定
  * CDN script tags 在各 HTML 頁面載入，這裡只做初始化。
+ *
+ * SECURITY NOTE: Firebase Web API key 設計上是公開的（client-side only）。
+ * 安全性由 Firebase Security Rules 強制執行，而非依賴 key 的保密。
+ * 詳見：https://firebase.google.com/docs/projects/api-keys
  */
 
 const firebaseConfig = {
