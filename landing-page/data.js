@@ -20,7 +20,7 @@ const DB = {
             tagline: '泰文 ↔ 中文 ↔ 英文，三語即時切換',
             desc: '專為工廠現場溝通設計，操作介面超大字、按鈕明顯，師傅自己就能操作，不需要透過翻譯人員轉達。',
             folder: '跨國溝通專案', scenarios: ['生產現場', '跨國溝通'], steps: ['選語言', '說話或打字', '看翻譯結果'],
-            status: 'live', url: '#', tags: ['翻譯', '多語言', '現場使用']
+            status: 'live', url: 'https://jasonlinlin0128.github.io/tw-thai-translator/', tags: ['翻譯', '多語言', '現場使用']
         },
         {
             id: 't2', order: 1, color: 'c2', type: 'webapp',
@@ -28,7 +28,7 @@ const DB = {
             tagline: '5 分鐘找出合約裡的地雷條款',
             desc: '上傳 PDF 或 Word 合約，AI 自動掃描並用黃色標記異常用語、不合理條件、可能的法律風險，提供修改建議。',
             folder: '法務專案', scenarios: ['法務合約', '風險控管'], steps: ['上傳合約', '等 AI 分析', '查看風險點'],
-            status: 'live', url: '#', tags: ['合約', '法律', '風險分析']
+            status: 'live', url: 'https://gemini.google.com/share/d7614b48ac70', tags: ['合約', '法律', '風險分析']
         },
         {
             id: 't3a', order: 2, color: 'c3', type: 'webapp',
@@ -47,30 +47,13 @@ const DB = {
             status: 'live', url: 'https://daily-report-electrical.web.app/', tags: ['工時', '日報', '電控部']
         },
         {
-            id: 't4', order: 4, color: 'c5', type: 'webapp',
+            id: 't4', order: 4, color: 'c5', type: 'showcase',
             icon: '🔍', title: '內部文件問答庫',
             tagline: '把 SOP 跟技術文件變成可以問答的知識庫',
             desc: '把公司 SOP、圖面說明、技術規範全部上傳，之後直接用中文問問題，AI 從文件裡找答案，不再靠問老師傅或翻目錄。',
             folder: '知識庫專案', scenarios: ['技術傳承', '教育訓練'], steps: ['上傳文件', '輸入問題', '直接看答案'],
-            status: 'beta', url: '#', tags: ['RAG', '知識庫', 'SOP']
+            status: 'beta', url: '', tags: ['RAG', '知識庫', 'SOP']
         },
-        {
-            id: 't5', order: 5, color: 'c6', type: 'webapp',
-            icon: '📝', title: '說明書自動生成',
-            tagline: '輸入規格，自動輸出中英日三語草稿',
-            desc: '輸入產品型號、規格參數與注意事項，AI 依照標準格式生成完整說明書草稿，節省 80% 的撰寫時間，再自行校對即可。',
-            folder: '文書作業專案', scenarios: ['文書處理', '行銷支援'], steps: ['填入規格', '選擇語言', '下載草稿'],
-            status: 'new', url: '#', tags: ['文件', '多語言', '自動化']
-        },
-        {
-            id: 't6', order: 6, color: 'c1', type: 'webapp',
-            icon: '🔬', title: '外觀瑕疵 AI 檢測',
-            tagline: '拍一張照，AI 幫你找瑕疵和位置',
-            desc: '拍攝產品外觀照片上傳，AI 對比標準影像，自動標記瑕疵的位置與類型，輸出結構化檢測報告。',
-            folder: '品管專案', scenarios: ['品管檢驗'], steps: ['拍/上傳照片', 'AI 比對分析', '查看檢測報告'],
-            status: 'beta', url: '#', tags: ['品管', '視覺AI', '檢測']
-        },
-
         // ── 已上線：下載 / 展示型 ──
         {
             id: 't12', order: 7, color: 'c2', type: 'download',
@@ -79,7 +62,7 @@ const DB = {
             desc: '能夠在 PDF 上新增任意文字及簽名檔，加速紙本流程數位化，免去手動列印署名再掃描的麻煩。',
             folder: '行政作業專案', scenarios: ['行政簽核'], steps: ['開啟工具', '選 PDF', '加簽後匯出'],
             status: 'live', url: '', tags: ['簽章', 'PDF', '行政'],
-            files: []
+            files: [{ name: 'SOP簽名工具.exe', path: 'downloads/SOP簽名工具.exe', size: '74.8 MB' }]
         },
         {
             id: 't13', order: 8, color: 'c3', type: 'webapp',
@@ -97,7 +80,10 @@ const DB = {
             desc: '能夠修改電腦檔案的建立時間跟修改時間，適用需要對齊文件日期或整理歷史檔案的場景。',
             folder: '文書作業專案', scenarios: ['檔案管理'], steps: ['開啟工具', '選目標檔案', '設定日期存檔'],
             status: 'live', url: '', tags: ['系統工具', '檔案管理', '行政'],
-            files: []
+            files: [
+                { name: 'Update-FileCreationTime.exe', path: 'downloads/Update-FileCreationTime.exe', size: '150 KB' },
+                { name: 'Update-FileLastWriteTime.exe', path: 'downloads/Update-FileLastWriteTime.exe', size: '150 KB' }
+            ]
         },
         {
             id: 't15', order: 10, color: 'c5', type: 'showcase',
@@ -114,8 +100,9 @@ const DB = {
             tagline: '圖片 ↔ PDF 格式互轉，批量處理不費力',
             desc: '能夠圖片檔與 PDF 檔檔案格式互轉，支援批量操作，日常文件整理必備小工具。',
             folder: '文書作業專案', scenarios: ['文書處理'], steps: ['選檔案', '選目標格式', '下載轉檔結果'],
-            status: 'live', url: '', tags: ['轉檔', 'PDF', '圖片'],
-            files: []
+            status: 'live', url: '',
+            tags: ['轉檔', 'PDF', '圖片'],
+            files: [{ name: '轉檔小幫手.exe', path: 'downloads/轉檔小幫手.exe', size: '210.8 MB' }]
         },
 
         // ── 待驗收 ──
@@ -184,8 +171,6 @@ const DB = {
             { id: 'pc1', folder: '跨國溝通專案', scenarios: ['生產現場', '跨國溝通'], before: '泰籍員工溝通靠比手畫腳，品質問題說不清楚，主管也搞不定', after: '即時雙語翻譯，泰文中文一鍵切換，現場手機直接用' },
             { id: 'pc2', folder: '法務專案', scenarios: ['法務合約', '風險控管'], before: '合約文件幾十頁，看完要好幾小時，還不確定有沒有問題條款', after: '上傳合約，5 分鐘內 AI 標出所有異常條款與風險點' },
             { id: 'pc3', folder: '日報表專案', scenarios: ['專案管理', '主管稽核'], before: '工時用 LINE 回報，每次月底統計都要重新整理，錯誤一堆', after: '每人直接線上填，主管即時查看進度，月報一鍵匯出' },
-            { id: 'pc4', folder: '品管專案', scenarios: ['品管檢驗'], before: '外觀檢查靠人工目視，人一累就容易漏判，客訴不斷', after: '拍照上傳，AI 自動比對標準圖樣，標出瑕疵位置與類型' },
-            { id: 'pc5', folder: '文書作業專案', scenarios: ['文書處理', '行銷支援'], before: '產品說明書每次改規格就要重寫，翻譯成英文又要外包，費時費錢', after: '輸入規格，自動生成中英日三語說明書草稿，自己修改即可' },
             { id: 'pc6', folder: '知識庫專案', scenarios: ['技術傳承', '教育訓練'], before: '內部 SOP、技術文件散落各處，問老師傅不一定問得到', after: '把文件全部上傳，建立私有知識庫，直接用中文問問題' },
             { id: 'pc7', folder: '行政作業專案', scenarios: ['行政簽核'], before: 'PDF 簽名要列印、蓋章、再掃描，一份文件來回 20 分鐘', after: '電子簽章工具直接在 PDF 上加簽，批量處理省三倍時間' },
             { id: 'pc8', scenarios: ['行政簽核'], before: '出差單還在用紙本，要跑三個單位簽核，回來才能報帳', after: '線上填出差申請，主管線上審核，總務即時確認' },
