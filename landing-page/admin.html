@@ -1492,9 +1492,8 @@
             row.style.marginBottom = '8px';
             row.style.alignItems = 'center';
             row.innerHTML = `
-                <input type="text" placeholder="版本號 (如 v1.0)" class="v-ver" required style="width:70px; padding:6px; border-radius:6px; border:1px solid #ccc; font-size: 0.8rem;">
-                <input type="text" placeholder="更新說明" class="v-note" style="flex:1; padding:6px; border-radius:6px; border:1px solid #ccc; font-size: 0.8rem;">
-                <input type="url" placeholder="下載連結URL" class="v-url" required style="flex:2; padding:6px; border-radius:6px; border:1px solid #ccc; font-size: 0.8rem;">
+                <input type="text" placeholder="檔案名稱 (如 工具.exe)" class="v-ver" required style="flex:1; padding:6px; border-radius:6px; border:1px solid #ccc; font-size: 0.8rem;">
+                <input type="url" placeholder="下載連結URL (Google Drive)" class="v-url" required style="flex:2; padding:6px; border-radius:6px; border:1px solid #ccc; font-size: 0.8rem;">
                 <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove()" style="padding:4px 8px; flex-shrink:0;">×</button>
             `;
             wrap.appendChild(row);
@@ -1533,23 +1532,26 @@
             const vWrap = document.getElementById('tm-versions-wrap');
             if (vWrap) {
                 vWrap.innerHTML = '';
-                if (tool?.versions && tool.versions.length) {
-                    tool.versions.forEach(v => {
-                        const row = document.createElement('div');
-                        row.className = 'version-row';
-                        row.style.display = 'flex';
-                        row.style.gap = '8px';
-                        row.style.marginBottom = '8px';
-                        row.style.alignItems = 'center';
-                        row.innerHTML = `
-                            <input type="text" placeholder="版本號 (如 v1.0)" value="${v.version || ''}" class="v-ver" required style="width:70px; padding:6px; border-radius:6px; border:1px solid #ccc; font-size: 0.8rem;">
-                            <input type="text" placeholder="更新說明" value="${v.releaseNotes || ''}" class="v-note" style="flex:1; padding:6px; border-radius:6px; border:1px solid #ccc; font-size: 0.8rem;">
-                            <input type="url" placeholder="下載連結URL" value="${v.fileUrl || ''}" class="v-url" required style="flex:2; padding:6px; border-radius:6px; border:1px solid #ccc; font-size: 0.8rem;">
-                            <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove()" style="padding:4px 8px; flex-shrink:0;">×</button>
-                        `;
-                        vWrap.appendChild(row);
-                    });
-                }
+                // Support both new `files[]` format and legacy `versions[]` format
+                const existingFiles = tool?.files?.length
+                    ? tool.files.map(f => ({ name: f.name || '', url: f.url || '' }))
+                    : (tool?.versions?.length
+                        ? tool.versions.map(v => ({ name: v.version || '', url: v.fileUrl || '' }))
+                        : []);
+                existingFiles.forEach(f => {
+                    const row = document.createElement('div');
+                    row.className = 'version-row';
+                    row.style.display = 'flex';
+                    row.style.gap = '8px';
+                    row.style.marginBottom = '8px';
+                    row.style.alignItems = 'center';
+                    row.innerHTML = `
+                        <input type="text" placeholder="檔案名稱 (如 工具.exe)" value="${f.name}" class="v-ver" required style="flex:1; padding:6px; border-radius:6px; border:1px solid #ccc; font-size: 0.8rem;">
+                        <input type="url" placeholder="下載連結URL (Google Drive)" value="${f.url}" class="v-url" required style="flex:2; padding:6px; border-radius:6px; border:1px solid #ccc; font-size: 0.8rem;">
+                        <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove()" style="padding:4px 8px; flex-shrink:0;">×</button>
+                    `;
+                    vWrap.appendChild(row);
+                });
             }
 
             document.getElementById('toolModal').classList.add('open');
@@ -1566,7 +1568,7 @@
             const title = document.getElementById('tm-title').value.trim();
             const tagline = document.getElementById('tm-tagline').value.trim();
             const desc = document.getElementById('tm-desc').value.trim();
-            const type = document.querySelector('input[name="tm-type"]:checked').value;
+            const type = (document.querySelector('input[name="tm-type"]:checked') || { value: 'webapp' }).value;
             const url = document.getElementById('tm-url').value.trim();
             const s1 = document.getElementById('tm-s1').value.trim();
             const s2 = document.getElementById('tm-s2').value.trim();
@@ -1595,16 +1597,12 @@
             };
 
             const vRows = document.querySelectorAll('#tm-versions-wrap .version-row');
-            if (vRows.length > 0) {
-                tool.versions = [];
-                vRows.forEach(r => {
-                    tool.versions.push({
-                        version: r.querySelector('.v-ver').value.trim(),
-                        releaseNotes: r.querySelector('.v-note').value.trim(),
-                        fileUrl: r.querySelector('.v-url').value.trim(),
-                    });
-                });
-            }
+            tool.files = [];
+            vRows.forEach(r => {
+                const name = r.querySelector('.v-ver').value.trim();
+                const url = r.querySelector('.v-url').value.trim();
+                if (name && url) tool.files.push({ name, url });
+            });
             const tools = DB.getTools();
             if (id) {
                 const idx = tools.findIndex(t => t.id === id);
@@ -1661,7 +1659,8 @@
 
         // ── Modal UI Toggles ──
         function toggleSourceType() {
-            const t = document.querySelector('input[name="tm-type"]:checked').value;
+            const checked = document.querySelector('input[name="tm-type"]:checked');
+            const t = checked ? checked.value : 'webapp';
             document.getElementById('source-webapp').style.display = t === 'webapp' ? 'block' : 'none';
             document.getElementById('source-download').style.display = t === 'download' ? 'block' : 'none';
         }
@@ -1769,7 +1768,7 @@ JSON Schema:
 
             } catch (err) {
                 console.error(err);
-                alert('生成失敗：' + err.message);
+                showToast('⚠️ 生成失敗：' + err.message);
             } finally {
                 btn.disabled = false;
                 btn.textContent = '✨ 魔術生成';

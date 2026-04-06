@@ -62,7 +62,7 @@ const DB = {
             desc: '能夠在 PDF 上新增任意文字及簽名檔，加速紙本流程數位化，免去手動列印署名再掃描的麻煩。',
             folder: '行政作業專案', scenarios: ['行政簽核'], steps: ['開啟工具', '選 PDF', '加簽後匯出'],
             status: 'live', url: '', tags: ['簽章', 'PDF', '行政'],
-            files: [{ name: 'SOP簽名工具.exe', path: 'https://drive.google.com/file/d/1GFnUhBJchDALyOhAsZmbSPrKXNy6W7OI/view?usp=sharing', size: '74.8 MB' }]
+            files: [{ name: 'SOP簽名工具.exe', url: 'https://drive.google.com/file/d/1GFnUhBJchDALyOhAsZmbSPrKXNy6W7OI/view?usp=sharing', size: '74.8 MB' }]
         },
         {
             id: 't13', order: 8, color: 'c3', type: 'webapp',
@@ -81,8 +81,8 @@ const DB = {
             folder: '文書作業專案', scenarios: ['檔案管理'], steps: ['開啟工具', '選目標檔案', '設定日期存檔'],
             status: 'live', url: '', tags: ['系統工具', '檔案管理', '行政'],
             files: [
-                { name: 'Update-FileCreationTime.exe', path: 'https://drive.google.com/file/d/16JjrHbV_2PLHRrQNIrBfttjgwluIwbbo/view?usp=sharing', size: '150 KB' },
-                { name: 'Update-FileLastWriteTime.exe', path: 'https://drive.google.com/file/d/1u-scKil5ZtFdZwmyorWyaQeA79u2naug/view?usp=sharing', size: '150 KB' }
+                { name: 'Update-FileCreationTime.exe', url: 'https://drive.google.com/file/d/16JjrHbV_2PLHRrQNIrBfttjgwluIwbbo/view?usp=sharing', size: '150 KB' },
+                { name: 'Update-FileLastWriteTime.exe', url: 'https://drive.google.com/file/d/1u-scKil5ZtFdZwmyorWyaQeA79u2naug/view?usp=sharing', size: '150 KB' }
             ]
         },
         {
@@ -102,7 +102,7 @@ const DB = {
             folder: '文書作業專案', scenarios: ['文書處理'], steps: ['選檔案', '選目標格式', '下載轉檔結果'],
             status: 'live', url: '',
             tags: ['轉檔', 'PDF', '圖片'],
-            files: [{ name: '轉檔小幫手.exe', path: 'https://drive.google.com/file/d/1C4QlVv6y8l8jLJAFmdLKQMRrzG8mOTu1/view?usp=sharing', size: '210.8 MB' }]
+            files: [{ name: '轉檔小幫手.exe', url: 'https://drive.google.com/file/d/1C4QlVv6y8l8jLJAFmdLKQMRrzG8mOTu1/view?usp=sharing', size: '210.8 MB' }]
         },
 
         // ── 待驗收 ──
