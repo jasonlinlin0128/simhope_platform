@@ -199,6 +199,11 @@ const FireDB = {
             snap = await db.collection('painCards').where('approval', '==', 'approved').get();
         }
         const defaultPains = (typeof DB !== 'undefined' && DB.DEFAULT_SITE && DB.DEFAULT_SITE.painCards) ? DB.DEFAULT_SITE.painCards : [];
+        
+        if (snap.docs.length === 0 && defaultPains.length > 0) {
+            return defaultPains;
+        }
+
         return snap.docs.map(d => {
             const data = { id: d.id, ...d.data() };
             if (!data.folder) {

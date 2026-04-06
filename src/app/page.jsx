@@ -6,6 +6,41 @@ import ToolCard from '@/components/ToolCard';
 import PainCard from '@/components/PainCard';
 import Link from 'next/link';
 
+const TESTIMONIALS = [
+  {
+    color: '#A78BFA',
+    stars: 5,
+    quote: '以前跟越南廠商溝通要靠翻譯軟體複製貼上，現在直接在系統裡翻譯，開會不再卡關，效率差很多！',
+    name: '生產部領班',
+    dept: '壓鑄機生產線',
+    tool: '翻譯工具',
+  },
+  {
+    color: '#FF6B6B',
+    stars: 5,
+    quote: '合約這種東西以前要花很久看，用了 AI 審查之後，重點條款直接標出來，省了我至少一半時間。',
+    name: '採購部同仁',
+    dept: '國防零件採購',
+    tool: '合約審查',
+  },
+  {
+    color: '#34D399',
+    stars: 5,
+    quote: '工時日報以前都要手動整理 Excel，現在系統自動統計，月底不用再加班對資料了，大推！',
+    name: '電控部主管',
+    dept: '部門管理',
+    tool: '工時日報系統',
+  },
+  {
+    color: '#FFD166',
+    stars: 4,
+    quote: 'SOP 翻很久才找到答案，現在直接問文件問答庫，雖然偶爾還要再確認，但整體快很多。',
+    name: '工程部工程師',
+    dept: '國防工業專案',
+    tool: '文件問答庫',
+  },
+];
+
 const PAIN_CHIPS = [
   { emoji: '📄', text: '文件找半天' },
   { emoji: '🌏', text: '語言溝通卡關' },
@@ -237,6 +272,79 @@ export default function Home() {
               </div>
             )}
           </div>
+        </div>
+      </section>
+
+      {/* ── TESTIMONIALS ── */}
+      <section id="feedback" className="scroll-mt-32 mb-4">
+        <div className="mb-10 text-center">
+          <div className="inline-block px-3 py-1 rounded bg-purple-100/50 dark:bg-purple-900/20 text-[var(--color-clay-purple)] font-bold text-sm mb-4">
+            💬 同仁回饋
+          </div>
+          <h2 className="text-3xl md:text-4xl font-black text-[var(--color-text-dark)] mb-4">用過的人說……</h2>
+          <p className="text-[var(--color-text-mid)] font-semibold">這些是真實同仁的使用心得，不是業配。</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {TESTIMONIALS.map((t, i) => (
+            <div
+              key={i}
+              className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl p-6 shadow-[var(--shadow-clay)] border border-white/80 dark:border-white/5"
+              style={{ borderTop: `4px solid ${t.color}` }}
+            >
+              <div className="flex gap-0.5 mb-3">
+                {Array.from({ length: 5 }).map((_, si) => (
+                  <span key={si} className="text-lg" style={{ color: si < t.stars ? '#FFD166' : '#D1D5DB' }}>★</span>
+                ))}
+              </div>
+              <p className="text-[var(--color-text-dark)] dark:text-gray-100 font-semibold leading-relaxed mb-4">
+                「{t.quote}」
+              </p>
+              <div className="flex items-center gap-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-white font-black text-sm flex-shrink-0"
+                  style={{ background: t.color }}
+                >
+                  {t.name.charAt(0)}
+                </div>
+                <div>
+                  <div className="font-extrabold text-sm text-[var(--color-text-dark)]">{t.name}</div>
+                  <div className="text-xs text-[var(--color-text-mid)]">{t.dept}・使用{t.tool}</div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── CTA HELP ── */}
+      <section id="about" className="scroll-mt-32 mb-20">
+        <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-3xl p-10 md:p-14 text-center shadow-[var(--shadow-clay-lg)] border border-white/80 dark:border-white/5">
+          <div className="text-6xl mb-6">🤝</div>
+          <h2 className="text-3xl md:text-4xl font-black text-[var(--color-text-dark)] mb-4">
+            有工作上的困擾？<br />說出來，我來想辦法
+          </h2>
+          <p className="text-[var(--color-text-mid)] font-semibold mb-8 max-w-xl mx-auto leading-relaxed">
+            不知道有沒有工具可以用？有個想法但不知道怎麼實現？<br />
+            直接說，我會幫你找或幫你做。
+          </p>
+          <div className="flex gap-4 flex-wrap justify-center mb-6">
+            <Link
+              href="#tools"
+              className="px-8 py-4 rounded-full bg-gradient-to-br from-[var(--color-clay-purple)] to-[var(--color-clay-blue)] text-white font-extrabold text-base shadow-[0_6px_20px_rgba(167,139,250,0.45)] hover:-translate-y-1 hover:shadow-[0_12px_30px_rgba(167,139,250,0.55)] transition-all"
+            >
+              🔧 找現有工具
+            </Link>
+            <a
+              href="mailto:it@simhope.com.tw?subject=AI工具需求"
+              className="px-8 py-4 rounded-full bg-white dark:bg-gray-700 text-[var(--color-text-dark)] dark:text-gray-100 font-extrabold text-base border-2 border-[#1e1b4b]/15 dark:border-white/10 shadow-sm hover:-translate-y-1 hover:shadow-md transition-all"
+            >
+              💬 提需求給我
+            </a>
+          </div>
+          <p className="text-xs text-[var(--color-text-mid)] opacity-70">
+            * 需求會由 IT 部門評估，不保證每項都能實現，但每條都會看。
+          </p>
         </div>
       </section>
     </div>

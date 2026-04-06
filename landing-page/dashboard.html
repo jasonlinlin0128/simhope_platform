@@ -1345,7 +1345,21 @@
             const isAdmin = currentProfile.role === 'admin';
             const statuses = DB.STATUSES;
             return `<div class="form-card">
-                <h3>➕ 提交新工具</h3>
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 20px;">
+                    <h3 style="margin:0;">➕ 提交新工具</h3>
+                    <button type="button" class="btn btn-sm" style="background: linear-gradient(135deg, #A78BFA, #F472B6); color: white; border:none; font-weight: bold; padding: 6px 12px; border-radius:8px; cursor:pointer;" onclick="toggleDashboardAIPanel()">🪄 請 AI 幫我填寫</button>
+                </div>
+                
+                <!-- AI Assistant Panel -->
+                <div id="dh-ai-panel" style="display:none; background: #FAF5FF; border: 2px dashed #D8B4FE; border-radius: 12px; padding: 15px; margin-bottom: 20px; transition: all 0.3s;">
+                    <div style="font-size: 0.85rem; font-weight: bold; color: #7E22CE; margin-bottom: 8px;">✨ 描述你的工具，AI 會為你自動產出最棒的上架文案！</div>
+                    <div style="display: flex; gap: 10px;">
+                        <input id="dh-ai-prompt" type="text" style="flex:1; padding:10px 14px; border-radius:8px; border:2px solid #E5E7EB; margin-bottom:0; background: white;" placeholder="例如：我寫了一個查加工部報表錯字的小程式..." maxlength="100">
+                        <button type="button" onclick="aiGenerateDashboardContent()" class="btn btn-primary" style="background: #9333EA; color:white; font-weight:bold; border-radius:8px; padding:0 20px; border: none; white-space: nowrap;" id="dh-ai-btn">魔術生成</button>
+                    </div>
+                    <div id="dh-ai-status" style="font-size: 0.75rem; color: #6B7280; margin-top: 8px; display: none;">AI 正在施展魔法中...</div>
+                </div>
+
                 <form id="newToolForm" onsubmit="handleSubmitTool(event)">
                     <div class="fg-row">
                         <div class="fg"><label>工具名稱 *</label><input id="nt-title" required placeholder="例：現場即時翻譯" /></div>
@@ -1358,7 +1372,13 @@
                         <div class="fg"><label>適用場景（逗號分隔）</label><input id="nt-dept" placeholder="例：生產現場, 文書作業" /></div>
                     </div>
                     <div class="fg-row">
-                        <div class="fg"><label>工具類型</label><select id="nt-type"><option value="webapp">🌐 Web App</option><option value="download">⬇️ 下載工具</option><option value="showcase">📺 展示型</option></select></div>
+                        <div class="fg"><label>這是一個網頁工具，還是要下載的檔案？ *</label>
+                            <select id="nt-type" onchange="toggleDashboardSourceType()" required>
+                                <option value="webapp">🌐 網頁應用 (Web App)</option>
+                                <option value="download">📁 檔案下載 (如 .exe)</option>
+                                <option value="showcase">📺 展示型 (無連結)</option>
+                            </select>
+                        </div>
                         <div class="fg"><label>狀態</label><select id="nt-status">
                             ${isAdmin
                     ? Object.entries(statuses).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('')
@@ -1366,16 +1386,41 @@
                 }
                         </select></div>
                     </div>
-                    <div class="fg"><label>工具網址</label><input id="nt-url" placeholder="https://..." /></div>
+                    <div id="dh-source-webapp">
+                        <div class="fg"><label>網頁工具連結</label><input id="nt-url" type="url" placeholder="https://..." /></div>
+                    </div>
+                    <div id="dh-source-download" style="display:none; margin-bottom: 20px;">
+                        <label>檔案下載連結 (Google Drive 等)</label>
+                        <div style="background: #F3F4F6; padding: 20px; border-radius: 12px; border: 2px dashed #D1D5DB; text-align: center; margin-top: 5px;">
+                            <div style="font-size: 2rem; margin-bottom: 5px;">☁️</div>
+                            <div style="font-size: 0.95rem; font-weight: bold; color: #374151; margin-bottom: 5px;">檔案請存放於 Google Drive</div>
+                            <div style="font-size: 0.8rem; color: #6B7280; margin-bottom: 12px;">直接將 .exe 或資料夾拖曳至雲端硬碟，開啟「知道連結的人均可檢視」即可。</div>
+                            <input id="nt-file-url" type="url" placeholder="在此貼上 Google Drive 分享連結..." style="margin-bottom:0;" />
+                        </div>
+                    </div>
+
                     <div class="fg"><label>標籤（逗號分隔）</label><input id="nt-tags" placeholder="翻譯, 多語言, 現場使用" /></div>
                     <div class="fg"><label>使用步驟（逗號分隔，最多三步）</label><input id="nt-steps" placeholder="選語言, 說話或打字, 看翻譯結果" /></div>
-                    <div id="nt-ai-panel"></div>
-                    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:20px;">
                         <button class="submit-btn" type="submit" id="ntSubmit" style="flex:1;">${isAdmin ? '🚀 直接上架' : '📤 提交審核'}</button>
-                        <button type="button" style="padding:11px 18px;border:1.5px dashed var(--accent);border-radius:12px;background:rgba(99,102,241,.06);color:var(--accent);font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;" onclick="aiSuggestTool()">✨ AI 優化文案</button>
                     </div>
                 </form>
             </div>`;
+        }
+        
+        // Expose a helper to attach UI events after render
+        function toggleDashboardSourceType() {
+            const el = document.getElementById('nt-type');
+            if(!el) return;
+            const t = el.value;
+            const w = document.getElementById('dh-source-webapp');
+            const d = document.getElementById('dh-source-download');
+            if(w) w.style.display = (t === 'webapp') ? 'block' : 'none';
+            if(d) d.style.display = (t === 'download') ? 'block' : 'none';
+        }
+        function toggleDashboardAIPanel() {
+            const p = document.getElementById('dh-ai-panel');
+            if(p) p.style.display = p.style.display === 'none' ? 'block' : 'none';
         }
 
         function renderNewPainForm() {
@@ -1626,12 +1671,20 @@
                 folder: document.getElementById('nt-folder').value.trim() || '未分類專案',
                 type: document.getElementById('nt-type').value,
                 status: document.getElementById('nt-status')?.value || (isAdmin ? 'live' : 'dev'),
-                url: document.getElementById('nt-url').value.trim() || '#',
                 tags: document.getElementById('nt-tags').value.split(',').map(s => s.trim()).filter(Boolean),
                 steps: document.getElementById('nt-steps').value.split(',').map(s => s.trim()).filter(Boolean),
                 color: 'c' + (Math.floor(Math.random() * 6) + 1),
                 blog: { summary: '', blocks: [] }
             };
+            
+            if (data.type === 'download') {
+                data.url = document.getElementById('nt-file-url').value.trim();
+                data.files = [];
+                data.versions = [];
+            } else {
+                data.url = document.getElementById('nt-url').value.trim() || '#';
+            }
+            
             try {
                 if (isAdmin) {
                     await FireDB.submitToolDirect(data, currentUser.uid);
@@ -1932,62 +1985,99 @@
             return JSON.parse(text.replace(/```json\n?|\n?```/g, '').trim());
         }
 
-        async function aiSuggestTool() {
-            const panel = document.getElementById('nt-ai-panel');
-            if (!panel) return;
-            const title = document.getElementById('nt-title')?.value.trim();
-            const tagline = document.getElementById('nt-tagline')?.value.trim();
-            const desc = document.getElementById('nt-desc')?.value.trim();
-            if (!title && !tagline && !desc) {
-                panel.innerHTML = `<div style="padding:12px;color:#e57;font-size:.82rem;border:1px solid #fee;border-radius:8px;margin-bottom:12px;">⚠️ 請先填寫工具名稱、介紹或描述，再點 AI 優化。</div>`;
+        async function aiGenerateDashboardContent() {
+            const promptInput = document.getElementById('dh-ai-prompt').value.trim();
+            if (!promptInput) {
+                showToast('⚠️ 請先輸入一句話描述你的工具！');
                 return;
             }
-            panel.innerHTML = `<div style="padding:12px;font-size:.82rem;color:var(--text-mid);display:flex;align-items:center;gap:8px;"><span style="animation:spin 1s linear infinite;display:inline-block;">⏳</span> AI 正在優化文案中...</div>`;
-            try {
-                const prompt = `你是台灣製造業 AI 工具平台的文案顧問。根據以下工具資訊，幫我優化文案，讓同仁容易理解、有共鳴：
-工具名稱：${title || '（未填）'}
-一句話介紹：${tagline || '（未填）'}
-詳細描述：${desc || '（未填）'}
+            
+            const btn = document.getElementById('dh-ai-btn');
+            const status = document.getElementById('dh-ai-status');
+            btn.disabled = true;
+            btn.textContent = '生成中...';
+            status.style.display = 'block';
 
-規則：繁體中文、親切口語、不要太技術性、不超過各欄位原本長度的1.5倍。
-請以 JSON 格式回應 {"title":"...","tagline":"...","desc":"..."}`;
-                const suggestions = await callGemini(prompt);
-                renderAiToolPanel(panel, suggestions);
-            } catch (e) {
-                panel.innerHTML = `<div style="padding:12px;color:#e57;font-size:.82rem;border:1px solid #fee;border-radius:8px;margin-bottom:12px;">❌ ${e.message}</div>`;
+            try {
+                const key = await loadGeminiKey();
+                if (!key) throw new Error('找不到 Gemini API Key，請確定您已在 Chatbot 設定中輸入過。');
+                
+                const systemPrompt = `你是一個非常厲害的行銷企劃與產品經理。你要幫內部的開發者撰寫「工具上架文案」。
+使用者會用一句話描述他的小工具，請生出吸引人、白話文的文案，並固定輸出為純 JSON 格式。
+
+JSON Schema:
+{
+  "icon": "單一Emoji",
+  "title": "簡短名稱 (約6-12字)",
+  "tagline": "吸引人的副標題 (約10-25字)",
+  "desc": "功能與價值說明 (約50-80字，對非技術人員要友善白話)",
+  "dept": "factory 或 admin 或 mgmt 或 quality 或 defense 或 other (填入最適合的首選英文字)",
+  "s1": "步驟1 (動詞開頭，最多8字)",
+  "s2": "步驟2 (動詞開頭，最多8字)",
+  "s3": "步驟3 (動詞開頭，最多8字)",
+  "tags": ["關鍵字1", "關鍵字2", "關鍵字3"]
+}
+`;
+                const res = await callGeminiRaw(systemPrompt + "\n使用者描述：" + promptInput, key);
+                const result = res;
+
+                const typeText = async (id, newText) => {
+                    const el = document.getElementById(id);
+                    if(!el) return;
+                    el.value = '';
+                    for (let char of newText) {
+                        el.value += char;
+                        await new Promise(r => setTimeout(r, 15));
+                    }
+                };
+                
+                await Promise.all([
+                    typeText('nt-title', result.title || ''),
+                    typeText('nt-tagline', result.tagline || ''),
+                    typeText('nt-desc', result.desc || '')
+                ]);
+                
+                // Dashboard new tool has single inputs for tags/steps
+                if (result.tags && result.tags.length > 0) {
+                    await typeText('nt-tags', result.tags.join(', '));
+                }
+                const stepsArray = [result.s1, result.s2, result.s3].filter(Boolean);
+                if (stepsArray.length > 0) {
+                    await typeText('nt-steps', stepsArray.join(', '));
+                }
+                
+                if(result.icon) document.getElementById('nt-icon').value = result.icon;
+                if(result.dept) document.getElementById('nt-dept').value = result.dept;
+                
+                showToast('✨ 魔法生成完成！你可以隨意微調修改。');
+                toggleDashboardAIPanel();
+
+            } catch (err) {
+                console.error(err);
+                alert('生成失敗：' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '魔術生成';
+                status.style.display = 'none';
             }
         }
-
-        function renderAiToolPanel(panel, s) {
-            const fields = [
-                { label: '工具名稱', key: 'title', id: 'nt-title', tag: 'input' },
-                { label: '一句話介紹', key: 'tagline', id: 'nt-tagline', tag: 'input' },
-                { label: '詳細描述', key: 'desc', id: 'nt-desc', tag: 'textarea' },
-            ].filter(f => s[f.key]);
-            if (!fields.length) { panel.innerHTML = ''; return; }
-            panel.innerHTML = `
-                <div style="border:1.5px dashed rgba(99,102,241,.35);border-radius:12px;padding:14px;margin-bottom:14px;background:rgba(99,102,241,.03);">
-                    <div style="font-size:.8rem;font-weight:800;color:var(--accent);margin-bottom:10px;">✨ AI 建議（點「套用」填入表單）</div>
-                    ${fields.map(f => `
-                        <div style="margin-bottom:10px;">
-                            <div style="font-size:.72rem;font-weight:700;color:var(--text-mid);margin-bottom:4px;">${f.label}</div>
-                            <div style="font-size:.82rem;background:white;border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:4px;line-height:1.5;">${escapeHtml(s[f.key])}</div>
-                            <button type="button" onclick="applyAiField('${f.id}','${escapeJs(s[f.key])}')" style="font-size:.72rem;padding:3px 10px;border:1px solid var(--accent);background:rgba(99,102,241,.08);color:var(--accent);border-radius:999px;cursor:pointer;font-family:inherit;font-weight:700;">套用</button>
-                        </div>
-                    `).join('')}
-                    <button type="button" onclick="applyAllAiTool()" style="width:100%;margin-top:4px;padding:8px;border:none;background:var(--accent);color:white;border-radius:8px;cursor:pointer;font-weight:700;font-family:inherit;font-size:.82rem;">✅ 全部套用</button>
-                </div>`;
-            panel._suggestions = s;
-        }
-
-        function applyAllAiTool() {
-            const panel = document.getElementById('nt-ai-panel');
-            const s = panel._suggestions;
-            if (!s) return;
-            if (s.title) applyAiField('nt-title', s.title);
-            if (s.tagline) applyAiField('nt-tagline', s.tagline);
-            if (s.desc) applyAiField('nt-desc', s.desc);
-            panel.innerHTML = `<div style="padding:10px;font-size:.8rem;color:var(--green);margin-bottom:8px;">✅ 已套用所有 AI 建議啦！</div>`;
+        
+        async function callGeminiRaw(textContext, key) {
+             const res = await fetch(
+                 `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
+                 {
+                     method: 'POST',
+                     headers: { 'Content-Type': 'application/json' },
+                     body: JSON.stringify({
+                         contents: [{ role: 'user', parts: [{ text: textContext }] }],
+                         generationConfig: { temperature: 0.7, maxOutputTokens: 800, responseMimeType: 'application/json' }
+                     })
+                 }
+             );
+             if (!res.ok) throw new Error('API 呼叫失敗');
+             const data = await res.json();
+             const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+             return JSON.parse(text.replace(/```json\n?|\n?```/g, '').trim());
         }
 
         async function aiSuggestPain() {

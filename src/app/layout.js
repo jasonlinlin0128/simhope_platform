@@ -4,6 +4,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import Navbar from "@/components/Navbar";
 import ThemeProvider from "@/components/ThemeProvider";
 import BlobBackground from "@/components/BlobBackground";
+import ChatbotWidget from "@/components/ChatbotWidget";
 
 const nunito = Nunito({
   variable: "--font-nunito",
@@ -35,6 +36,7 @@ export default function RootLayout({ children }) {
             <main className="flex-1 w-full max-w-7xl mx-auto py-8">
               {children}
             </main>
+            <ChatbotWidget />
           </AuthProvider>
         </ThemeProvider>
       </body>

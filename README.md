@@ -1,25 +1,36 @@
-# SimHope AI 工具中心
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
-公司內部 AI 工具平台 Landing Page，採用純靜態 HTML/CSS/JS 建置，資料存於 localStorage。
+## Getting Started
 
-## 結構
+First, run the development server:
 
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
-landing-page/
-├── index.html   公開首頁（工具展示）
-├── admin.html   後台管理（工具 CRUD / 網站設定）
-└── data.js      共用資料層（localStorage）
-```
 
-## 部署
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-本站透過 **Vercel** 部署靜態檔案，ROOT 目錄設定為 `landing-page/`。
+You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
 
-## 本地預覽
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-直接用瀏覽器開啟 `landing-page/index.html` 即可。
+## Learn More
 
-## 管理員
+To learn more about Next.js, take a look at the following resources:
 
-- 網址：`/admin.html`
-- 帳號：`simhope`（可在 `data.js` / `admin.html` 中修改）
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

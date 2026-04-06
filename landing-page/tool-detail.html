@@ -1111,6 +1111,8 @@
 
     <div class="admin-bar" id="adminBar">
         <span class="admin-bar-title" id="adminBarTitle">✏️ 編輯模式</span>
+        <button class="ab-btn" style="background: linear-gradient(135deg, #A78BFA, #F472B6); color: white; border:none; margin-left: 15px; padding: 6px 12px; font-weight: bold; border-radius: 6px; box-shadow: 0 4px 12px rgba(167, 139, 250, 0.4);" onclick="toggleDetailAIPanel()">🪄 請 AI 幫我填寫</button>
+        <div style="flex:1"></div>
         <button class="ab-btn ab-btn-primary" onclick="saveBlog()">💾 儲存</button>
         <button class="ab-btn" onclick="location.href='index.html'">← 回首頁</button>
     </div>
@@ -1144,27 +1146,54 @@
 
                 <div id="sbEditExtrasArea"
                     style="display:none; margin-top: 16px; border-top: 1px dashed rgba(30,27,75,0.1); padding-top: 12px;">
-                    <span class="sidebar-label"
-                        style="font-size:0.75rem; display:block; margin-bottom:2px; font-weight: 800; color:var(--text-dark)">🔗
-                        連結網址</span>
-                    <input type="url" id="sbUrlInput" class="sb-url-input" placeholder="輸入工具 URL (webapp必填)" />
+                    
+                    <span class="sidebar-label" style="font-size:0.75rem; display:block; margin-bottom:5px; font-weight: 800; color:var(--text-dark)">🛠️ 工具型態切換</span>
+                    <div style="display:flex; flex-direction:column; gap:5px; margin-bottom:12px;">
+                        <label style="font-size:0.8rem; cursor:pointer;"><input type="radio" name="td-type" value="webapp" checked onchange="toggleDetailSourceType()"> 🌐 網頁應用 (Web App)</label>
+                        <label style="font-size:0.8rem; cursor:pointer;"><input type="radio" name="td-type" value="download" onchange="toggleDetailSourceType()"> 📁 檔案下載 (如 .exe)</label>
+                    </div>
+
+                    <div id="td-source-webapp">
+                        <span class="sidebar-label"
+                            style="font-size:0.75rem; display:block; margin-bottom:2px; font-weight: 800; color:var(--text-dark)">🔗
+                            連結網址</span>
+                        <input type="url" id="sbUrlInput" class="sb-url-input" placeholder="輸入工具 URL (webapp必填)" />
+                    </div>
+
+                    <div id="td-source-download" style="display:none;">
+                        <div style="background: #F3F4F6; padding: 10px; border-radius: 8px; border: 2px dashed #D1D5DB; text-align: center; margin-bottom: 10px;">
+                            <div style="font-size: 1.5rem; margin-bottom: 5px;">☁️</div>
+                            <div style="font-size: 0.8rem; font-weight: bold; color: #374151;">檔案上傳至 Google Drive</div>
+                            <div style="font-size: 0.7rem; color: #6B7280; margin-bottom: 8px;">分享連結請貼在下方版本清單或貼入以下輸入框：</div>
+                            
+                            <span class="sidebar-label"
+                                style="font-size:0.75rem; display:block; text-align:left; margin-bottom:2px; font-weight: 800; color:var(--text-dark)">📦
+                                版本更新與載點 (Google Drive 連結)</span>
+                            <div id="sbVersionsWrap" style="margin-top: 4px; text-align:left;"></div>
+                            <button class="tag-add-btn" onclick="addToolVersionRow()" style="margin-top: 4px;">+ 新增檔案連結</button>
+                        </div>
+                    </div>
 
                     <span class="sidebar-label"
                         style="font-size:0.75rem; display:block; margin-top:12px; margin-bottom:2px; font-weight: 800; color:var(--text-dark)">👣
                         使用步驟 (逗號分隔)</span>
                     <input type="text" id="sbStepsInput" class="sidebar-steps-input" placeholder="選語言, 說話或打字, 看翻譯結果" />
-
-                    <span class="sidebar-label"
-                        style="font-size:0.75rem; display:block; margin-top:12px; margin-bottom:2px; font-weight: 800; color:var(--text-dark)">📦
-                        版本更新與下載</span>
-                    <div id="sbVersionsWrap" style="margin-top: 4px;"></div>
-                    <button class="tag-add-btn" onclick="addToolVersionRow()" style="margin-top: 4px;">+ 新增版本</button>
                 </div>
             </div>
             <div class="sidebar-cta" id="sbCta"></div>
         </aside>
 
         <main class="main-content">
+            <!-- AI Assistant Panel -->
+            <div id="td-ai-panel" style="display:none; background: #FAF5FF; border: 2px dashed #D8B4FE; border-radius: 12px; padding: 15px; margin-bottom: 20px; transition: all 0.3s;">
+                <div style="font-size: 0.85rem; font-weight: bold; color: #7E22CE; margin-bottom: 8px;">✨ 描述你的工具，AI 會幫你重寫或補齊這個工具的所有資訊與文章內容！</div>
+                <div style="display: flex; gap: 10px;">
+                    <input id="td-ai-prompt" type="text" class="sb-url-input" style="flex:1; margin-bottom:0; background: white; padding: 10px; border-radius:8px;" placeholder="例如：這是一個查加工部報表錯字的小程式..." maxlength="100">
+                    <button onclick="aiGenerateDetailContent()" class="ab-btn ab-btn-primary" style="background: #9333EA; border: none; white-space: nowrap; margin-bottom:0;" id="td-ai-btn">✨ 魔術生成</button>
+                </div>
+                <div id="td-ai-status" style="font-size: 0.75rem; color: #6B7280; margin-top: 8px; display: none;">AI 正在施展魔法中...</div>
+            </div>
+
             <div class="content-header">
                 <h1 id="mainTitle">
                     <div class="skeleton-box" style="width: 60%; height: 40px; margin-bottom: 8px;"></div>
@@ -1470,14 +1499,12 @@
                     t.versions.forEach(v => addToolVersionRow(v.version, v.releaseNotes, v.fileUrl));
                 }
 
-                // Editable Type Select
-                document.getElementById('sbTypeWrap').innerHTML = `
-                    <select id="editTypeSelect" class="sb-select">
-                        <option value="webapp" ${t.type === 'webapp' ? 'selected' : ''}>🌐 Web App</option>
-                        <option value="download" ${t.type === 'download' ? 'selected' : ''}>⬇️ 下載工具</option>
-                        <option value="showcase" ${t.type === 'showcase' ? 'selected' : ''}>📺 展示型</option>
-                    </select>
-                `;
+                // Set Radio type correctly
+                const typeRadio = document.querySelector(`input[name="td-type"][value="${t.type || 'webapp'}"]`);
+                if (typeRadio) typeRadio.checked = true;
+                toggleDetailSourceType(); // Apply display visibility 
+
+                document.getElementById('sbTypeWrap').textContent = typeLabels[t.type] || '網頁應用';
 
                 // Editable Scenarios via Text Input
                 const scs = t.scenarios && Array.isArray(t.scenarios) ? t.scenarios : (t.dept ? [(DB.DEPTS[t.dept]?.label || t.dept).replace(/^.*? /, '')] : ['其他']);
@@ -2223,8 +2250,8 @@
             tools[idx].desc = document.getElementById('mainSummary')?.textContent || '';
             tools[idx].tags = tool.tags || [];
 
-            const typeSel = document.getElementById('editTypeSelect');
-            if (typeSel) tools[idx].type = typeSel.value;
+            const typeRadio = document.querySelector('input[name="td-type"]:checked');
+            if (typeRadio) tools[idx].type = typeRadio.value;
 
             const deptInput = document.getElementById('editDeptSelect');
             if (deptInput) tools[idx].scenarios = deptInput.value.split(/[,，]/).map(s => s.trim()).filter(Boolean);
@@ -2235,26 +2262,21 @@
             const statusSel = document.getElementById('editStatusSelect');
             if (statusSel) tools[idx].status = statusSel.value;
 
-            const urlInput = document.getElementById('sbUrlInput');
-            if (urlInput) tools[idx].url = urlInput.value.trim();
-
             const stepsInput = document.getElementById('sbStepsInput');
-            if (stepsInput) {
-                tools[idx].steps = stepsInput.value.split(',').map(s => s.trim()).filter(Boolean);
-            }
+            if (stepsInput) tools[idx].steps = stepsInput.value.split(',').map(s => s.trim()).filter(Boolean);
 
-            const versionsWrap = document.getElementById('sbVersionsWrap');
-            if (versionsWrap) {
-                const rows = versionsWrap.querySelectorAll('.version-row');
-                const versions = [];
-                rows.forEach(r => {
-                    versions.push({
-                        version: r.querySelector('.v-ver').value.trim(),
-                        releaseNotes: r.querySelector('.v-note').value.trim(),
-                        fileUrl: r.querySelector('.v-url').value.trim(),
-                    });
-                });
-                tools[idx].versions = versions;
+            if (tools[idx].type === 'download') {
+                const versionsWrap = document.getElementById('sbVersionsWrap');
+                if (versionsWrap) {
+                    const rows = versionsWrap.querySelectorAll('.version-row');
+                    const urls = Array.from(rows)
+                        .map(r => r.querySelector('.v-url').value.trim())
+                        .filter(Boolean);
+                    if (urls.length > 0) tools[idx].url = urls[urls.length - 1];
+                }
+            } else {
+                const urlInput = document.getElementById('sbUrlInput');
+                if (urlInput) tools[idx].url = urlInput.value.trim();
             }
 
             if (!tools[idx].blog) tools[idx].blog = {};
@@ -2270,6 +2292,8 @@
             let ctaHtml = '';
             if (tools[idx].type === 'webapp' && tools[idx].url && tools[idx].url !== '#' && tools[idx].status !== 'terminated') {
                 ctaHtml += `<a class="cta-btn cta-btn-primary" href="${tools[idx].url}" target="_blank">🚀 前往使用</a>`;
+            } else if (tools[idx].type === 'download' && tools[idx].url && tools[idx].status !== 'terminated') {
+                ctaHtml += `<a class="cta-btn cta-btn-primary" href="${tools[idx].url}" target="_blank">⬇️ 點此下載</a>`;
             }
             ctaHtml += `<a class="cta-btn cta-btn-secondary" href="index.html">← 回工具總覽</a>`;
             cta.innerHTML = ctaHtml;
@@ -2289,6 +2313,119 @@
         document.addEventListener('keydown', e => {
             if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); if (isAdmin) saveBlog(); }
         });
+
+        // ── AI Assistant & UI Toggles ──
+        function toggleDetailSourceType() {
+            const t = document.querySelector('input[name="td-type"]:checked')?.value;
+            const w = document.getElementById('td-source-webapp');
+            const d = document.getElementById('td-source-download');
+            if(w) w.style.display = (t === 'webapp') ? 'block' : 'none';
+            if(d) d.style.display = (t === 'download') ? 'block' : 'none';
+        }
+
+        function toggleDetailAIPanel() {
+            const p = document.getElementById('td-ai-panel');
+            if(p) p.style.display = p.style.display === 'none' ? 'block' : 'none';
+        }
+
+        async function loadGeminiKey() {
+            try {
+                const doc = await firebase.firestore().collection('chatConfig').doc('settings').get();
+                return doc.exists ? doc.data().geminiKey : null;
+            } catch (_) {}
+            return null;
+        }
+
+        async function aiGenerateDetailContent() {
+            const promptInput = document.getElementById('td-ai-prompt').value.trim();
+            if (!promptInput) {
+                showToast('⚠️ 請先輸入一句話描述你的工具！');
+                return;
+            }
+            
+            const btn = document.getElementById('td-ai-btn');
+            const status = document.getElementById('td-ai-status');
+            btn.disabled = true;
+            btn.textContent = '生成中...';
+            status.style.display = 'block';
+
+            try {
+                const key = await loadGeminiKey();
+                if (!key) throw new Error('找不到 Gemini API Key，請確定您已在 Chatbot 設定中輸入過。');
+                
+                const systemPrompt = `你是一個非常厲害的行銷企劃與產品經理。你要幫內部的開發者撰寫「工具上架文案」。
+使用者會用一句話描述他的小工具，請生出吸引人、白話文的文案，並固定輸出為純 JSON 格式。
+
+JSON Schema:
+{
+  "icon": "單一Emoji",
+  "title": "簡短名稱 (約6-12字)",
+  "tagline": "吸引人的副標題 (約10-25字)",
+  "desc": "功能與價值說明 (約50-80字)",
+  "s1": "步驟1 (動詞開頭，最多8字)",
+  "s2": "步驟2 (動詞開頭，最多8字)",
+  "s3": "步驟3 (動詞開頭，最多8字)"
+}
+`;
+                const res = await fetch(
+                    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{ role: 'user', parts: [{ text: systemPrompt + "\n使用者描述：" + promptInput }] }],
+                            generationConfig: { temperature: 0.7, maxOutputTokens: 800, responseMimeType: 'application/json' }
+                        })
+                    }
+                );
+                if (!res.ok) throw new Error('API 呼叫失敗');
+                const data = await res.json();
+                const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+                const result = JSON.parse(text.replace(/```json\n?|\n?```/g, '').trim());
+
+                const typeText = async (id, newText) => {
+                    const el = document.getElementById(id);
+                    if(!el || !newText) return;
+                    // For contenteditable
+                    if(el.hasAttribute('contenteditable')) {
+                         el.textContent = '';
+                         for (let char of newText) {
+                             el.textContent += char;
+                             await new Promise(r => setTimeout(r, 15));
+                         }
+                    } else { // For inputs
+                         el.value = '';
+                         for (let char of newText) {
+                             el.value += char;
+                             await new Promise(r => setTimeout(r, 15));
+                         }
+                    }
+                };
+                
+                await Promise.all([
+                    typeText('sbTitle', result.title),
+                    typeText('sbTagline', result.tagline),
+                    typeText('mainSummary', result.desc)
+                ]);
+                
+                const stepsArray = [result.s1, result.s2, result.s3].filter(Boolean);
+                if (stepsArray.length > 0) {
+                    await typeText('sbStepsInput', stepsArray.join(', '));
+                }
+                if(result.icon) document.getElementById('sbIcon').textContent = result.icon;
+                
+                showToast('✨ 魔法生成完成！記得按下儲存喔！');
+                toggleDetailAIPanel();
+                saveBlog(); // Auto save
+            } catch (err) {
+                console.error(err);
+                alert('生成失敗：' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '✨ 魔術生成';
+                status.style.display = 'none';
+            }
+        }
 
         // ── INIT (must be AFTER all declarations) ──
         // 等待 Firebase Auth 狀態載入後再繪製頁面內容
