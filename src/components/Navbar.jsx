@@ -35,9 +35,9 @@ export default function Navbar() {
       {/* Right side */}
       <div className="flex items-center gap-4 md:gap-5 text-sm font-bold text-gray-600 dark:text-gray-300">
         {/* Nav links */}
-        <Link href="/#tools" className="hidden md:inline hover:text-violet-500 transition-colors">工具總覽</Link>
-        <Link href="/#about" className="hidden md:inline hover:text-violet-500 transition-colors">關於這個平台</Link>
-        <Link href="/#feedback" className="hidden md:inline hover:text-violet-500 transition-colors">同仁回饋</Link>
+        <Link href="/#tools" className="hidden md:inline hover:text-violet-500 dark:hover:text-violet-400 transition-colors">工具總覽</Link>
+        <Link href="/#about" className="hidden md:inline hover:text-violet-500 dark:hover:text-violet-400 transition-colors">關於這個平台</Link>
+        <Link href="/#feedback" className="hidden md:inline hover:text-violet-500 dark:hover:text-violet-400 transition-colors">同仁回饋</Link>
 
         {/* Find tool CTA */}
         <Link
