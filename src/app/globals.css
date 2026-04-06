@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+/* Enable class-based dark mode for Tailwind v4 */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Blob float fallback keyframe */
+@keyframes blobFloat {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+@theme inline {
+  /* Override Tailwind v4 default font-sans so preflight uses our fonts */
+  --font-sans: var(--font-nunito), var(--font-noto-sans-tc), ui-sans-serif, system-ui, sans-serif;
+
+  --color-bg: var(--bg);
+  --color-clay-yellow: var(--clay-yellow);
+  --color-clay-coral: var(--clay-coral);
+  --color-clay-purple: var(--clay-purple);
+  --color-clay-blue: var(--clay-blue);
+  --color-clay-green: var(--clay-green);
+  --color-clay-pink: var(--clay-pink);
+  --color-clay-orange: var(--clay-orange);
+  --color-text-dark: var(--text-dark);
+  --color-text-mid: var(--text-mid);
+  --color-card-bg: var(--card-bg);
+  --color-card-border: var(--card-border);
+  --color-nav-bg: var(--nav-bg);
+  --color-nav-border: var(--nav-border);
+  --color-footer-bg: var(--footer-bg);
+  --color-footer-text: var(--footer-text);
+
+  --shadow-clay: var(--shadow-clay-val);
+  --shadow-clay-lg: var(--shadow-clay-lg-val);
+  --radius-clay: 24px;
+  --radius-pill: 999px;
+}
+
+:root {
+  --bg: #FFF8F0;
+  --clay-yellow: #FFD166;
+  --clay-coral: #FF6B6B;
+  --clay-purple: #A78BFA;
+  --clay-blue: #60A5FA;
+  --clay-green: #34D399;
+  --clay-pink: #F472B6;
+  --clay-orange: #FB923C;
+  --text-dark: #1E1B4B;
+  --text-mid: #4B5563;
+  
+  --shadow-clay-val: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-clay-lg-val: 0 16px 48px rgba(0, 0, 0, 0.14), 0 4px 16px rgba(0, 0, 0, 0.1);
+  --card-bg: #FFFFFF;
+  --card-border: rgba(255, 255, 255, 0.9);
+  --nav-bg: rgba(255, 248, 240, 0.8);
+  --nav-border: rgba(255, 255, 255, 0.6);
+  --footer-bg: #1E1B4B;
+  --footer-text: #FFFFFF;
+}
+
+.dark {
+  --bg: #111827;
+  --text-dark: #F9FAFB;
+  --text-mid: #9CA3AF;
+  
+  --shadow-clay-val: 0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-clay-lg-val: 0 16px 48px rgba(0, 0, 0, 0.6), 0 4px 16px rgba(0, 0, 0, 0.4);
+  --card-bg: #1F2937;
+  --card-border: rgba(255, 255, 255, 0.05);
+  --nav-bg: rgba(17, 24, 39, 0.8);
+  --nav-border: rgba(255, 255, 255, 0.05);
+  --footer-bg: #030712;
+  --footer-text: #F9FAFB;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text-dark);
+  font-family: var(--font-nunito), var(--font-noto-sans-tc), ui-sans-serif, system-ui, sans-serif;
+}

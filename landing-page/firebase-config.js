@@ -1,6 +1,10 @@
 /**
  * SimHope Firebase 設定
  * CDN script tags 在各 HTML 頁面載入，這裡只做初始化。
+ *
+ * SECURITY NOTE: Firebase Web API key 設計上是公開的（client-side only）。
+ * 安全性由 Firebase Security Rules 強制執行，而非依賴 key 的保密。
+ * 詳見：https://firebase.google.com/docs/projects/api-keys
  */
 
 const firebaseConfig = {
@@ -195,6 +199,11 @@ const FireDB = {
             snap = await db.collection('painCards').where('approval', '==', 'approved').get();
         }
         const defaultPains = (typeof DB !== 'undefined' && DB.DEFAULT_SITE && DB.DEFAULT_SITE.painCards) ? DB.DEFAULT_SITE.painCards : [];
+        
+        if (snap.docs.length === 0 && defaultPains.length > 0) {
+            return defaultPains;
+        }
+
         return snap.docs.map(d => {
             const data = { id: d.id, ...d.data() };
             if (!data.folder) {

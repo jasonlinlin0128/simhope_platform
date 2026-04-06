@@ -1201,9 +1201,22 @@
         <div class="modal">
             <div class="modal-header">
                 <h2 class="modal-title" id="toolModalTitle">新增工具</h2>
-                <button class="modal-close" onclick="closeToolModal()">✕</button>
+                <div style="display:flex; align-items:center;">
+                   <button class="btn btn-sm" style="background: linear-gradient(135deg, #A78BFA, #F472B6); color: white; border:none; margin-right: 15px; font-weight: bold; padding: 6px 12px; box-shadow: 0 4px 12px rgba(167, 139, 250, 0.4);" onclick="toggleAIPanel()">🪄 請 AI 幫我填寫</button>
+                   <button class="modal-close" onclick="closeToolModal()">✕</button>
+                </div>
             </div>
             <div class="modal-body">
+                <!-- AI Assistant Panel -->
+                <div id="ai-panel" style="display:none; background: #FAF5FF; border: 2px dashed #D8B4FE; border-radius: 12px; padding: 15px; margin-bottom: 20px; transition: all 0.3s;">
+                    <div style="font-size: 0.85rem; font-weight: bold; color: #7E22CE; margin-bottom: 8px;">✨ 描述你的工具，AI 會為你自動產出最棒的上架文案！</div>
+                    <div style="display: flex; gap: 10px;">
+                        <input id="ai-prompt" type="text" class="fi" style="flex:1; margin-bottom:0; background: white;" placeholder="例如：我寫了一個查加工部報表錯字的 Python 小程式..." maxlength="100">
+                        <button onclick="aiGenerateContent()" class="btn btn-primary" style="background: #9333EA; border: none; white-space: nowrap;" id="ai-btn">魔術生成</button>
+                    </div>
+                    <div id="ai-status" style="font-size: 0.75rem; color: #6B7280; margin-top: 8px; display: none;">AI 正在施展魔法中...</div>
+                </div>
+
                 <input type="hidden" id="tm-id" />
                 <div class="form-section">基本資訊</div>
                 <div class="form-grid">
@@ -1247,10 +1260,6 @@
                         </select>
                     </div>
                     <div class="fg">
-                        <label class="fl">工具連結<span class="req">*</span></label>
-                        <input class="fi" type="url" id="tm-url" placeholder="https://" />
-                    </div>
-                    <div class="fg">
                         <label class="fl">卡片顏色主題</label>
                         <div class="color-picker" id="colorPicker">
                             <div class="color-opt co-c1 selected" data-color="c1" onclick="selectColor(this,'c1')">
@@ -1273,11 +1282,41 @@
                     <input class="step-input" id="tm-s3" placeholder="步驟 3" maxlength="10" />
                 </div>
 
-                <div class="form-section">歷史版本 (下載連結)</div>
-                <div class="versions-wrap" id="tm-versions-wrap"
-                    style="padding:10px; border:1px dashed #ccc; border-radius:8px; margin-bottom:10px;"></div>
-                <button type="button" class="btn btn-ghost btn-sm" onclick="addTmVersionRow()"
-                    style="margin-bottom:15px;">+ 新增版本</button>
+                <div class="form-section">來源與載點</div>
+                <div class="form-grid" style="margin-bottom: 20px;">
+                    <div class="fg span2">
+                        <label class="fl">這是一個網頁工具，還是要下載的檔案？<span class="req">*</span></label>
+                        <div style="display: flex; gap: 15px; margin-top: 5px;">
+                            <label style="font-size: 0.85rem; display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                                <input type="radio" name="tm-type" value="webapp" checked onchange="toggleSourceType()"> 🌐 網頁應用 (Web App)
+                            </label>
+                            <label style="font-size: 0.85rem; display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                                <input type="radio" name="tm-type" value="download" onchange="toggleSourceType()"> 📁 檔案下載 (如 .exe)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Web App Section -->
+                <div id="source-webapp">
+                    <div class="fg">
+                        <label class="fl">網頁工具連結<span class="req">*</span></label>
+                        <input class="fi" type="url" id="tm-url" placeholder="https://" />
+                    </div>
+                </div>
+
+                <!-- Downloadable Section -->
+                <div id="source-download" style="display:none;">
+                    <div style="background: #F3F4F6; padding: 20px; border-radius: 12px; border: 2px dashed #D1D5DB; text-align: center; margin-bottom: 15px;">
+                        <div style="font-size: 2rem; margin-bottom: 10px;">☁️</div>
+                        <div style="font-size: 1rem; font-weight: bold; color: #374151; margin-bottom: 4px;">檔案存放於 Google Drive</div>
+                        <div style="font-size: 0.8rem; color: #6B7280; margin-bottom: 15px;">直接將 .exe 或資料夾拖曳至雲端硬碟，開啟「知道連結的人均可檢視」即可。</div>
+                        
+                        <div class="versions-wrap" id="tm-versions-wrap" style="text-align: left;"></div>
+                        <button type="button" class="btn btn-ghost btn-sm" onclick="addTmVersionRow()"
+                            style="margin-top:10px;">+ 新增檔案連結</button>
+                    </div>
+                </div>
 
                 <div class="form-section">標籤 <span class="fl-hint">（輸入後按 Enter 或逗號確認，建議 3～5 個）</span></div>
                 <div class="tags-input-wrap" id="tagsWrap" onclick="document.getElementById('tagsRaw').focus()">
@@ -1453,9 +1492,8 @@
             row.style.marginBottom = '8px';
             row.style.alignItems = 'center';
             row.innerHTML = `
-                <input type="text" placeholder="版本號 (如 v1.0)" class="v-ver" required style="width:70px; padding:6px; border-radius:6px; border:1px solid #ccc; font-size: 0.8rem;">
-                <input type="text" placeholder="更新說明" class="v-note" style="flex:1; padding:6px; border-radius:6px; border:1px solid #ccc; font-size: 0.8rem;">
-                <input type="url" placeholder="下載連結URL" class="v-url" required style="flex:2; padding:6px; border-radius:6px; border:1px solid #ccc; font-size: 0.8rem;">
+                <input type="text" placeholder="檔案名稱 (如 工具.exe)" class="v-ver" required style="flex:1; padding:6px; border-radius:6px; border:1px solid #ccc; font-size: 0.8rem;">
+                <input type="url" placeholder="下載連結URL (Google Drive)" class="v-url" required style="flex:2; padding:6px; border-radius:6px; border:1px solid #ccc; font-size: 0.8rem;">
                 <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove()" style="padding:4px 8px; flex-shrink:0;">×</button>
             `;
             wrap.appendChild(row);
@@ -1471,6 +1509,14 @@
             document.getElementById('tm-desc').value = tool?.desc || '';
             document.getElementById('tm-dept').value = tool?.dept || 'factory';
             document.getElementById('tm-status').value = tool?.status || 'live';
+            
+            const toolType = tool?.type || 'webapp';
+            const typeRadios = document.getElementsByName('tm-type');
+            for(let r of typeRadios) {
+                r.checked = (r.value === toolType);
+            }
+            toggleSourceType();
+            
             document.getElementById('tm-url').value = tool?.url || '';
             document.getElementById('tm-s1').value = tool?.steps?.[0] || '';
             document.getElementById('tm-s2').value = tool?.steps?.[1] || '';
@@ -1486,23 +1532,26 @@
             const vWrap = document.getElementById('tm-versions-wrap');
             if (vWrap) {
                 vWrap.innerHTML = '';
-                if (tool?.versions && tool.versions.length) {
-                    tool.versions.forEach(v => {
-                        const row = document.createElement('div');
-                        row.className = 'version-row';
-                        row.style.display = 'flex';
-                        row.style.gap = '8px';
-                        row.style.marginBottom = '8px';
-                        row.style.alignItems = 'center';
-                        row.innerHTML = `
-                            <input type="text" placeholder="版本號 (如 v1.0)" value="${v.version || ''}" class="v-ver" required style="width:70px; padding:6px; border-radius:6px; border:1px solid #ccc; font-size: 0.8rem;">
-                            <input type="text" placeholder="更新說明" value="${v.releaseNotes || ''}" class="v-note" style="flex:1; padding:6px; border-radius:6px; border:1px solid #ccc; font-size: 0.8rem;">
-                            <input type="url" placeholder="下載連結URL" value="${v.fileUrl || ''}" class="v-url" required style="flex:2; padding:6px; border-radius:6px; border:1px solid #ccc; font-size: 0.8rem;">
-                            <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove()" style="padding:4px 8px; flex-shrink:0;">×</button>
-                        `;
-                        vWrap.appendChild(row);
-                    });
-                }
+                // Support both new `files[]` format and legacy `versions[]` format
+                const existingFiles = tool?.files?.length
+                    ? tool.files.map(f => ({ name: f.name || '', url: f.url || '' }))
+                    : (tool?.versions?.length
+                        ? tool.versions.map(v => ({ name: v.version || '', url: v.fileUrl || '' }))
+                        : []);
+                existingFiles.forEach(f => {
+                    const row = document.createElement('div');
+                    row.className = 'version-row';
+                    row.style.display = 'flex';
+                    row.style.gap = '8px';
+                    row.style.marginBottom = '8px';
+                    row.style.alignItems = 'center';
+                    row.innerHTML = `
+                        <input type="text" placeholder="檔案名稱 (如 工具.exe)" value="${f.name}" class="v-ver" required style="flex:1; padding:6px; border-radius:6px; border:1px solid #ccc; font-size: 0.8rem;">
+                        <input type="url" placeholder="下載連結URL (Google Drive)" value="${f.url}" class="v-url" required style="flex:2; padding:6px; border-radius:6px; border:1px solid #ccc; font-size: 0.8rem;">
+                        <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove()" style="padding:4px 8px; flex-shrink:0;">×</button>
+                    `;
+                    vWrap.appendChild(row);
+                });
             }
 
             document.getElementById('toolModal').classList.add('open');
@@ -1519,22 +1568,28 @@
             const title = document.getElementById('tm-title').value.trim();
             const tagline = document.getElementById('tm-tagline').value.trim();
             const desc = document.getElementById('tm-desc').value.trim();
+            const type = (document.querySelector('input[name="tm-type"]:checked') || { value: 'webapp' }).value;
             const url = document.getElementById('tm-url').value.trim();
             const s1 = document.getElementById('tm-s1').value.trim();
             const s2 = document.getElementById('tm-s2').value.trim();
             const s3 = document.getElementById('tm-s3').value.trim();
-            if (!title || !tagline || !desc || !url || !s1 || !s2 || !s3) {
-                showToast('⚠️ 請填寫所有必填欄位'); return;
+            
+            if (!title || !tagline || !desc || !s1 || !s2 || !s3) {
+                showToast('⚠️ 請填寫所有基本與步驟必填欄位'); return;
             }
+            if (type === 'webapp' && !url) {
+                showToast('⚠️ 網頁應用需要填寫工具連結'); return;
+            }
+            
             const rawTag = document.getElementById('tagsRaw').value.trim();
             if (rawTag) addTag(rawTag);
             const tool = {
                 id: id || DB.generateId(),
                 icon: document.getElementById('tm-icon').value || '🛠️',
-                title, tagline, desc,
+                title, tagline, desc, type,
                 dept: document.getElementById('tm-dept').value,
                 status: document.getElementById('tm-status').value,
-                url,
+                url: type === 'webapp' ? url : '',
                 color: selectedColor,
                 steps: [s1, s2, s3],
                 tags: [...currentTags],
@@ -1542,16 +1597,12 @@
             };
 
             const vRows = document.querySelectorAll('#tm-versions-wrap .version-row');
-            if (vRows.length > 0) {
-                tool.versions = [];
-                vRows.forEach(r => {
-                    tool.versions.push({
-                        version: r.querySelector('.v-ver').value.trim(),
-                        releaseNotes: r.querySelector('.v-note').value.trim(),
-                        fileUrl: r.querySelector('.v-url').value.trim(),
-                    });
-                });
-            }
+            tool.files = [];
+            vRows.forEach(r => {
+                const name = r.querySelector('.v-ver').value.trim();
+                const url = r.querySelector('.v-url').value.trim();
+                if (name && url) tool.files.push({ name, url });
+            });
             const tools = DB.getTools();
             if (id) {
                 const idx = tools.findIndex(t => t.id === id);
@@ -1604,6 +1655,125 @@
             s.aboutBio = document.getElementById('a-bio').value.trim();
             s.ctaEmail = document.getElementById('a-email').value.trim();
             DB.saveSite(s); showToast('💾 關於設定已儲存');
+        }
+
+        // ── Modal UI Toggles ──
+        function toggleSourceType() {
+            const checked = document.querySelector('input[name="tm-type"]:checked');
+            const t = checked ? checked.value : 'webapp';
+            document.getElementById('source-webapp').style.display = t === 'webapp' ? 'block' : 'none';
+            document.getElementById('source-download').style.display = t === 'download' ? 'block' : 'none';
+        }
+
+        function toggleAIPanel() {
+            const p = document.getElementById('ai-panel');
+            p.style.display = p.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // ── Gemini AI Integration ──
+        let _geminiKeyCache = null;
+        async function loadGeminiKey() {
+            if (_geminiKeyCache) return _geminiKeyCache;
+            try {
+                if(typeof firebase !== 'undefined') {
+                    const doc = await firebase.firestore().collection('chatConfig').doc('settings').get();
+                    if (doc.exists && doc.data().geminiKey) {
+                        _geminiKeyCache = doc.data().geminiKey;
+                    }
+                }
+            } catch (e) { console.warn("Failed to load Gemini key", e); }
+            return _geminiKeyCache;
+        }
+
+        async function aiGenerateContent() {
+            const promptInput = document.getElementById('ai-prompt').value.trim();
+            if (!promptInput) {
+                showToast('⚠️ 請先輸入一句話描述你的工具！');
+                return;
+            }
+            
+            const btn = document.getElementById('ai-btn');
+            const status = document.getElementById('ai-status');
+            btn.disabled = true;
+            btn.textContent = '生成中...';
+            status.style.display = 'block';
+
+            try {
+                const key = await loadGeminiKey();
+                if (!key) throw new Error('找不到 Gemini API Key，請確定您已在 Chatbot 設定中輸入過。');
+                
+                const systemPrompt = `你是一個非常厲害的行銷企劃與產品經理。你要幫內部的開發者撰寫「工具上架文案」。
+使用者會用一句話描述他的小工具，請生出吸引人、白話文的文案，並固定輸出為純 JSON 格式。
+
+JSON Schema:
+{
+  "icon": "單一Emoji",
+  "title": "簡短名稱 (約6-12字)",
+  "tagline": "吸引人的副標題 (約10-25字)",
+  "desc": "功能與價值說明 (約50-80字，對非技術人員要友善白話)",
+  "dept": "factory 或 admin 或 mgmt 或 quality 或 defense 或 other (填入最適合的首選英文字)",
+  "s1": "步驟1 (動詞開頭，最多8字)",
+  "s2": "步驟2 (動詞開頭，最多8字)",
+  "s3": "步驟3 (動詞開頭，最多8字)",
+  "tags": ["關鍵字1", "關鍵字2", "關鍵字3"]
+}
+`;
+                const res = await fetch(
+                    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{ role: 'user', parts: [{ text: systemPrompt + "\n使用者描述：" + promptInput }] }],
+                            generationConfig: { temperature: 0.7, maxOutputTokens: 800, responseMimeType: 'application/json' }
+                        })
+                    }
+                );
+                
+                if (!res.ok) throw new Error('API 呼叫失敗');
+                const data = await res.json();
+                const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+                const result = JSON.parse(text.replace(/```json\n?|\n?```/g, '').trim());
+
+                // Typewriter effect helper
+                const typeText = async (id, newText) => {
+                    const el = document.getElementById(id);
+                    if(!el) return;
+                    el.value = '';
+                    for (let char of newText) {
+                        el.value += char;
+                        await new Promise(r => setTimeout(r, 15));
+                    }
+                };
+                
+                await Promise.all([
+                    typeText('tm-title', result.title || ''),
+                    typeText('tm-tagline', result.tagline || ''),
+                    typeText('tm-desc', result.desc || ''),
+                    typeText('tm-s1', result.s1 || ''),
+                    typeText('tm-s2', result.s2 || ''),
+                    typeText('tm-s3', result.s3 || '')
+                ]);
+                
+                if(result.icon) document.getElementById('tm-icon').value = result.icon;
+                if(result.dept) document.getElementById('tm-dept').value = result.dept;
+                
+                if(result.tags && result.tags.length > 0) {
+                    currentTags = result.tags;
+                    renderTags();
+                }
+                
+                showToast('✨ 魔法生成完成！你可以隨意微調修改。');
+                toggleAIPanel();
+
+            } catch (err) {
+                console.error(err);
+                showToast('⚠️ 生成失敗：' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '✨ 魔術生成';
+                status.style.display = 'none';
+            }
         }
     </script>
 </body>

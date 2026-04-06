@@ -17,7 +17,7 @@
         { label: '獅尾四季春', value: "'Iansui', cursive" },
     ];
 
-    const SIZES = [12, 14, 16, 18, 20, 24, 28, 32, 40, 48, 56, 72];
+    // SIZES: reserved for future size picker UI
 
     const COLORS = [
         '#1E1B4B', '#312E81', '#4F46E5', '#6366F1', '#8B5CF6',
@@ -233,8 +233,10 @@
             range.surroundContents(span);
             sel.removeAllRanges();
         } catch (_) {
-            // If surroundContents fails (multi-element selection), use execCommand fallback
-            document.execCommand('foreColor', false, styles.color || 'inherit');
+            // surroundContents fails on multi-element selections; only fall back for color
+            if (styles.color) {
+                document.execCommand('foreColor', false, styles.color);
+            }
         }
     }
 
@@ -302,28 +304,19 @@
     /* ── 6. SHOW / HIDE TOOLBAR ── */
     function positionToolbar() {
         const sel = window.getSelection();
-        if (!sel || sel.rangeCount === 0 || sel.isCollapsed) {
-            /* Keep toolbar visible if activeEditable is focused (for align/font on whole element) */
-            return;
-        }
+        if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return;
         const range = sel.getRangeAt(0);
         const rect = range.getBoundingClientRect();
         if (!rect || rect.width === 0) return;
 
+        // Position toolbar above selection (viewport coords — toolbar is position:fixed)
         const tbRect = tb.getBoundingClientRect();
-        let top = rect.top + window.scrollY - tbRect.height - 10;
-        let left = rect.left + window.scrollX;
-        if (top < 8) top = rect.bottom + window.scrollY + 8;
-        const maxLeft = window.innerWidth - tbRect.width - 10;
-        if (left > maxLeft) left = maxLeft;
-        if (left < 8) left = 8;
+        let top = rect.top - tbRect.height - 10;
+        let left = Math.min(Math.max(rect.left, 8), window.innerWidth - tbRect.width - 8);
+        if (top < 8) top = rect.bottom + 8; // flip below if near top
 
         tb.style.top = top + 'px';
         tb.style.left = left + 'px';
-        tb.style.position = 'fixed';
-        // recalculate with viewport coords
-        tb.style.top = (rect.top - tbRect.height - 10) + 'px';
-        tb.style.left = Math.min(Math.max(rect.left, 8), window.innerWidth - tbRect.width - 8) + 'px';
         tb.classList.add('visible');
     }
 
