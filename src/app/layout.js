@@ -14,9 +14,9 @@ const nunito = Nunito({
 
 const notoSansTC = Noto_Sans_TC({
   variable: "--font-noto-sans-tc",
-  subsets: ["latin"],
   weight: ["400", "500", "700", "900"],
   display: "swap",
+  preload: false,   // required for CJK fonts — no latin subset to preload
 });
 
 export const metadata = {
