@@ -21,54 +21,67 @@ export default function BlobBackground() {
     let cleanup;
 
     async function init() {
-      const gsapModule = await import('gsap');
-      gsapInstance = gsapModule.gsap || gsapModule.default;
-      ctx = gsapInstance.context(() => {});
+      try {
+        const gsapModule = await import('gsap');
+        gsapInstance = gsapModule.gsap || gsapModule.default;
+        ctx = gsapInstance.context(() => {});
 
-      // Float animations
-      blobRefs.current.forEach((el, i) => {
-        if (!el) return;
-        const blob = BLOBS[i];
-        gsapInstance.to(el, {
-          y: -24,
-          duration: blob.duration,
-          repeat: -1,
-          yoyo: true,
-          ease: 'sine.inOut',
-          delay: i * 0.8,
-        });
-      });
-
-      // Mouse tracking
-      const handleMouseMove = (e) => {
+        // Float animations
         blobRefs.current.forEach((el, i) => {
           if (!el) return;
           const blob = BLOBS[i];
           gsapInstance.to(el, {
-            x: (e.clientX - window.innerWidth / 2) * blob.strength,
-            y: (e.clientY - window.innerHeight / 2) * blob.strength,
-            duration: 1.5,
-            ease: 'power1.out',
-            overwrite: 'auto',
+            y: -24,
+            duration: blob.duration,
+            repeat: -1,
+            yoyo: true,
+            ease: 'sine.inOut',
+            delay: i * 0.8,
           });
         });
-      };
-      window.addEventListener('mousemove', handleMouseMove);
 
-      // Dark mode opacity observer
-      const observer = new MutationObserver(() => {
-        const isDark = document.documentElement.classList.contains('dark');
-        blobRefs.current.forEach((el) => {
-          if (!el) return;
-          gsapInstance.to(el, { opacity: isDark ? 0.12 : parseFloat(el.dataset.opacity), duration: 0.5 });
+        // Mouse tracking — throttled to ~30fps via RAF
+        let rafId = null;
+        const handleMouseMove = (e) => {
+          if (rafId) cancelAnimationFrame(rafId);
+          rafId = requestAnimationFrame(() => {
+            blobRefs.current.forEach((el, i) => {
+              if (!el) return;
+              const blob = BLOBS[i];
+              gsapInstance.to(el, {
+                x: (e.clientX - window.innerWidth / 2) * blob.strength,
+                y: (e.clientY - window.innerHeight / 2) * blob.strength,
+                duration: 1.5,
+                ease: 'power1.out',
+                overwrite: 'auto',
+              });
+            });
+          });
+        };
+        window.addEventListener('mousemove', handleMouseMove);
+
+        // Dark mode opacity observer — skip when dark mode state is unchanged
+        let lastDarkMode = null;
+        const observer = new MutationObserver(() => {
+          const isDark = document.documentElement.classList.contains('dark');
+          if (isDark === lastDarkMode) return;
+          lastDarkMode = isDark;
+          blobRefs.current.forEach((el) => {
+            if (!el) return;
+            gsapInstance.to(el, { opacity: isDark ? 0.12 : parseFloat(el.dataset.opacity), duration: 0.5 });
+          });
         });
-      });
-      observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+        observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 
-      cleanup = () => {
-        window.removeEventListener('mousemove', handleMouseMove);
-        observer.disconnect();
-      };
+        cleanup = () => {
+          if (rafId) cancelAnimationFrame(rafId);
+          gsapInstance && gsapInstance.killTweensOf(blobRefs.current);
+          window.removeEventListener('mousemove', handleMouseMove);
+          observer.disconnect();
+        };
+      } catch (error) {
+        console.error('BlobBackground: failed to initialize GSAP', error);
+      }
     }
 
     init();
