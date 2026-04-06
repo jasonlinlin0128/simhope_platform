@@ -3,6 +3,7 @@ import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import Navbar from "@/components/Navbar";
 import ThemeProvider from "@/components/ThemeProvider";
+import BlobBackground from "@/components/BlobBackground";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,6 +25,7 @@ export default function RootLayout({ children }) {
     <html lang="zh-TW" className="scroll-smooth">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[var(--color-bg)] text-[var(--color-text-dark)] min-h-screen flex flex-col`}>
         <ThemeProvider>
+          <BlobBackground />
           <AuthProvider>
             <Navbar />
             <main className="flex-1 w-full max-w-7xl mx-auto py-8">
