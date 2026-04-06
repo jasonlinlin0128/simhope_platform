@@ -1,19 +1,32 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { getApprovedTools } from '@/lib/db';
+import { getApprovedTools, getApprovedPainCards } from '@/lib/db';
 import ToolCard from '@/components/ToolCard';
+import PainCard from '@/components/PainCard';
 import Link from 'next/link';
+
+const PAIN_CHIPS = [
+  { emoji: '📄', text: '文件找半天' },
+  { emoji: '🌏', text: '語言溝通卡關' },
+  { emoji: '📊', text: '報表要手動填' },
+  { emoji: '🔍', text: 'SOP 翻了找不到' },
+  { emoji: '⏰', text: '工時統計耗時' },
+];
 
 export default function Home() {
   const [tools, setTools] = useState([]);
+  const [painCards, setPainCards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedScenarios, setSelectedScenarios] = useState([]);
 
   useEffect(() => {
-    getApprovedTools()
-      .then(data => setTools(data))
-      .catch(err => console.error('Failed to load tools:', err))
+    Promise.all([getApprovedTools(), getApprovedPainCards()])
+      .then(([toolsData, painsData]) => {
+        setTools(toolsData);
+        setPainCards(painsData);
+      })
+      .catch(err => console.error('Failed to load:', err))
       .finally(() => setLoading(false));
   }, []);
 
@@ -26,112 +39,155 @@ export default function Home() {
     return Array.from(set).sort();
   }, [tools]);
 
-  // Filtering: empty selection or '全部' selected → show all
+  // Filtering: empty selection → show all
   const filteredTools = useMemo(() => {
-    if (selectedScenarios.length === 0 || selectedScenarios.includes('全部')) return tools;
+    if (selectedScenarios.length === 0) return tools;
     return tools.filter(t => t.scenarios?.some(s => selectedScenarios.includes(s)));
   }, [tools, selectedScenarios]);
 
   const toggleScenario = (scenario) => {
-    if (scenario === '全部') {
-      setSelectedScenarios([]);
-      return;
-    }
     setSelectedScenarios(prev =>
       prev.includes(scenario) ? prev.filter(s => s !== scenario) : [...prev, scenario]
     );
   };
 
-  const isAllSelected = selectedScenarios.length === 0;
+  // Group pain cards by folder
+  const folderGroups = useMemo(() => {
+    const groups = {};
+    painCards.forEach(c => {
+      const folder = c.folder || '未分類專案';
+      if (!groups[folder]) groups[folder] = [];
+      groups[folder].push(c);
+    });
+    return groups;
+  }, [painCards]);
 
   return (
-    <div className="flex flex-col gap-16 px-4 md:px-0">
+    <div className="flex flex-col gap-24 px-4 md:px-0">
 
       {/* ── HERO ── */}
-      <section className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-purple-50 via-blue-50 to-orange-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 px-8 py-14 md:px-16 md:py-20">
-        <div className="relative z-10 max-w-2xl">
-          <div className="inline-block bg-gradient-to-r from-violet-400 to-blue-400 text-white text-xs font-bold px-4 py-1.5 rounded-full mb-5 shadow-sm">
-            ✨ SimHope AI 工具中心
-          </div>
-          <h1 className="text-4xl md:text-5xl font-black text-[#1e1b4b] dark:text-gray-100 leading-tight mb-4">
-            讓每一位同仁<br />
-            都有{' '}
-            <span className="bg-gradient-to-r from-violet-400 to-blue-400 bg-clip-text text-transparent">
-              AI 助力
+      <section className="text-center pt-10 pb-4 flex flex-col items-center">
+        {/* Eyebrow badge */}
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[var(--color-clay-purple)]/10 text-[var(--color-clay-purple)] font-extrabold text-sm mb-6 border border-[var(--color-clay-purple)]/20 shadow-sm">
+          🏭 專為公司同仁設計的 AI 工具中心
+        </div>
+
+        {/* H1 */}
+        <h1 className="text-5xl md:text-7xl font-black text-[var(--color-text-dark)] leading-tight mb-8">
+          日常痛點太多？<br />
+          這裡有<span className="bg-gradient-to-br from-[var(--color-clay-coral)] to-[var(--color-clay-orange)] bg-clip-text text-transparent">
+            現成的 AI 解法
+          </span>
+        </h1>
+
+        {/* Pain chips */}
+        <div className="flex flex-wrap justify-center gap-2 mb-8 max-w-2xl mx-auto">
+          {PAIN_CHIPS.map((chip, idx) => (
+            <span key={idx} className="flex items-center gap-1.5 bg-white/85 dark:bg-gray-800/85 border-2 border-black/7 dark:border-white/10 backdrop-blur-sm rounded-full px-4 py-2 text-sm font-bold text-[var(--color-text-dark)] dark:text-gray-200 shadow-sm cursor-default hover:border-[var(--color-clay-purple)]/30 hover:shadow-md transition-all">
+              <span>{chip.emoji}</span> {chip.text}
             </span>
-          </h1>
-          <p className="text-gray-500 dark:text-gray-400 text-base md:text-lg leading-relaxed mb-8 font-medium">
-            精選實用 AI 工具，幫助 SimHope 同仁在日常工作中提升效率、節省時間。
-          </p>
-          <div className="flex gap-3 flex-wrap">
-            <Link
-              href="#tools"
-              className="px-7 py-3 rounded-full bg-[#1e1b4b] dark:bg-gray-100 text-white dark:text-[#1e1b4b] font-extrabold text-sm hover:-translate-y-0.5 hover:shadow-lg transition-all"
+          ))}
+        </div>
+
+        {/* Hero desc */}
+        <p className="text-lg md:text-xl text-[var(--color-text-mid)] font-semibold mb-10 max-w-2xl mx-auto leading-relaxed">
+          這些工具都是根據公司實際流程開發的，不需要懂 AI，打開就能用。<br />
+          目前收錄 <strong className="text-[var(--color-text-dark)]">
+            {loading ? '…' : tools.length} 個工具
+          </strong>，持續新增中。
+        </p>
+
+        {/* CTAs */}
+        <div className="flex gap-4 flex-wrap justify-center mb-16">
+          <Link
+            href="#tools"
+            className="px-8 py-4 rounded-full bg-gradient-to-br from-[var(--color-clay-coral)] to-[var(--color-clay-orange)] text-white font-extrabold text-lg shadow-[0_6px_20px_rgba(255,107,107,0.45)] hover:-translate-y-1 hover:shadow-[0_12px_30px_rgba(255,107,107,0.55)] transition-all"
+          >
+            🔧 馬上找工具
+          </Link>
+          <Link
+            href="#painpoints"
+            className="px-8 py-4 rounded-full bg-white dark:bg-gray-800 text-[var(--color-text-dark)] dark:text-gray-200 font-extrabold text-lg border-2 border-[#1e1b4b]/15 dark:border-white/10 shadow-sm hover:-translate-y-1 hover:shadow-md transition-all"
+          >
+            👀 看看解決什麼問題
+          </Link>
+        </div>
+
+        {/* Stat cards (glass) */}
+        <div className="flex flex-wrap gap-5 justify-center">
+          {[
+            { id: 'tools', value: loading ? '…' : tools.length, label: '可用工具' },
+            { id: 'users', value: '30+', label: '同仁每週使用' },
+            { id: 'hrs',   value: '10h', label: '估計每週省下' },
+          ].map((s, i) => (
+            <div
+              key={s.id}
+              className="bg-white/85 dark:bg-gray-800/85 border-2 border-white/90 dark:border-white/10 backdrop-blur-sm rounded-2xl px-7 py-5 text-center shadow-[var(--shadow-clay)]"
+              style={{ animationDelay: `${i * 0.8}s` }}
             >
-              🔍 探索工具
-            </Link>
-            <Link
-              href="#about"
-              className="px-7 py-3 rounded-full border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-extrabold text-sm hover:-translate-y-0.5 hover:shadow-md transition-all"
-            >
-              了解更多
-            </Link>
-          </div>
+              <div className="text-3xl font-black text-[var(--color-text-dark)]">{s.value}</div>
+              <div className="text-sm font-semibold text-[var(--color-text-mid)] mt-1">{s.label}</div>
+            </div>
+          ))}
         </div>
       </section>
 
-      {/* ── STATS ── */}
-      <section className="grid grid-cols-3 gap-4 md:gap-6">
-        <div className="rounded-2xl bg-gradient-to-br from-violet-400 to-indigo-500 p-6 text-white text-center shadow-md">
-          <div className="text-3xl md:text-4xl font-black mb-1">
-            {loading ? '…' : tools.length}
+      {/* ── PAIN POINTS ── */}
+      <section id="painpoints" className="scroll-mt-32">
+        <div className="mb-10 text-center">
+          <div className="inline-block px-3 py-1 rounded bg-red-100/50 dark:bg-red-900/20 text-[var(--color-clay-coral)] font-bold text-sm mb-4">
+            😤 → 😌 解決真實痛點
           </div>
-          <div className="text-xs md:text-sm font-semibold opacity-90">🛠️ 精選 AI 工具</div>
+          <h2 className="text-3xl md:text-4xl font-black text-[var(--color-text-dark)] mb-4">這些問題，你每週遇到幾次？</h2>
+          <p className="text-[var(--color-text-mid)] font-semibold">每個工具的出發點都是一個真實的工作痛點，不是為了用 AI 而用 AI。</p>
         </div>
-        <div className="rounded-2xl bg-gradient-to-br from-blue-400 to-emerald-400 p-6 text-white text-center shadow-md">
-          <div className="text-3xl md:text-4xl font-black mb-1">30+</div>
-          <div className="text-xs md:text-sm font-semibold opacity-90">👥 使用中同仁</div>
-        </div>
-        <div className="rounded-2xl bg-gradient-to-br from-orange-400 to-pink-400 p-6 text-white text-center shadow-md">
-          <div className="text-3xl md:text-4xl font-black mb-1">10h</div>
-          <div className="text-xs md:text-sm font-semibold opacity-90">⏱️ 每週平均節省</div>
-        </div>
+
+        {loading ? (
+          <div className="text-center py-10 text-gray-400">載入中...</div>
+        ) : (
+          <div className="flex flex-col gap-10">
+            {Object.entries(folderGroups).sort().map(([folder, cards]) => (
+              <div key={folder}>
+                <h3 className="text-lg font-extrabold text-[var(--color-text-dark)] border-b-2 border-gray-200 dark:border-gray-700 pb-2 mb-5 flex items-center">
+                  📁 {folder} <span className="text-sm text-gray-500 ml-2">({cards.length})</span>
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {cards.map(c => <PainCard key={c.id} card={c} />)}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
-      {/* ── TOOLS SECTION ── */}
-      <section id="tools" className="scroll-mt-24 mb-20">
-        <div className="mb-8">
-          <div className="inline-block px-3 py-1 rounded bg-blue-100/60 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 font-bold text-sm mb-3">
+      {/* ── TOOLS ── */}
+      <section id="tools" className="scroll-mt-32 mb-20">
+        <div className="mb-10 text-center">
+          <div className="inline-block px-3 py-1 rounded bg-blue-100/50 dark:bg-blue-900/20 text-[var(--color-clay-blue)] font-bold text-sm mb-4">
             🧰 工具總覽
           </div>
-          <h2 className="text-3xl md:text-4xl font-black text-[#1e1b4b] dark:text-gray-100 mb-2">
-            所有現成解決方案
-          </h2>
-          <p className="text-gray-500 dark:text-gray-400 font-medium">
-            每個工具都標示了適用場景與使用步驟，三步以內就能上手。
-          </p>
+          <h2 className="text-3xl md:text-4xl font-black text-[var(--color-text-dark)] mb-4">所有現成解決方案</h2>
+          <p className="text-[var(--color-text-mid)] font-semibold">每個工具都標示了適用場景與使用步驟，三步以內就能上手。</p>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Sidebar */}
+          {/* Sidebar — scenarios filter */}
           <aside className="lg:w-56 flex-shrink-0">
             <div className="sticky top-24 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-4">
               <h3 className="text-xs font-extrabold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">
                 適用場景
               </h3>
-              <div className="flex flex-col gap-2 text-sm text-gray-600 dark:text-gray-300">
-                {/* All */}
+              <div className="flex flex-col gap-1 text-sm text-gray-600 dark:text-gray-300">
                 <label className="flex items-center gap-2.5 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 px-2 py-1 -mx-2 rounded transition-colors">
                   <input
                     type="checkbox"
-                    checked={isAllSelected}
-                    onChange={() => toggleScenario('全部')}
+                    checked={selectedScenarios.length === 0}
+                    onChange={() => setSelectedScenarios([])}
                     className="accent-violet-500"
                   />
                   <span className="font-semibold">全部</span>
                   <span className="ml-auto text-xs text-gray-400">{tools.length}</span>
                 </label>
-
                 {allScenarios.map(scenario => (
                   <label key={scenario} className="flex items-center gap-2.5 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 px-2 py-1 -mx-2 rounded transition-colors">
                     <input
@@ -150,7 +206,7 @@ export default function Home() {
               {selectedScenarios.length > 0 && (
                 <button
                   onClick={() => setSelectedScenarios([])}
-                  className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700 w-full text-left text-xs text-violet-500 font-bold hover:text-violet-700 transition-colors"
+                  className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700 w-full text-left text-xs text-violet-500 font-bold hover:text-violet-700 dark:hover:text-violet-400 transition-colors"
                 >
                   清除篩選
                 </button>
@@ -163,7 +219,7 @@ export default function Home() {
             {loading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 opacity-60">
                 {[1, 2, 3, 4, 5, 6].map(i => (
-                  <div key={i} className="bg-white dark:bg-gray-800 rounded-3xl p-5 h-[200px] border border-gray-200 dark:border-gray-700 animate-pulse">
+                  <div key={i} className="bg-white dark:bg-gray-800 rounded-[24px] p-5 h-[200px] border border-gray-200 dark:border-gray-700 animate-pulse">
                     <div className="w-14 h-14 bg-gray-200 dark:bg-gray-600 rounded-2xl mb-4" />
                     <div className="w-3/4 h-5 bg-gray-200 dark:bg-gray-600 rounded-lg mb-2" />
                     <div className="w-1/2 h-5 bg-gray-200 dark:bg-gray-600 rounded-lg" />
@@ -174,7 +230,7 @@ export default function Home() {
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {filteredTools.map(t => <ToolCard key={t.id} tool={t} />)}
                 {filteredTools.length === 0 && (
-                  <div className="col-span-full py-20 text-center text-gray-500 dark:text-gray-400 font-bold bg-white dark:bg-gray-800 rounded-3xl border border-dashed border-gray-300 dark:border-gray-600">
+                  <div className="col-span-full py-20 text-center text-gray-500 dark:text-gray-400 font-bold bg-white dark:bg-gray-800 rounded-[24px] border border-dashed border-gray-300 dark:border-gray-600">
                     這個場景下目前沒有任何工具 🙌
                   </div>
                 )}
