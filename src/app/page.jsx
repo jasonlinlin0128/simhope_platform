@@ -121,7 +121,7 @@ export default function Home() {
               </h3>
               <div className="flex flex-col gap-2 text-sm text-gray-600 dark:text-gray-300">
                 {/* All */}
-                <label className="flex items-center gap-2.5 cursor-pointer">
+                <label className="flex items-center gap-2.5 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 px-2 py-1 -mx-2 rounded transition-colors">
                   <input
                     type="checkbox"
                     checked={isAllSelected}
@@ -133,7 +133,7 @@ export default function Home() {
                 </label>
 
                 {allScenarios.map(scenario => (
-                  <label key={scenario} className="flex items-center gap-2.5 cursor-pointer">
+                  <label key={scenario} className="flex items-center gap-2.5 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 px-2 py-1 -mx-2 rounded transition-colors">
                     <input
                       type="checkbox"
                       checked={selectedScenarios.includes(scenario)}
@@ -164,9 +164,9 @@ export default function Home() {
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 opacity-60">
                 {[1, 2, 3, 4, 5, 6].map(i => (
                   <div key={i} className="bg-white dark:bg-gray-800 rounded-3xl p-5 h-[200px] border border-gray-200 dark:border-gray-700 animate-pulse">
-                    <div className="w-14 h-14 bg-gray-200 dark:bg-gray-700 rounded-2xl mb-4" />
-                    <div className="w-3/4 h-5 bg-gray-200 dark:bg-gray-700 rounded-lg mb-2" />
-                    <div className="w-1/2 h-5 bg-gray-200 dark:bg-gray-700 rounded-lg" />
+                    <div className="w-14 h-14 bg-gray-200 dark:bg-gray-600 rounded-2xl mb-4" />
+                    <div className="w-3/4 h-5 bg-gray-200 dark:bg-gray-600 rounded-lg mb-2" />
+                    <div className="w-1/2 h-5 bg-gray-200 dark:bg-gray-600 rounded-lg" />
                   </div>
                 ))}
               </div>
