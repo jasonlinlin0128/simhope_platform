@@ -1,6 +1,6 @@
 {
   "framework": "nextjs",
-  "buildCommand": "next build",
+  "buildCommand": "echo '=== CWD ===' && pwd && echo '=== ROOT ===' && ls && echo '=== SRC ===' && ls src/ && next build",
   "outputDirectory": ".next",
   "installCommand": "npm install"
 }
