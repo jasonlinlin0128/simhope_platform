@@ -1,26 +1,20 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { auth } from '@/lib/firebase';
-import { signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
+import { signOut } from 'firebase/auth';
 import { useTheme } from '@/context/ThemeContext';
+import LoginModal from '@/components/LoginModal';
 
 export default function Navbar() {
   const { user, isAdmin, loading } = useAuth();
   const { isDark, toggle } = useTheme();
-
-  const handleLogin = async () => {
-    try {
-      const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
-    } catch (error) {
-      console.error('Login failed:', error);
-      alert('登入失敗，請稍後再試');
-    }
-  };
+  const [showLogin, setShowLogin] = useState(false);
 
   return (
+    <>
     <nav className="sticky top-0 z-50 px-4 md:px-10 py-3 flex justify-between items-center bg-[var(--color-nav-bg)] border-b border-[var(--color-nav-border)] backdrop-blur-md transition-all duration-300">
       {/* Logo */}
       <Link href="/" className="flex items-center gap-2.5 no-underline">
@@ -59,7 +53,7 @@ export default function Navbar() {
         {/* Auth section */}
         {!loading && !user && (
           <button
-            onClick={handleLogin}
+            onClick={() => setShowLogin(true)}
             className="px-4 py-2 rounded-full border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 font-bold text-[0.82rem] text-gray-600 dark:text-gray-300 hover:-translate-y-0.5 hover:shadow-md transition-all"
           >
             👨‍💻 開發者登入
@@ -84,5 +78,8 @@ export default function Navbar() {
         )}
       </div>
     </nav>
+
+    {showLogin && <LoginModal onClose={() => setShowLogin(false)} />}
+    </>
   );
 }
