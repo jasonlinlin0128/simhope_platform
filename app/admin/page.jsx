@@ -26,15 +26,10 @@ export default function AdminDashboard() {
     const [createSuccess, setCreateSuccess] = useState('');
 
     useEffect(() => {
-        if (!authLoading) {
-            if (!user || !isAdmin) {
-                alert('權限不足，已被拒絕訪問');
-                router.push('/');
-            } else {
-                fetchAdminData();
-            }
+        if (!authLoading && isAdmin) {
+            fetchAdminData();
         }
-    }, [user, isAdmin, authLoading, router]);
+    }, [user, isAdmin, authLoading]);
 
     const fetchAdminData = async () => {
         setLoading(true);
@@ -119,8 +114,10 @@ export default function AdminDashboard() {
         }
     };
 
-    if (authLoading || loading) return <p className="text-center py-20 text-gray-400">載入中...</p>;
-    if (!isAdmin) return null;
+    if (authLoading) return <p className="text-center py-20 text-gray-400">載入中...</p>;
+    if (!user || !isAdmin) { router.push('/'); return null; }
+
+    if (loading) return <p className="text-center py-20 text-gray-400">載入中...</p>;
 
     return (
         <div className="flex gap-8 px-4 md:px-0">

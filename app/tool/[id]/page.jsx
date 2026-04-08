@@ -284,7 +284,8 @@ export default function ToolDetail({ params }) {
             const isOwner = user && data.authorUid === user.uid;
             if (!isPublic && !isOwner && !isAdmin) { router.push('/'); return; }
             setTool(data);
-            setLocalBlocks(data.blog?.blocks || []);
+            const blocks = (data.blog?.blocks || []).map(b => b.id ? b : { ...b, id: crypto.randomUUID() });
+            setLocalBlocks(blocks);
             setLocalExtras({ url: data.url || '', type: data.type || 'webapp' });
         } catch (e) { console.error(e); }
         setLoading(false);
@@ -303,7 +304,7 @@ export default function ToolDetail({ params }) {
         [bs[idx], bs[target]] = [bs[target], bs[idx]];
         setLocalBlocks(bs);
     };
-    const addBlock = (type) => setLocalBlocks(bs => [...bs, { type, content: '', caption: '' }]);
+    const addBlock = (type) => setLocalBlocks(bs => [...bs, { id: crypto.randomUUID(), type, content: '', caption: '' }]);
 
     // ── Save ──
     const handleSave = async () => {
@@ -347,7 +348,7 @@ export default function ToolDetail({ params }) {
                             </button>
                         ) : (
                             <>
-                                <button onClick={() => { setIsEditMode(false); setLocalBlocks(tool.blog?.blocks || []); }} className="px-5 py-2.5 rounded-full bg-[var(--color-card-bg)] font-extrabold text-[var(--color-text-mid)] border border-[var(--color-card-border)] transition-all">
+                                <button onClick={() => { setIsEditMode(false); setLocalBlocks((tool.blog?.blocks || []).map(b => b.id ? b : { ...b, id: crypto.randomUUID() })); }} className="px-5 py-2.5 rounded-full bg-[var(--color-card-bg)] font-extrabold text-[var(--color-text-mid)] border border-[var(--color-card-border)] transition-all">
                                     取消
                                 </button>
                                 <button onClick={handleSave} disabled={isSaving} className="px-5 py-2.5 rounded-full bg-[var(--color-clay-purple)] text-white font-extrabold shadow-md hover:shadow-lg disabled:opacity-60 transition-all">
@@ -434,7 +435,7 @@ export default function ToolDetail({ params }) {
 
                                 {localBlocks.map((block, idx) => (
                                     <BlockEditor
-                                        key={idx}
+                                        key={block.id}
                                         block={block}
                                         idx={idx}
                                         total={localBlocks.length}
@@ -460,7 +461,7 @@ export default function ToolDetail({ params }) {
                             </>
                         ) : localBlocks.length > 0 ? (
                             localBlocks.map((block, idx) => (
-                                <BlockView key={idx} block={block} />
+                                <BlockView key={block.id} block={block} />
                             ))
                         ) : (
                             <p className="whitespace-pre-wrap leading-relaxed font-bold text-[var(--color-text-dark)]">
