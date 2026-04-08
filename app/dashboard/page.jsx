@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import AIPanel from '@/components/AIPanel';
@@ -286,7 +287,12 @@ export default function Dashboard() {
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
                             {myTools.map(t => (
-                                <ToolCard key={t.id} tool={t} />
+                                <div key={t.id} className="flex flex-col gap-1.5">
+                                    <ToolCard tool={t} />
+                                    <Link href={`/tool/${t.id}`} className="text-center py-1.5 rounded-xl bg-[var(--color-clay-purple)]/10 text-[var(--color-clay-purple)] text-xs font-bold border border-[var(--color-clay-purple)]/20 hover:bg-[var(--color-clay-purple)] hover:text-white transition-all">
+                                        ✏️ 前往編輯此工具
+                                    </Link>
+                                </div>
                             ))}
                         </div>
                     )}

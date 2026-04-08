@@ -53,19 +53,21 @@ export default function ToolDetail({ params }) {
     const canEdit = isAdmin || isAuthor;
 
     const handleSave = async () => {
+        if (!canEdit) return; // double-check before writing
         setIsSaving(true);
         try {
             await updateDoc(doc(db, 'tools', id), {
                 blog: { ...tool.blog, blocks: localBlocks },
                 url: localExtras.url,
-                type: localExtras.type
+                type: localExtras.type,
+                updatedAt: new Date()
             });
             alert('儲存成功！');
             setIsEditMode(false);
             fetchTool();
         } catch (error) {
             console.error(error);
-            alert('儲存失敗');
+            alert('儲存失敗：' + (error.code === 'permission-denied' ? '你沒有權限編輯此工具' : error.message));
         }
         setIsSaving(false);
     };
