@@ -152,7 +152,7 @@ export default function Dashboard() {
             <div className="flex flex-col lg:flex-row gap-8">
                 {/* Submit New Tool Form */}
                 <div className="lg:w-1/2">
-                    <div className="bg-white p-6 md:p-8 rounded-[24px] shadow-sm border border-gray-200">
+                    <div className="bg-[var(--color-card-bg)] p-6 md:p-8 rounded-[24px] shadow-sm border border-[var(--color-card-border)]">
                         <h3 className="font-extrabold text-xl mb-4 text-[var(--color-text-dark)] flex items-center gap-2">
                             <span className="text-2xl">🚀</span> 提交新工具
                         </h3>

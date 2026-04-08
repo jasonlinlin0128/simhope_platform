@@ -120,7 +120,7 @@ export default function ToolDetail({ params }) {
 
             <div className="flex flex-col lg:flex-row gap-8">
                 {/* SIDEBAR */}
-                <aside className="lg:w-80 flex-shrink-0 bg-white rounded-[32px] p-8 shadow-sm border border-gray-200 h-fit sticky top-24">
+                <aside className="lg:w-80 flex-shrink-0 bg-[var(--color-card-bg)] rounded-[32px] p-8 shadow-sm border border-[var(--color-card-border)] h-fit sticky top-24">
                     <div className="text-center mb-6">
                         <div className="w-20 h-20 mx-auto rounded-[24px] bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-4xl shadow-inner mb-4">
                             {tool.icon || '📦'}
@@ -136,24 +136,24 @@ export default function ToolDetail({ params }) {
                     </div>
 
                     {isEditMode ? (
-                        <div className="bg-gray-50 rounded-2xl p-5 border border-gray-200 mt-6 flex flex-col gap-4">
-                            <h4 className="font-extrabold text-[0.8rem] text-gray-400 uppercase tracking-widest">🛠️ 編輯連結與平台</h4>
-                            
+                        <div className="bg-[var(--color-card-bg)] rounded-2xl p-5 border border-[var(--color-card-border)] mt-6 flex flex-col gap-4">
+                            <h4 className="font-extrabold text-[0.8rem] text-[var(--color-text-mid)] uppercase tracking-widest">🛠️ 編輯連結與平台</h4>
+
                             <div className="flex flex-col gap-2">
-                                <label className="flex items-center gap-2 text-sm font-bold">
+                                <label className="flex items-center gap-2 text-sm font-bold text-[var(--color-text-dark)]">
                                     <input type="radio" value="webapp" checked={localExtras.type === 'webapp'} onChange={e => setLocalExtras({...localExtras, type: e.target.value})} />
                                     🌐 網頁版
                                 </label>
-                                <label className="flex items-center gap-2 text-sm font-bold">
+                                <label className="flex items-center gap-2 text-sm font-bold text-[var(--color-text-dark)]">
                                     <input type="radio" value="download" checked={localExtras.type === 'download'} onChange={e => setLocalExtras({...localExtras, type: e.target.value})} />
                                     ⬇️ 下載版 (.exe)
                                 </label>
                             </div>
-                            
+
                             <input
                                 value={localExtras.url} onChange={e => setLocalExtras({...localExtras, url: e.target.value})}
                                 placeholder={localExtras.type === 'webapp' ? '輸入 https:// 網址' : '輸入 Google Drive 共享連結'}
-                                className="w-full bg-white border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-[var(--color-clay-purple)]"
+                                className="w-full bg-[var(--color-card-bg)] text-[var(--color-text-dark)] border border-[var(--color-card-border)] rounded-lg p-2 text-sm outline-none focus:border-[var(--color-clay-purple)]"
                             />
                         </div>
                     ) : (() => {
@@ -177,7 +177,7 @@ export default function ToolDetail({ params }) {
                 </aside>
 
                 {/* MAIN CONTENT */}
-                <main className="flex-1 bg-white rounded-[32px] p-8 md:p-12 shadow-sm border border-gray-200 prose prose-lg prose-headings:font-black prose-p:font-bold prose-p:text-gray-600 max-w-none">
+                <main className="flex-1 bg-[var(--color-card-bg)] rounded-[32px] p-8 md:p-12 shadow-sm border border-[var(--color-card-border)] prose prose-lg prose-headings:font-black prose-p:font-bold prose-p:text-[var(--color-text-mid)] max-w-none">
                     <h2 className="text-3xl mb-8 flex items-center gap-3 border-b-2 border-gray-100 pb-4">
                         <span className="text-[var(--color-clay-purple)]">📄</span> 工具說明書
                     </h2>

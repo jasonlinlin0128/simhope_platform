@@ -97,12 +97,12 @@ export default function AdminDashboard() {
 
             <main className="flex-1">
                 {activeTab === 'tools' && (
-                    <div className="bg-white rounded-[24px] shadow-sm border border-gray-200 p-8">
+                    <div className="bg-[var(--color-card-bg)] rounded-[24px] shadow-sm border border-[var(--color-card-border)] p-8">
                         <h2 className="text-2xl font-black mb-6">🧰 所有已提交工具</h2>
                         
                         <div className="flex flex-col gap-4">
                             {tools.map(tool => (
-                                <div key={tool.id} className="flex flex-col md:flex-row justify-between items-center bg-gray-50 p-5 rounded-2xl border border-gray-200 gap-4">
+                                <div key={tool.id} className="flex flex-col md:flex-row justify-between items-center bg-[var(--color-card-bg)]/60 p-5 rounded-2xl border border-[var(--color-card-border)] gap-4">
                                     <div className="flex items-center gap-4 flex-1 w-full">
                                         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-2xl">
                                             {tool.icon || '📦'}
@@ -115,10 +115,10 @@ export default function AdminDashboard() {
                                     <div className="flex items-center gap-3 w-full md:w-auto">
                                         <div className="flex flex-col">
                                             <label className="text-xs text-gray-400 font-bold mb-1">工具狀態</label>
-                                            <select 
+                                            <select
                                                 value={tool.status}
                                                 onChange={(e) => handleUpdateToolStatus(tool.id, e.target.value)}
-                                                className="bg-white border border-gray-200 text-sm font-bold p-2 rounded-lg outline-none focus:border-[var(--color-clay-purple)]"
+                                                className="bg-[var(--color-card-bg)] text-[var(--color-text-dark)] border border-[var(--color-card-border)] text-sm font-bold p-2 rounded-lg outline-none focus:border-[var(--color-clay-purple)]"
                                             >
                                                 <option value="pending">🟡 待驗收</option>
                                                 <option value="new">🌟 新上線</option>
@@ -145,12 +145,12 @@ export default function AdminDashboard() {
                 )}
 
                 {activeTab === 'pains' && (
-                    <div className="bg-white rounded-[24px] shadow-sm border border-gray-200 p-8">
+                    <div className="bg-[var(--color-card-bg)] rounded-[24px] shadow-sm border border-[var(--color-card-border)] p-8">
                         <h2 className="text-2xl font-black mb-6">😤 痛點卡片管理</h2>
                         
                         <div className="flex flex-col gap-4">
                             {painCards.map(card => (
-                                <div key={card.id} className="bg-gray-50 p-5 rounded-2xl border border-gray-200 flex flex-col gap-2">
+                                <div key={card.id} className="bg-[var(--color-card-bg)]/60 p-5 rounded-2xl border border-[var(--color-card-border)] flex flex-col gap-2">
                                     <div className="text-sm font-bold text-red-600 bg-red-50 p-2 rounded relative border border-red-100">😓 {card.before}</div>
                                     <div className="text-sm font-bold text-green-600 bg-green-50 p-2 rounded border border-green-100">✅ {card.after}</div>
                                     <div className="flex justify-between items-center mt-2">
