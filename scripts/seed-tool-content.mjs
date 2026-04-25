@@ -61,31 +61,6 @@ const TOOL_DRAFTS = [
         ],
     },
 
-    // ── 合約快速審查 ──────────────────────────────────────────────────────────
-    {
-        title: '合約快速審查',
-        summary: '讓法務或採購同仁 5 分鐘內掌握合約風險，不再靠逐頁慢讀。',
-        blocks: [
-            {
-                id: uid(), type: 'text',
-                content: '## 解決什麼問題\n合約文件動輒數十頁，閱讀耗時且容易遺漏異常條款。這個工具透過 AI 自動掃描合約全文，**標記出不合理條件、可能引發糾紛的用語和法律風險點**，並提供修改建議，讓非法律背景的同仁也能快速做出判斷。',
-            },
-            {
-                id: uid(), type: 'steps',
-                content: '上傳 PDF 或 Word 格式的合約\n等待 AI 自動分析（約 1–3 分鐘）\n查看風險標記與修改建議',
-            },
-            {
-                id: uid(), type: 'image',
-                content: '', // ← 請填入截圖 URL
-                caption: 'AI 掃描後的合約風險標記畫面',
-            },
-            {
-                id: uid(), type: 'warning',
-                content: 'AI 分析僅供參考，重要合約仍應由法務或顧問做最終確認。',
-            },
-        ],
-    },
-
     // ── 加工部日報表 ──────────────────────────────────────────────────────────
     {
         title: '加工部日報表',
@@ -376,6 +351,15 @@ const TOOL_DRAFTS = [
 ];
 
 // ─── 執行 ──────────────────────────────────────────────────────────────────────
+async function listTitles() {
+    const snapshot = await db.collection('tools').get();
+    console.log('Firestore 中所有工具 title：\n');
+    snapshot.docs.forEach(d => {
+        const t = d.data().title || '(無 title)';
+        console.log(`  ${d.id}  →  ${t}`);
+    });
+}
+
 async function seed() {
     const toolsRef = db.collection('tools');
     const snapshot = await toolsRef.get();
@@ -405,7 +389,9 @@ async function seed() {
     console.log('>>> 記得之後到各工具詳情頁補上截圖 URL（image block 的 content 欄位）');
 }
 
-seed().catch(err => {
+const args = process.argv.slice(2);
+const runner = args.includes('--list') ? listTitles : seed;
+runner().catch(err => {
     console.error('❌ 執行失敗：', err.message);
     process.exit(1);
 });
