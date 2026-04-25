@@ -8,6 +8,12 @@ import { signOut } from 'firebase/auth';
 import { useTheme } from '@/context/ThemeContext';
 import LoginModal from '@/components/LoginModal';
 
+/**
+ * Sticky top navigation bar. Integrates Auth (useAuth), Theme toggle, and LoginModal.
+ * - Logged-out: shows "開發者登入" button → opens LoginModal
+ * - Logged-in (non-admin): links to /dashboard
+ * - Admin: links to /admin
+ */
 export default function Navbar() {
   const { user, isAdmin, loading } = useAuth();
   const { isDark, toggle } = useTheme();

@@ -4,6 +4,12 @@ import { useState } from 'react';
 import { auth } from '@/lib/firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 
+/**
+ * Modal for developer email/password sign-in.
+ * On success: calls `onClose()` and the Firebase session is established globally.
+ * Error handling: maps Firebase auth error codes to Traditional Chinese messages.
+ * @param {{ onClose: () => void }} props
+ */
 export default function LoginModal({ onClose }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

@@ -2,13 +2,17 @@
 
 import { useState } from 'react';
 
+/**
+ * Collapsible panel for generating tool listing copy via `/api/generate`.
+ * @param {{ onGenerate: (prompt: string) => void, isGenerating: boolean }} props
+ */
 export default function AIPanel({ onGenerate, isGenerating }) {
     const [prompt, setPrompt] = useState('');
     const [isOpen, setIsOpen] = useState(false);
 
     const handleSumbit = () => {
         if (!prompt.trim()) {
-            alert('⚠️ 請先輸入一句話描述你的工具！');
+            alert('請先輸入一句話描述你的工具');
             return;
         }
         onGenerate(prompt);

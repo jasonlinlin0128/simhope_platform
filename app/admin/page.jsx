@@ -84,7 +84,7 @@ export default function AdminDashboard() {
             fetchAdminData();
         } catch (err) {
             console.error(err);
-            alert('更新失敗');
+            alert('更新失敗，請重新整理後再試');
         }
     };
 
@@ -99,7 +99,7 @@ export default function AdminDashboard() {
             fetchAdminData();
         } catch (error) {
             console.error(error);
-            alert('更新失敗');
+            alert('更新失敗，請重新整理後再試');
         }
     };
 
@@ -110,14 +110,14 @@ export default function AdminDashboard() {
             fetchAdminData();
         } catch (error) {
             console.error(error);
-            alert('刪除失敗');
+            alert('刪除失敗，請重新整理後再試');
         }
     };
 
-    if (authLoading) return <p className="text-center py-20 text-gray-400">載入中...</p>;
+    if (authLoading) return <p className="text-center py-20 text-gray-400">載入中，請稍候…</p>;
     if (!user || !isAdmin) { router.push('/'); return null; }
 
-    if (loading) return <p className="text-center py-20 text-gray-400">載入中...</p>;
+    if (loading) return <p className="text-center py-20 text-gray-400">載入中，請稍候…</p>;
 
     return (
         <div className="flex gap-8 px-4 md:px-0">
@@ -143,10 +143,6 @@ export default function AdminDashboard() {
                         className={`w-full text-left px-4 py-3 rounded-xl font-bold transition-all ${activeTab === 'users' ? 'bg-[var(--color-clay-purple)] text-white shadow-md' : 'text-gray-600 hover:bg-gray-100'}`}
                     >
                         👥 帳號管理 <span className="float-right bg-white/20 px-2 rounded-full text-xs py-0.5">{users.length}</span>
-                    </button>
-                    {/* Hero, About, Spec are mocked out for now to ensure stable migration */}
-                    <button disabled className="w-full text-left px-4 py-3 rounded-xl font-bold text-gray-300 cursor-not-allowed">
-                        🏠 首頁設定 (施工中)
                     </button>
                 </nav>
             </aside>
@@ -195,7 +191,7 @@ export default function AdminDashboard() {
                                     </div>
                                 </div>
                             ))}
-                            {tools.length === 0 && <p className="text-gray-400 font-bold">目前沒有資料</p>}
+                            {tools.length === 0 && <p className="text-gray-400 font-bold">目前沒有工具資料</p>}
                         </div>
                     </div>
                 )}
@@ -214,7 +210,7 @@ export default function AdminDashboard() {
                                     </div>
                                 </div>
                             ))}
-                            {painCards.length === 0 && <p className="text-gray-400 font-bold">目前沒有資料</p>}
+                            {painCards.length === 0 && <p className="text-gray-400 font-bold">目前沒有痛點資料</p>}
                         </div>
                     </div>
                 )}
@@ -308,7 +304,7 @@ export default function AdminDashboard() {
                                         </div>
                                     </div>
                                 ))}
-                                {users.length === 0 && <p className="text-gray-400 font-bold">尚無帳號資料</p>}
+                                {users.length === 0 && <p className="text-gray-400 font-bold">目前沒有開發者帳號</p>}
                             </div>
                         </div>
                     </div>

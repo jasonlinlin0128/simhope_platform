@@ -2,6 +2,12 @@
 
 import { useState, useRef, useEffect } from 'react';
 
+/**
+ * Floating AI assistant widget (bottom-right corner).
+ * Responses are currently placeholder (800 ms fake delay); wire `send()` to a real
+ * API endpoint when ready.
+ * Message protocol: `{ role: 'user' | 'bot', text: string }[]`
+ */
 export default function ChatbotWidget() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([
@@ -25,7 +31,7 @@ export default function ChatbotWidget() {
     await new Promise(r => setTimeout(r, 800));
     setMessages(prev => [
       ...prev,
-      { role: 'bot', text: '感謝你的問題！目前 AI 回覆功能正在建置中，你可以先到「工具總覽」看看有沒有現成的工具，或寄信到 it@simhope.com.tw 提出需求。' },
+      { role: 'bot', text: '感謝你的問題！目前 AI 回覆功能正在建置中，你可以先到「工具總覽」看看有沒有現成的工具，或寄信到 jasonlin@simhope.com.tw 提出需求。' },
     ]);
     setLoading(false);
   };

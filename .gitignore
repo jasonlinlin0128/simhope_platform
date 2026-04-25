@@ -40,8 +40,11 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# local download binaries (served via Google Drive links instead)
-landing-page/downloads/
+# internal planning docs (PRD, legacy history) — not for public repo
+docs/internal/
+
+# Firebase service account key — never commit this
+serviceAccountKey.json
 
 # visual brainstorming sessions
 .superpowers/

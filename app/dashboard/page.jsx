@@ -81,10 +81,10 @@ export default function Dashboard() {
                 tags: (result.tags || []).join(', ')
             }));
 
-            alert('✨ 魔法生成完成！');
+            alert('✨ 文案生成完成！請確認內容後送出');
         } catch (err) {
             console.error(err);
-            alert('生成失敗：' + err.message);
+            alert('AI 生成失敗，請稍後再試');
         } finally {
             setIsGenerating(false);
         }
@@ -121,7 +121,7 @@ export default function Dashboard() {
 
             await setDoc(doc(db, 'tools', id), toolData);
             
-            alert('送出成功！請等待管理員審核。');
+            alert('已送出！經企室審核ok後即上架');
             setFormData({
                 title: '', tagline: '', icon: '📦', desc: '', dept: 'other', 
                 folder: '', type: 'webapp', url: '', s1: '', s2: '', s3: '', tags: ''
@@ -129,7 +129,7 @@ export default function Dashboard() {
             fetchMyTools(); // Refresh
         } catch (error) {
             console.error(error);
-            alert('儲存失敗');
+            alert('儲存失敗，請稍後再試');
         }
     };
 
@@ -138,7 +138,7 @@ export default function Dashboard() {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    if (authLoading || loading) return <p className="text-center py-20 text-gray-400">載入中...</p>;
+    if (authLoading || loading) return <p className="text-center py-20 text-gray-400">載入中，請稍候…</p>;
 
     return (
         <div className="px-4 md:px-0 flex flex-col gap-10">
@@ -282,7 +282,7 @@ export default function Dashboard() {
                     {myTools.length === 0 ? (
                         <div className="bg-gray-50 rounded-[24px] p-10 h-[300px] border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-center">
                             <span className="text-4xl mb-4 grayscale opacity-50">📦</span>
-                            <h4 className="font-bold text-gray-400">目前沒有提交任何工具。</h4>
+                            <h4 className="font-bold text-gray-400">你還沒有提交任何工具</h4>
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">

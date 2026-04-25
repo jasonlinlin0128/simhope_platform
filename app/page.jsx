@@ -178,7 +178,7 @@ export default function Home() {
         </div>
 
         {loading ? (
-          <div className="text-center py-10 text-gray-400">載入中...</div>
+          <div className="text-center py-10 text-gray-400">載入中，請稍候…</div>
         ) : (
           <div className="flex flex-col gap-10">
             {Object.entries(folderGroups).sort().map(([folder, cards]) => (
@@ -266,7 +266,7 @@ export default function Home() {
                 {filteredTools.map(t => <ToolCard key={t.id} tool={t} />)}
                 {filteredTools.length === 0 && (
                   <div className="col-span-full py-20 text-center text-gray-500 dark:text-gray-400 font-bold bg-white dark:bg-gray-800 rounded-[24px] border border-dashed border-gray-300 dark:border-gray-600">
-                    這個場景下目前沒有任何工具 🙌
+                    這個場景目前沒有工具
                   </div>
                 )}
               </div>
@@ -336,14 +336,14 @@ export default function Home() {
               🔧 找現有工具
             </Link>
             <a
-              href="mailto:it@simhope.com.tw?subject=AI工具需求"
+              href="mailto:jasonlin@simhope.com.tw?subject=AI工具需求"
               className="px-8 py-4 rounded-full bg-white dark:bg-gray-700 text-[var(--color-text-dark)] dark:text-gray-100 font-extrabold text-base border-2 border-[#1e1b4b]/15 dark:border-white/10 shadow-sm hover:-translate-y-1 hover:shadow-md transition-all"
             >
               💬 提需求給我
             </a>
           </div>
           <p className="text-xs text-[var(--color-text-mid)] opacity-70">
-            * 需求會由 IT 部門評估，不保證每項都能實現，但每條都會看。
+            需求會由經企室評估，不保證每項都能實現，但每條都會看!
           </p>
         </div>
       </section>

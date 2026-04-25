@@ -12,8 +12,9 @@ const firebaseConfig = {
     measurementId: "G-J9B1DTP883"
 };
 
-// Initialize Firebase securely to avoid SSR double instantiation issues
+// getApps() guard prevents double-init during SSR hot reload
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 
+// Singleton instances — safe to import on both server and client
 export const auth = getAuth(app);
 export const db = getFirestore(app);

@@ -17,6 +17,8 @@ const SECONDARY = 'secondary-admin';
  * Creates a developer account without affecting the admin's current session.
  * Uses a secondary Firebase App instance so createUserWithEmailAndPassword
  * doesn't sign out the admin.
+ * @param {{ email: string, password: string, displayName?: string, createdByUid: string }} options
+ * @returns {Promise<string>} UID of the newly created user
  */
 export async function createDeveloperAccount({ email, password, displayName, createdByUid }) {
   const existing = getApps().find(a => a.name === SECONDARY);

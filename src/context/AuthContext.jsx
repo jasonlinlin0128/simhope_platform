@@ -7,6 +7,7 @@ import { getUserProfile } from '@/lib/db';
 
 const AuthContext = createContext(null);
 
+/** Subscribes to Firebase Auth state and fetches the Firestore user profile on sign-in. */
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
     const [profile, setProfile] = useState(null);
@@ -37,6 +38,9 @@ export function AuthProvider({ children }) {
     );
 }
 
+/**
+ * @returns {{ user: import('firebase/auth').User|null, profile: object|null, isAdmin: boolean, isDeveloper: boolean, loading: boolean }}
+ */
 export function useAuth() {
     return useContext(AuthContext);
 }

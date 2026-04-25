@@ -10,7 +10,11 @@ const colorMap = {
     c6: 'bg-gradient-to-br from-pink-100 to-pink-200 text-pink-600',
 };
 
-// Map status labels & classes
+/**
+ * Maps a tool status key to display label and Tailwind CSS class string.
+ * @param {'live'|'beta'|'new'|'dev'|'pending'|'terminated'} status
+ * @returns {{ label: string, cls: string }}
+ */
 export const getStatusLabel = (status) => {
     const statuses = {
         live: { label: '使用中', cls: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-200 dark:border-green-700' },
@@ -23,6 +27,10 @@ export const getStatusLabel = (status) => {
     return statuses[status] || { label: status, cls: 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600' };
 };
 
+/**
+ * Card linking to `/tool/{id}`. Displays icon, title, tagline, scenarios, status badge, and type badge.
+ * @param {{ tool: { id: string, title: string, tagline: string, icon: string, color: string, dept: string, scenarios: string[], status: string, type: 'webapp'|'download'|'showcase', updatedAt: any } }} props
+ */
 export default function ToolCard({ tool }) {
     const { id, title, tagline, icon, color, dept, scenarios, status, type, updatedAt } = tool;
     

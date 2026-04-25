@@ -191,7 +191,7 @@ function BlockEditor({ block, idx, total, onChange, onDelete, onMove }) {
                     />
                     {block.content && (
                         <img
-                            src={block.content} alt=""
+                            src={block.content} alt={block.caption || ''}
                             className="w-full rounded-xl border border-[var(--color-card-border)] max-h-48 object-contain mt-1"
                             onError={e => { e.target.style.display = 'none'; }}
                         />
@@ -322,12 +322,12 @@ export default function ToolDetail({ params }) {
             fetchTool();
         } catch (error) {
             console.error(error);
-            alert('儲存失敗：' + (error.code === 'permission-denied' ? '你沒有權限編輯此工具' : error.message));
+            alert(error.code === 'permission-denied' ? '儲存失敗：你沒有編輯此工具的權限' : '儲存失敗，請稍後再試');
         }
         setIsSaving(false);
     };
 
-    if (loading || authLoading) return <p className="text-center py-20 text-[var(--color-text-mid)]">載入中...</p>;
+    if (loading || authLoading) return <p className="text-center py-20 text-[var(--color-text-mid)]">載入中，請稍候…</p>;
     if (!tool) return null;
 
     return (

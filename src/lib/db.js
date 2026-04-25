@@ -45,6 +45,10 @@ export const DEFAULT_SITE = {
 
 // --- Firebase Modular SDK DB Wrappers ---
 
+/**
+ * @param {string} uid
+ * @returns {Promise<object|null>} Profile data, or null if not found / on error
+ */
 export async function getUserProfile(uid) {
     if (!uid) return null;
     try {
@@ -53,11 +57,17 @@ export async function getUserProfile(uid) {
     } catch { return null; }
 }
 
+/** Returns all documents in the `tools` collection (admin use only). */
 export async function getAllTools() {
     const snap = await getDocs(collection(db, 'tools'));
     return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
+/**
+ * Returns tools visible to the current user.
+ * Admins get everything; others get tools where `status` is live/beta/new OR
+ * legacy `approval === 'approved'`, deduped by document ID.
+ */
 export async function getApprovedTools() {
     let isAdmin = false;
     if (auth.currentUser) {
@@ -87,6 +97,10 @@ export async function getApprovedTools() {
     }
 }
 
+/**
+ * Returns approved pain cards, falling back to DEFAULT_SITE.painCards
+ * when the Firestore collection is empty (e.g. fresh deploy).
+ */
 export async function getApprovedPainCards() {
     let isAdmin = false;
     if (auth.currentUser) {

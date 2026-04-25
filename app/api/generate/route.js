@@ -16,6 +16,21 @@ JSON Schema:
   "tags": ["關鍵字1", "關鍵字2"]
 }`;
 
+/**
+ * POST /api/generate
+ * Generates tool listing copy (icon, title, tagline, desc, dept, steps, tags)
+ * using Gemini 2.5 Flash.
+ *
+ * Auth flow:
+ *   1. Bearer token from Authorization header
+ *   2. Verified via Firebase Identity Toolkit REST API
+ *   3. Firestore `users/{uid}.role` checked — only `developer` and `admin` may proceed
+ *
+ * Required env vars: FIREBASE_WEB_API_KEY, FIREBASE_PROJECT_ID, GEMINI_API_KEY
+ *
+ * @param {Request} request  JSON body: `{ prompt: string }`
+ * @returns {Response}       JSON matching SYSTEM_PROMPT schema, or `{ error }` with 4xx/5xx status
+ */
 export async function POST(request) {
     // Verify Firebase ID token
     const authHeader = request.headers.get('authorization');
