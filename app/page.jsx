@@ -92,41 +92,51 @@ export default function Home() {
     return () => clearTimeout(t);
   }, [searchQuery]);
 
-  // 場景 chip 候選 — 從所有工具的 scenarios 聚合而來
+  // 把工具分成「在用中」與「已終止」兩組 — 主列表只顯示在用中，底部摺疊區顯示已終止
+  const activeTools = useMemo(
+    () => tools.filter((t) => t.status !== "terminated"),
+    [tools],
+  );
+  const terminatedTools = useMemo(
+    () => tools.filter((t) => t.status === "terminated"),
+    [tools],
+  );
+
+  // 場景 chip 候選 — 只從在用中工具聚合（已終止的場景不該污染篩選列）
   const allScenarios = useMemo(() => {
     const set = new Set();
-    tools.forEach((t) => {
+    activeTools.forEach((t) => {
       if (Array.isArray(t.scenarios)) t.scenarios.forEach((s) => set.add(s));
     });
     return Array.from(set).sort();
-  }, [tools]);
+  }, [activeTools]);
 
-  // 各類型工具數（顯示在 chip 旁邊）
+  // 各類型工具數（顯示在 chip 旁邊）— 只算在用中
   const typeCounts = useMemo(() => {
-    const counts = { all: tools.length };
+    const counts = { all: activeTools.length };
     for (const chip of TYPE_CHIPS) {
       if (chip.key === "all") continue;
-      counts[chip.key] = tools.filter(
+      counts[chip.key] = activeTools.filter(
         (t) => (t.type || "webapp") === chip.key,
       ).length;
     }
     return counts;
-  }, [tools]);
+  }, [activeTools]);
 
-  // Fuse.js — 模糊比對 title / tagline / tags
+  // Fuse.js — 模糊比對 title / tagline / tags（只搜尋在用中）
   const fuse = useMemo(
     () =>
-      new Fuse(tools, {
+      new Fuse(activeTools, {
         keys: ["title", "tagline", "tags", "desc"],
         threshold: 0.4,
         ignoreLocation: true,
       }),
-    [tools],
+    [activeTools],
   );
 
   // 三段式篩選：搜尋 → 類型 → 場景
   const filteredTools = useMemo(() => {
-    let result = tools;
+    let result = activeTools;
 
     if (debouncedQuery) {
       result = fuse.search(debouncedQuery).map((r) => r.item);
@@ -143,7 +153,7 @@ export default function Home() {
     }
 
     return result;
-  }, [tools, debouncedQuery, fuse, selectedType, selectedScenarios]);
+  }, [activeTools, debouncedQuery, fuse, selectedType, selectedScenarios]);
 
   const toggleScenario = (scenario) => {
     setSelectedScenarios((prev) =>
@@ -206,7 +216,7 @@ export default function Home() {
           <br />
           目前收錄{" "}
           <strong className="text-[var(--color-text-dark)]">
-            {loading ? "…" : tools.length} 個工具
+            {loading ? "…" : activeTools.length} 個工具
           </strong>
           ，持續新增中。
         </p>
@@ -230,7 +240,7 @@ export default function Home() {
           {[
             {
               id: "tools",
-              value: loading ? "…" : tools.length,
+              value: loading ? "…" : activeTools.length,
               label: "可用工具",
             },
             { id: "users", value: "30+", label: "同仁每週使用" },
@@ -451,6 +461,32 @@ export default function Home() {
               </div>
             )}
           </div>
+        )}
+
+        {/* ── 已終止工具 (摺疊區) ── */}
+        {!loading && terminatedTools.length > 0 && (
+          <details className="mt-12 max-w-5xl mx-auto group">
+            <summary className="cursor-pointer flex items-center justify-center gap-2 py-3 px-5 rounded-2xl bg-white/60 dark:bg-gray-800/60 border border-dashed border-gray-300 dark:border-gray-600 text-sm font-bold text-[var(--color-text-mid)] hover:bg-white dark:hover:bg-gray-800 transition list-none">
+              <span className="text-base">🗄️</span>
+              <span>已終止的工具</span>
+              <span className="text-xs opacity-70">
+                ({terminatedTools.length})
+              </span>
+              <span className="text-xs opacity-50 group-open:rotate-180 transition-transform">
+                ▾
+              </span>
+            </summary>
+            <div className="mt-5 pl-4 border-l-2 border-gray-200 dark:border-gray-700">
+              <p className="text-xs text-[var(--color-text-mid)] mb-4 italic">
+                這些工具已停止維護或已整合到別的工具裡，保留作為歷史紀錄。
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 opacity-75">
+                {terminatedTools.map((t) => (
+                  <ToolCard key={t.id} tool={t} />
+                ))}
+              </div>
+            </div>
+          </details>
         )}
       </section>
 
