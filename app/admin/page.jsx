@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, doc, updateDoc, deleteDoc, query, where } from 'firebase/firestore';
 import { createDeveloperAccount } from '@/lib/adminAuth';
+import ReviewToolWizard from '@/components/ReviewToolWizard';
 
 export default function AdminDashboard() {
     const { user, isAdmin, loading: authLoading } = useAuth();
@@ -16,6 +17,7 @@ export default function AdminDashboard() {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('tools');
+    const [wizardToolId, setWizardToolId] = useState(null);
 
     // Create developer form state
     const [newEmail, setNewEmail] = useState('');
@@ -148,53 +150,104 @@ export default function AdminDashboard() {
             </aside>
 
             <main className="flex-1">
-                {activeTab === 'tools' && (
-                    <div className="bg-[var(--color-card-bg)] rounded-[24px] shadow-sm border border-[var(--color-card-border)] p-8">
-                        <h2 className="text-2xl font-black mb-6">🧰 所有已提交工具</h2>
-                        
-                        <div className="flex flex-col gap-4">
-                            {tools.map(tool => (
-                                <div key={tool.id} className="flex flex-col md:flex-row justify-between items-center bg-[var(--color-card-bg)]/60 p-5 rounded-2xl border border-[var(--color-card-border)] gap-4">
-                                    <div className="flex items-center gap-4 flex-1 w-full">
-                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-2xl">
-                                            {tool.icon || '📦'}
-                                        </div>
-                                        <div>
-                                            <h4 className="font-extrabold text-[var(--color-text-dark)]">{tool.title}</h4>
-                                            <p className="text-xs text-gray-500 font-bold">{tool.tagline}</p>
-                                        </div>
+                {activeTab === 'tools' && (() => {
+                    const wizardTool = wizardToolId ? tools.find(t => t.id === wizardToolId) : null;
+                    if (wizardTool) {
+                        return (
+                            <ReviewToolWizard
+                                tool={wizardTool}
+                                onClose={() => setWizardToolId(null)}
+                                onSaved={() => { setWizardToolId(null); fetchAdminData(); }}
+                            />
+                        );
+                    }
+
+                    const pendingTools = tools.filter(t => t.status === 'pending');
+                    const otherTools = tools.filter(t => t.status !== 'pending')
+                        .sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+
+                    return (
+                        <div className="flex flex-col gap-8">
+                            {/* === 待審核工具區塊（pending） === */}
+                            <div className="bg-yellow-50/50 dark:bg-yellow-900/10 rounded-[24px] border-2 border-yellow-300 dark:border-yellow-700 p-8 shadow-sm">
+                                <h2 className="text-2xl font-black mb-2 text-yellow-800 dark:text-yellow-200 flex items-center gap-2">
+                                    🟡 待審核工具 <span className="text-base">({pendingTools.length})</span>
+                                </h2>
+                                <p className="text-sm text-yellow-700 dark:text-yellow-300 mb-6">
+                                    開發者剛提交、等你補完細節 + 上架的工具。
+                                </p>
+                                {pendingTools.length === 0 ? (
+                                    <p className="text-yellow-700/70 dark:text-yellow-300/70 font-bold italic">目前沒有待審核工具 ✨</p>
+                                ) : (
+                                    <div className="flex flex-col gap-3">
+                                        {pendingTools.map(tool => (
+                                            <div key={tool.id} className="flex flex-col md:flex-row justify-between items-center bg-white dark:bg-gray-800 p-5 rounded-2xl border border-yellow-200 dark:border-yellow-700 gap-4 shadow">
+                                                <div className="flex items-center gap-4 flex-1 w-full">
+                                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-100 to-yellow-200 flex items-center justify-center text-2xl">
+                                                        {tool.icon || '📦'}
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <h4 className="font-extrabold text-[var(--color-text-dark)] truncate">{tool.title}</h4>
+                                                        <p className="text-xs text-gray-500 font-bold truncate">{tool.tagline}</p>
+                                                        <p className="text-[0.65rem] text-gray-400 mt-0.5">type: {tool.type || '?'} · url: {tool.url ? tool.url.slice(0, 40) + '...' : '(無)'}</p>
+                                                    </div>
+                                                </div>
+                                                <button onClick={() => setWizardToolId(tool.id)}
+                                                    className="px-5 py-3 rounded-xl bg-gradient-to-br from-[var(--color-clay-purple)] to-[var(--color-clay-blue)] text-white font-extrabold shadow hover:-translate-y-0.5 transition whitespace-nowrap">
+                                                    🔍 進入審核
+                                                </button>
+                                            </div>
+                                        ))}
                                     </div>
-                                    <div className="flex items-center gap-3 w-full md:w-auto">
-                                        <div className="flex flex-col">
-                                            <label className="text-xs text-gray-400 font-bold mb-1">工具狀態</label>
-                                            <select
-                                                value={tool.status}
-                                                onChange={(e) => handleUpdateToolStatus(tool.id, e.target.value)}
-                                                className="bg-[var(--color-card-bg)] text-[var(--color-text-dark)] border border-[var(--color-card-border)] text-sm font-bold p-2 rounded-lg outline-none focus:border-[var(--color-clay-purple)]"
-                                            >
-                                                <option value="pending">🟡 待驗收</option>
-                                                <option value="new">🌟 新上線</option>
-                                                <option value="live">🟢 使用中</option>
-                                                <option value="beta">🟠 測試中</option>
-                                                <option value="dev">🔨 開發中</option>
-                                                <option value="terminated">⚫ 已終止</option>
-                                            </select>
+                                )}
+                            </div>
+
+                            {/* === 已上架的工具區塊 === */}
+                            <div className="bg-[var(--color-card-bg)] rounded-[24px] shadow-sm border border-[var(--color-card-border)] p-8">
+                                <h2 className="text-2xl font-black mb-6">🧰 已上架工具 ({otherTools.length})</h2>
+                                <div className="flex flex-col gap-3">
+                                    {otherTools.map(tool => (
+                                        <div key={tool.id} className="flex flex-col md:flex-row justify-between items-center bg-[var(--color-card-bg)]/60 p-4 rounded-2xl border border-[var(--color-card-border)] gap-3">
+                                            <div className="flex items-center gap-3 flex-1 w-full">
+                                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-xl">
+                                                    {tool.icon || '📦'}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <h4 className="font-extrabold text-sm text-[var(--color-text-dark)] truncate">{tool.title}</h4>
+                                                    <p className="text-[0.7rem] text-gray-500 font-bold truncate">{tool.tagline}</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2 w-full md:w-auto flex-wrap">
+                                                <select
+                                                    value={tool.status}
+                                                    onChange={(e) => handleUpdateToolStatus(tool.id, e.target.value)}
+                                                    className="bg-[var(--color-card-bg)] text-[var(--color-text-dark)] border border-[var(--color-card-border)] text-xs font-bold p-2 rounded-lg outline-none focus:border-[var(--color-clay-purple)]"
+                                                >
+                                                    <option value="pending">🟡 待驗收</option>
+                                                    <option value="new">🌟 新上線</option>
+                                                    <option value="live">🟢 使用中</option>
+                                                    <option value="beta">🟠 測試中</option>
+                                                    <option value="dev">🔨 開發中</option>
+                                                    <option value="terminated">⚫ 已終止</option>
+                                                </select>
+                                                <button onClick={() => setWizardToolId(tool.id)} className="px-3 py-1.5 bg-purple-50 text-purple-600 hover:bg-purple-100 rounded-lg font-bold text-xs border border-purple-200">
+                                                    🔍 wizard
+                                                </button>
+                                                <a href={`/tool/${tool.id}`} className="px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg font-bold text-xs border border-blue-200">
+                                                    ✏️ 編輯
+                                                </a>
+                                                <button onClick={() => handleDeleteTool(tool.id)} className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg font-bold text-xs border border-red-200">
+                                                    🗑️
+                                                </button>
+                                            </div>
                                         </div>
-                                        <div className="flex gap-2 mt-4 md:mt-0">
-                                            <a href={`/tool/${tool.id}`} className="px-4 py-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg font-bold text-sm transition-colors border border-blue-200">
-                                                ✏️ 編輯
-                                            </a>
-                                            <button onClick={() => handleDeleteTool(tool.id)} className="px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg font-bold text-sm transition-colors border border-red-200">
-                                                🗑️ 刪除
-                                            </button>
-                                        </div>
-                                    </div>
+                                    ))}
+                                    {otherTools.length === 0 && <p className="text-gray-400 font-bold">沒有已上架工具</p>}
                                 </div>
-                            ))}
-                            {tools.length === 0 && <p className="text-gray-400 font-bold">目前沒有工具資料</p>}
+                            </div>
                         </div>
-                    </div>
-                )}
+                    );
+                })()}
 
                 {activeTab === 'pains' && (
                     <div className="bg-[var(--color-card-bg)] rounded-[24px] shadow-sm border border-[var(--color-card-border)] p-8">

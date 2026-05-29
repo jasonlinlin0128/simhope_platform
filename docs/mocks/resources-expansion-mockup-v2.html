@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<title>SimHope 平台擴充 mock v2 — Vercel Marketplace 風</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root{
+    --clay-purple:#A78BFA; --clay-coral:#FF6B6B; --clay-orange:#FFA94D;
+    --clay-blue:#60A5FA; --clay-green:#34D399; --clay-yellow:#FFD166;
+    --text-dark:#1f1b3d; --text-mid:#5b5878;
+  }
+  body{ background:linear-gradient(135deg,#fef9f3 0%,#fff5f0 60%,#f4f0fd 100%); font-family:"Nunito","Noto Sans TC",sans-serif; color:var(--text-dark); }
+  .mock-frame{ background:rgba(255,255,255,0.6); border:2px dashed rgba(167,139,250,0.35); border-radius:24px; padding:32px; margin-bottom:48px; }
+  .mock-title{ font-weight:900; font-size:1.5rem; margin-bottom:4px; }
+  .mock-subtitle{ font-size:0.9rem; color:var(--text-mid); margin-bottom:20px; }
+  .annotate{ background:#fffae6; border-left:4px solid var(--clay-yellow); padding:10px 14px; border-radius:0 8px 8px 0; font-size:0.85rem; color:#7a5d00; margin-bottom:18px; }
+  .term{ font-weight:700; }
+  .term .en{ color:#888; font-weight:500; font-size:0.85em; }
+
+  /* tab style */
+  .tab-btn{ padding:10px 18px; font-weight:800; font-size:0.85rem; border-bottom:3px solid transparent; cursor:pointer; color:#888; }
+  .tab-btn.active{ color:var(--text-dark); border-color:var(--clay-purple); }
+  .tab-panel{ display:none; padding:24px 0; }
+  .tab-panel.active{ display:block; }
+
+  .chip{ display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border-radius:999px; font-size:0.8rem; font-weight:800; border:2px solid; cursor:pointer; transition:all 0.15s; }
+  .chip:hover{ transform:translateY(-1px); }
+  .chip.active{ background:var(--clay-purple); color:white; border-color:var(--clay-purple); }
+  .chip.inactive{ background:white; color:var(--text-mid); border-color:#e5e0f0; }
+
+  /* type badge */
+  .tb-webapp{ background:#f5edff; color:#7c3aed; border:1px solid #e0d4ff; }
+  .tb-download{ background:#eef4ff; color:#2563eb; border:1px solid #d4e2ff; }
+  .tb-doc{ background:#fff4e6; color:#c2410c; border:1px solid #ffe0bf; }
+  .tb-mcp{ background:#ecfdf5; color:#047857; border:1px solid #bbf7d0; }
+  .tb-api{ background:#fef3c7; color:#92400e; border:1px solid #fde68a; }
+</style>
+</head>
+<body class="px-4 md:px-8 py-10 max-w-6xl mx-auto">
+
+<header class="mb-12 text-center">
+  <h1 class="text-4xl font-black mb-2">SimHope 平台擴充 mock <span class="text-[var(--clay-purple)]">v2</span></h1>
+  <p class="text-[var(--text-mid)]">參考 Vercel Marketplace 風格 — 卡片有醒目「一鍵動作」按鈕；提交表單回到 4 欄極簡。</p>
+  <div class="mt-4 inline-block bg-white/80 rounded-full px-4 py-1.5 text-xs font-bold text-[var(--clay-purple)] border border-[var(--clay-purple)]/30">
+    🎨 mock 階段，按鈕不會動
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- 名詞對照表 -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<section class="mock-frame !bg-white/80 border-solid border-[var(--clay-purple)]/30">
+  <div class="mock-title">📒 名詞對照表（給後續一起對齊用）</div>
+  <table class="text-sm w-full mt-3">
+    <thead><tr class="border-b-2 border-gray-200 text-left"><th class="py-2 font-extrabold">這份 mock / 文件用的詞</th><th class="font-extrabold">在程式碼裡叫</th><th class="font-extrabold">給同仁看的時候</th></tr></thead>
+    <tbody class="text-[var(--text-mid)]">
+      <tr class="border-b border-gray-100"><td class="py-2">資源 / 工具</td><td><code>tool</code> document</td><td>工具</td></tr>
+      <tr class="border-b border-gray-100"><td class="py-2">類型（這是什麼樣的東西）</td><td><code>type</code> 欄位</td><td>類型</td></tr>
+      <tr class="border-b border-gray-100"><td class="py-2">狀態（開發到哪一步）</td><td><code>status</code> 欄位</td><td>狀態（使用中 / 測試中 / 開發中…）</td></tr>
+      <tr class="border-b border-gray-100"><td class="py-2">AI 連接器</td><td><code>type: 'mcp'</code></td><td>AI 連接器（MCP）</td></tr>
+      <tr class="border-b border-gray-100"><td class="py-2">標籤</td><td>卡片右下角小色塊</td><td>標籤</td></tr>
+      <tr class="border-b border-gray-100"><td class="py-2">資料表結構</td><td>schema / Firestore document fields</td><td>欄位設定</td></tr>
+      <tr><td class="py-2">資料搬移</td><td>migration script</td><td>一次性轉換</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- 畫面 1：首頁 Vercel Marketplace 風 -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<section class="mock-frame">
+  <div class="mock-title">📍 畫面 1 — 首頁（Vercel Marketplace 風）</div>
+  <div class="mock-subtitle">卡片上方有醒目的「一鍵動作」按鈕（依類型不同）；篩選從側欄改成頂部 chip。</div>
+
+  <div class="annotate">
+    <strong>變動重點：</strong>
+    <ul class="list-disc list-inside mt-1">
+      <li>原本左側欄篩選 → 改成頂部 <span class="term">類型 chip 列</span></li>
+      <li>每張卡片底部新增<span class="term">一鍵動作按鈕</span>，依類型給不同 CTA 跟顏色</li>
+      <li>「適用場景」標籤縮小放在卡片左下</li>
+    </ul>
+  </div>
+
+  <!-- top filter chips -->
+  <div class="mb-6 flex flex-wrap gap-2 justify-center">
+    <span class="chip active">全部 14</span>
+    <span class="chip inactive">🌐 網頁應用 6</span>
+    <span class="chip inactive">⬇️ 軟體下載 2</span>
+    <span class="chip inactive">📄 文件 / 表單 3</span>
+    <span class="chip inactive">🔌 AI 連接器 2</span>
+    <span class="chip inactive">🧩 API / SDK 1</span>
+  </div>
+
+  <!-- Card grid: each card has a primary action button -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+
+    <!-- webapp 範例 -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition overflow-hidden flex flex-col">
+      <div class="p-5 flex-1">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-3xl">🌏</div>
+          <div class="flex-1 min-w-0">
+            <h3 class="font-extrabold text-base">現場即時翻譯</h3>
+            <span class="text-[0.65rem] inline-block mt-0.5 px-1.5 py-0.5 rounded tb-webapp font-bold">🌐 網頁應用</span>
+          </div>
+        </div>
+        <p class="text-sm text-[var(--text-mid)] font-medium leading-snug line-clamp-2 h-10">泰中英三語翻譯，工廠師傅手機直接用</p>
+        <div class="mt-3 flex flex-wrap gap-1 text-[0.65rem]">
+          <span class="px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 font-bold">生產現場</span>
+          <span class="px-1.5 py-0.5 rounded bg-green-100 text-green-700 font-bold">使用中</span>
+        </div>
+      </div>
+      <a href="#" class="block text-center py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white font-extrabold text-sm hover:opacity-90 transition">
+        🌐 馬上打開 →
+      </a>
+    </div>
+
+    <!-- mcp 範例 -->
+    <div class="bg-white rounded-2xl border-2 border-emerald-200 shadow-sm hover:shadow-lg transition overflow-hidden flex flex-col relative">
+      <div class="absolute top-3 right-3 bg-emerald-500 text-white text-[0.6rem] px-2 py-0.5 rounded-full font-extrabold">NEW</div>
+      <div class="p-5 flex-1">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-100 to-emerald-200 flex items-center justify-center text-3xl">📋</div>
+          <div class="flex-1 min-w-0">
+            <h3 class="font-extrabold text-base">ISO 表單查詢 MCP</h3>
+            <span class="text-[0.65rem] inline-block mt-0.5 px-1.5 py-0.5 rounded tb-mcp font-bold">🔌 AI 連接器</span>
+          </div>
+        </div>
+        <p class="text-sm text-[var(--text-mid)] font-medium leading-snug line-clamp-2 h-10">把 ISO 表單接到 Claude/Cursor，AI 直接幫你查條文跟填單</p>
+        <div class="mt-3 flex flex-wrap gap-1 text-[0.65rem]">
+          <span class="px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 font-bold">行政/文書</span>
+          <span class="px-1.5 py-0.5 rounded bg-orange-100 text-orange-700 font-bold">測試中</span>
+        </div>
+      </div>
+      <a href="#" class="block text-center py-3 bg-emerald-500 text-white font-extrabold text-sm hover:bg-emerald-600 transition">
+        📦 安裝到 Claude / Cursor →
+      </a>
+    </div>
+
+    <!-- doc 範例 -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition overflow-hidden flex flex-col">
+      <div class="p-5 flex-1">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center text-3xl">📑</div>
+          <div class="flex-1 min-w-0">
+            <h3 class="font-extrabold text-base">出差申請單 v2026.05</h3>
+            <span class="text-[0.65rem] inline-block mt-0.5 px-1.5 py-0.5 rounded tb-doc font-bold">📄 文件 / 表單</span>
+          </div>
+        </div>
+        <p class="text-sm text-[var(--text-mid)] font-medium leading-snug line-clamp-2 h-10">最新版 ISO 出差單，含部門代碼說明與範例</p>
+        <div class="mt-3 flex flex-wrap gap-1 text-[0.65rem]">
+          <span class="px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 font-bold">行政/文書</span>
+          <span class="px-1.5 py-0.5 rounded bg-green-100 text-green-700 font-bold">使用中</span>
+        </div>
+      </div>
+      <a href="#" class="block text-center py-3 bg-orange-500 text-white font-extrabold text-sm hover:bg-orange-600 transition">
+        ⬇️ 下載 (.docx) →
+      </a>
+    </div>
+
+    <!-- download 範例 -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition overflow-hidden flex flex-col">
+      <div class="p-5 flex-1">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-pink-100 to-pink-200 flex items-center justify-center text-3xl">🧰</div>
+          <div class="flex-1 min-w-0">
+            <h3 class="font-extrabold text-base">空白頁清除工具</h3>
+            <span class="text-[0.65rem] inline-block mt-0.5 px-1.5 py-0.5 rounded tb-download font-bold">⬇️ 軟體下載</span>
+          </div>
+        </div>
+        <p class="text-sm text-[var(--text-mid)] font-medium leading-snug line-clamp-2 h-10">PDF 自動清除空白頁，覆寫原檔</p>
+        <div class="mt-3 flex flex-wrap gap-1 text-[0.65rem]">
+          <span class="px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 font-bold">行政/文書</span>
+          <span class="px-1.5 py-0.5 rounded bg-green-100 text-green-700 font-bold">使用中</span>
+        </div>
+      </div>
+      <a href="#" class="block text-center py-3 bg-blue-500 text-white font-extrabold text-sm hover:bg-blue-600 transition">
+        ⬇️ 下載安裝檔 (Windows) →
+      </a>
+    </div>
+
+    <!-- api 範例 -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition overflow-hidden flex flex-col">
+      <div class="p-5 flex-1">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-100 to-yellow-200 flex items-center justify-center text-3xl">🔗</div>
+          <div class="flex-1 min-w-0">
+            <h3 class="font-extrabold text-base">內部翻譯 API</h3>
+            <span class="text-[0.65rem] inline-block mt-0.5 px-1.5 py-0.5 rounded tb-api font-bold">🧩 API / SDK</span>
+          </div>
+        </div>
+        <p class="text-sm text-[var(--text-mid)] font-medium leading-snug line-clamp-2 h-10">給工程師串接的翻譯 REST API</p>
+        <div class="mt-3 flex flex-wrap gap-1 text-[0.65rem]">
+          <span class="px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 font-bold">跨國溝通</span>
+          <span class="px-1.5 py-0.5 rounded bg-orange-100 text-orange-700 font-bold">測試中</span>
+        </div>
+      </div>
+      <a href="#" class="block text-center py-3 bg-amber-500 text-white font-extrabold text-sm hover:bg-amber-600 transition">
+        🔗 看 API 文件 →
+      </a>
+    </div>
+
+    <!-- 開發中 / dev 範例 (取代 showcase) -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition overflow-hidden flex flex-col opacity-90">
+      <div class="p-5 flex-1">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-3xl grayscale">📊</div>
+          <div class="flex-1 min-w-0">
+            <h3 class="font-extrabold text-base">MasterCAM2025 外掛報表</h3>
+            <span class="text-[0.65rem] inline-block mt-0.5 px-1.5 py-0.5 rounded tb-download font-bold">⬇️ 軟體下載</span>
+          </div>
+        </div>
+        <p class="text-sm text-[var(--text-mid)] font-medium leading-snug line-clamp-2 h-10">MasterCAM 2025 外掛開發記錄，一鍵匯出客製化加工報表</p>
+        <div class="mt-3 flex flex-wrap gap-1 text-[0.65rem]">
+          <span class="px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 font-bold">生產現場</span>
+          <span class="px-1.5 py-0.5 rounded bg-gray-200 text-gray-700 font-bold">⚠️ 開發中（暫無下載）</span>
+        </div>
+      </div>
+      <button class="block w-full text-center py-3 bg-gray-200 text-gray-500 font-extrabold text-sm cursor-not-allowed">
+        🚧 開發中，敬請期待
+      </button>
+    </div>
+  </div>
+
+  <div class="annotate mt-6 !bg-emerald-50 !border-emerald-300 !text-emerald-800">
+    <strong>備註：</strong>原本的 <span class="term">showcase 類型</span>砍掉後，t9 MasterCAM 外掛改用 <code>type: 'download'</code> + <code>status: 'dev'</code> 表達「會是下載型工具，但還沒做完」。卡片底部的 CTA 自動變灰，使用者一眼看出「不能用」。
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- 畫面 2：工具詳情頁 — Tab 切換 -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<section class="mock-frame">
+  <div class="mock-title">📍 畫面 2 — 工具詳情頁（Tab 切換）</div>
+  <div class="mock-subtitle">範例：ISO 表單查詢 MCP。三個 Tab：快速安裝 / 進階設定 / 詳細說明。點下去可切，不擠成一排。</div>
+
+  <div class="annotate">
+    <strong>變動重點：</strong>
+    <ul class="list-disc list-inside mt-1">
+      <li>「如何使用」改成 Tab 介面，預設選最簡單的方法</li>
+      <li>Tab 內容依 <span class="term">類型</span>自動產生（網頁應用就只有「打開」一個 tab；MCP 才有多個）</li>
+      <li>「詳細說明」 tab 維持原本的 block editor（文字 / 步驟 / 圖片 / 提示 / 警告）</li>
+    </ul>
+  </div>
+
+  <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+    <!-- header -->
+    <div class="p-8 border-b border-gray-100 flex items-start gap-5">
+      <div class="w-20 h-20 rounded-3xl bg-gradient-to-br from-emerald-100 to-emerald-200 flex items-center justify-center text-4xl flex-shrink-0">📋</div>
+      <div class="flex-1">
+        <h2 class="text-3xl font-black mb-1">ISO 表單查詢 MCP</h2>
+        <p class="text-[var(--text-mid)] font-semibold mb-3">把 ISO 表單接到 Claude/Cursor 裡，AI 直接幫你查條文跟填單</p>
+        <div class="flex flex-wrap gap-2 items-center">
+          <span class="text-[0.7rem] px-2 py-0.5 rounded font-bold tb-mcp">🔌 AI 連接器</span>
+          <span class="text-[0.7rem] px-2 py-0.5 rounded font-bold bg-orange-100 text-orange-700 border border-orange-200">測試中</span>
+          <span class="text-[0.7rem] text-gray-500 font-medium">行政/文書 · 更新於 2026-05-25</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB BAR -->
+    <div class="px-8 pt-4 border-b border-gray-100 bg-gray-50/50">
+      <div class="flex gap-2">
+        <button class="tab-btn active" onclick="switchTab(event, 'tab-quick')">🚀 快速安裝</button>
+        <button class="tab-btn" onclick="switchTab(event, 'tab-advanced')">🧰 進階設定</button>
+        <button class="tab-btn" onclick="switchTab(event, 'tab-detail')">📖 詳細說明</button>
+      </div>
+    </div>
+
+    <div class="p-8">
+      <!-- TAB 1: 快速安裝 -->
+      <div class="tab-panel active" id="tab-quick">
+        <h3 class="font-extrabold text-lg mb-1">⭐ 推薦給大多數人</h3>
+        <p class="text-sm text-[var(--text-mid)] mb-5">用 Claude Desktop 的同仁適用 — 下載一個檔案、雙擊、Claude 就會問你要不要啟用。整個過程 3 分鐘。</p>
+
+        <div class="bg-gradient-to-br from-emerald-50 to-white border-2 border-emerald-200 rounded-2xl p-6 max-w-2xl">
+          <div class="flex items-start gap-4">
+            <div class="text-5xl">📦</div>
+            <div class="flex-1">
+              <h4 class="font-extrabold text-lg mb-1">一鍵安裝包（.mcpb）</h4>
+              <p class="text-sm text-[var(--text-mid)] mb-3">把這個檔案下載到電腦，雙擊就能裝進 Claude Desktop。</p>
+              <ol class="text-xs text-[var(--text-mid)] mb-4 list-decimal list-inside space-y-1">
+                <li>點下方按鈕下載 <code class="bg-gray-100 px-1 rounded">iso-form-mcp.mcpb</code></li>
+                <li>雙擊那個檔案</li>
+                <li>Claude Desktop 跳出「要加入這個工具嗎？」→ 點確認</li>
+                <li>之後在 Claude 直接問「幫我查 ISO 9001 第 4 條」就會用到</li>
+              </ol>
+              <a href="#" class="inline-block px-6 py-3 rounded-xl bg-emerald-500 text-white font-extrabold text-sm shadow hover:bg-emerald-600 transition">
+                ⬇️ 下載安裝包（2.3 MB）
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: 進階設定 -->
+      <div class="tab-panel" id="tab-advanced">
+        <h3 class="font-extrabold text-lg mb-1">給技術同仁用</h3>
+        <p class="text-sm text-[var(--text-mid)] mb-5">用 Cursor、VS Code、Cline、n8n 或其他支援 MCP 的工具，用下面任一方式接。</p>
+
+        <div class="space-y-5">
+          <div class="bg-white border border-gray-200 rounded-2xl p-5">
+            <h4 class="font-extrabold mb-2">🧰 用 npm 安裝</h4>
+            <p class="text-xs text-[var(--text-mid)] mb-3">把這段貼到你的 MCP 設定檔（<code class="bg-gray-100 px-1 rounded">claude_desktop_config.json</code> 或 <code class="bg-gray-100 px-1 rounded">.mcp.json</code>）：</p>
+            <div class="bg-gray-900 text-gray-100 text-xs font-mono p-3 rounded-lg leading-relaxed whitespace-pre-wrap break-all">{
+  "mcpServers": {
+    "iso-form": {
+      "command": "npx",
+      "args": ["-y", "@simhope/iso-form-mcp"]
+    }
+  }
+}</div>
+            <button class="mt-2 px-4 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs">📋 複製</button>
+          </div>
+
+          <div class="bg-white border border-gray-200 rounded-2xl p-5">
+            <h4 class="font-extrabold mb-2">📂 從原始碼 clone</h4>
+            <div class="bg-gray-900 text-gray-100 text-xs font-mono p-3 rounded-lg">git clone https://gitlab.simhope.local/internal/iso-form-mcp.git</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: 詳細說明 (現有 block editor 內容) -->
+      <div class="tab-panel" id="tab-detail">
+        <h3 class="font-extrabold text-lg mb-3">📖 為什麼做這個工具</h3>
+        <p class="text-sm text-[var(--text-mid)] mb-4">（這裡顯示原本的 rich block editor 內容 — 文字 block、步驟 block、圖片 block、提示 block 等）</p>
+        <div class="bg-gray-50 rounded-2xl p-5 text-sm text-gray-500 italic">
+          內容區塊省略 — 維持現有 block editor，作者可以自由排版加圖
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- 畫面 3：提交表單 — 4 欄極簡 -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<section class="mock-frame">
+  <div class="mock-title">📍 畫面 3 — 提交工具表單（4 欄極簡）</div>
+  <div class="mock-subtitle">原本 12+ 欄位 → 砍到 4 個必填。其他細節（npm 套件名、.mcpb URL、進階說明）由經企室審核時討論補完。</div>
+
+  <div class="annotate">
+    <strong>變動重點：</strong>
+    <ul class="list-disc list-inside mt-1">
+      <li>必填只剩：<span class="term">名字</span>、<span class="term">一句話介紹</span>、<span class="term">主連結</span>、<span class="term">類型</span></li>
+      <li>類型每個選項配 <span class="term">「適合什麼情況」</span>說明，非技術同仁也看得懂</li>
+      <li>進階欄位（部門、folder、適用場景、tag）→ 砍掉，由 AI 從 desc 推測 + 審核時補</li>
+      <li>「AI 幫我寫文案」按鈕保留 — 還是可以用 Gemini 自動生 tagline / desc</li>
+    </ul>
+  </div>
+
+  <div class="bg-white rounded-2xl border border-gray-100 p-6 md:p-8 shadow-sm max-w-2xl mx-auto">
+    <h3 class="font-extrabold text-xl mb-1">🚀 上架一個工具</h3>
+    <p class="text-sm text-[var(--text-mid)] mb-6">填這 4 個就好，其他經企室審核時跟你討論補。</p>
+
+    <!-- AI 幫忙按鈕 -->
+    <div class="mb-6 p-4 rounded-2xl bg-gradient-to-br from-purple-50 to-blue-50 border border-purple-100">
+      <div class="flex items-center justify-between gap-3">
+        <div>
+          <div class="font-extrabold text-sm">✨ 用一句話描述，AI 幫你寫剩下的</div>
+          <div class="text-xs text-[var(--text-mid)] mt-0.5">例如「我做了一個泰文翻譯工具給工廠師傅用」</div>
+        </div>
+        <button class="px-4 py-2 rounded-lg bg-gradient-to-br from-purple-500 to-blue-500 text-white font-extrabold text-xs whitespace-nowrap">✨ AI 幫忙</button>
+      </div>
+    </div>
+
+    <form class="flex flex-col gap-5">
+      <div>
+        <label class="block text-xs font-bold text-gray-500 mb-2">① 工具名字</label>
+        <input class="w-full bg-gray-50 p-3 rounded-xl border border-gray-200 text-sm" placeholder="例：ISO 表單查詢 MCP">
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-gray-500 mb-2">② 一句話介紹（tagline）</label>
+        <input class="w-full bg-gray-50 p-3 rounded-xl border border-gray-200 text-sm" placeholder="例：把 ISO 表單接到 Claude/Cursor 裡">
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-gray-500 mb-2">③ 主連結</label>
+        <input class="w-full bg-gray-50 p-3 rounded-xl border border-gray-200 text-sm" placeholder="網頁應用：https://... ｜ MCP/API：GitHub repo ｜ 文件：Google Drive 共享連結">
+        <p class="text-xs text-gray-400 mt-1.5">不知道放什麼？放 GitHub repo 連結就好，其他細節經企室審核時補。</p>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-gray-500 mb-3">④ 類型（這是什麼樣的東西？）</label>
+        <div class="grid grid-cols-1 gap-2">
+
+          <label class="flex gap-3 items-start cursor-pointer bg-white rounded-xl p-3 border-2 border-purple-300 hover:bg-purple-50 transition">
+            <input type="radio" name="type" checked class="mt-1 accent-purple-500">
+            <div>
+              <div class="font-extrabold text-sm">🌐 網頁應用</div>
+              <div class="text-xs text-[var(--text-mid)] mt-0.5">同仁點連結就能用，不用安裝。AI Studio / Gemini Canvas / Vercel 上的工具都算這類。</div>
+            </div>
+          </label>
+
+          <label class="flex gap-3 items-start cursor-pointer bg-white rounded-xl p-3 border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition">
+            <input type="radio" name="type" class="mt-1 accent-blue-500">
+            <div>
+              <div class="font-extrabold text-sm">⬇️ 軟體下載</div>
+              <div class="text-xs text-[var(--text-mid)] mt-0.5">同仁要下載安裝檔（.exe / .msi）到電腦執行的工具。內網用、需要存取本機檔案的都選這個。</div>
+            </div>
+          </label>
+
+          <label class="flex gap-3 items-start cursor-pointer bg-white rounded-xl p-3 border-2 border-gray-200 hover:border-orange-300 hover:bg-orange-50 transition">
+            <input type="radio" name="type" class="mt-1 accent-orange-500">
+            <div>
+              <div class="font-extrabold text-sm">📄 文件 / 表單</div>
+              <div class="text-xs text-[var(--text-mid)] mt-0.5">PDF / Word / Excel 等可下載的檔案。ISO 表單、SOP、規格書、Notion 匯出的文件都算這類。</div>
+            </div>
+          </label>
+
+          <label class="flex gap-3 items-start cursor-pointer bg-white rounded-xl p-3 border-2 border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 transition">
+            <input type="radio" name="type" class="mt-1 accent-emerald-500">
+            <div>
+              <div class="font-extrabold text-sm">🔌 AI 連接器（MCP）</div>
+              <div class="text-xs text-[var(--text-mid)] mt-0.5">把資料或能力包成 AI 可以呼叫的接口。同仁裝一次以後，Claude / Cursor 就能直接幫他查/操作這份資源。</div>
+            </div>
+          </label>
+
+          <label class="flex gap-3 items-start cursor-pointer bg-white rounded-xl p-3 border-2 border-gray-200 hover:border-amber-300 hover:bg-amber-50 transition">
+            <input type="radio" name="type" class="mt-1 accent-amber-500">
+            <div>
+              <div class="font-extrabold text-sm">🧩 API / SDK</div>
+              <div class="text-xs text-[var(--text-mid)] mt-0.5">給工程師用程式接的接口（REST API / Python 套件 / JS library）。一般同仁用不到，是給有寫程式背景的人。</div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <button class="mt-2 px-6 py-4 rounded-xl bg-gradient-to-br from-purple-500 to-blue-500 text-white font-extrabold text-base shadow hover:-translate-y-0.5 transition">
+        📤 送出，等審核
+      </button>
+    </form>
+
+    <p class="text-center text-xs text-gray-400 mt-4">送出後經企室會跟你討論：截圖、使用步驟、進階安裝方式、適用部門等細節。</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- schema 草案 -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<section class="mock-frame !bg-white/80 border-solid border-[var(--clay-purple)]/30">
+  <div class="mock-title">📐 後端欄位設定草案（給程式參考，不會給同仁看）</div>
+
+  <div class="annotate">
+    <strong>跟 v1 的差別：</strong>取消「多選 deliveryMethods」設計，回到單一 <code>type</code> 欄位（但選項從 3 個 → 5 個）。MCP 的多種安裝方式（npm / mcpb / clone）由 <span class="term">類型特定欄位</span>承接，作者/admin 在審核後補。
+  </div>
+
+  <pre class="bg-gray-900 text-green-200 text-xs font-mono p-4 rounded-xl overflow-x-auto leading-relaxed">{
+  <span class="text-gray-400">// === 提交時必填（4 個欄位） ===</span>
+  "title": "ISO 表單查詢 MCP",
+  "tagline": "把 ISO 表單接到 Claude/Cursor",
+  "url": "https://github.com/simhope/iso-form-mcp",    <span class="text-gray-400">// 主連結</span>
+  "type": "mcp",   <span class="text-gray-400">// webapp / download / doc / mcp / api</span>
+
+  <span class="text-gray-400">// === 系統自動填 ===</span>
+  "status": "pending",          <span class="text-gray-400">// 送出時固定 pending，admin 審後改 live/beta/dev</span>
+  "authorUid": "...",
+  "createdAt": ..., "updatedAt": ...,
+
+  <span class="text-gray-400">// === 審核後 admin / 作者補 ===</span>
+  <span class="text-yellow-300">"typeData": {
+    <span class="text-gray-400">// MCP 類型專屬欄位</span>
+    "mcpbUrl": "https://.../iso-form.mcpb",
+    "npmPackage": "@simhope/iso-form-mcp",
+    "configSnippet": "{ ... }"
+  },</span>
+  "dept": "admin",
+  "folder": "行政作業專案",
+  "scenarios": ["行政簽核"],
+  "icon": "📋",
+  "color": "c5",
+  "blog": { "summary": "...", "blocks": [...] }    <span class="text-gray-400">// 詳細說明 tab 的內容</span>
+}</pre>
+
+  <h3 class="font-extrabold text-base mt-5 mb-2">不同 type 各自的 typeData 欄位</h3>
+  <table class="text-sm w-full">
+    <thead><tr class="border-b-2 border-gray-200 text-left"><th class="py-2 font-bold">type</th><th class="font-bold">typeData 包含</th><th class="font-bold">卡片 CTA</th></tr></thead>
+    <tbody class="text-[var(--text-mid)]">
+      <tr class="border-b border-gray-100"><td class="py-2"><code>webapp</code></td><td>（無，url 就夠）</td><td>「🌐 馬上打開」→ 開 url</td></tr>
+      <tr class="border-b border-gray-100"><td class="py-2"><code>download</code></td><td>platform (win/mac), version, size</td><td>「⬇️ 下載安裝檔」→ 開 url</td></tr>
+      <tr class="border-b border-gray-100"><td class="py-2"><code>doc</code></td><td>fileType (pdf/docx/xlsx/zip), size</td><td>「⬇️ 下載」→ 開 url</td></tr>
+      <tr class="border-b border-gray-100"><td class="py-2"><code>mcp</code></td><td>mcpbUrl, npmPackage, configSnippet</td><td>「📦 安裝到 Claude / Cursor」→ 開詳情頁 tab 1</td></tr>
+      <tr><td class="py-2"><code>api</code></td><td>endpoint, docsUrl, openapiUrl</td><td>「🔗 看 API 文件」→ 開 docsUrl</td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="font-extrabold text-base mt-5 mb-2">一次性資料轉換（migration）</h3>
+  <ul class="text-sm list-disc list-inside text-[var(--text-mid)] space-y-1">
+    <li>現有 14 筆 tools 的 <code>type</code> 從 <code>webapp / download / showcase</code> → <code>webapp / download</code></li>
+    <li>原本 <code>type: 'showcase'</code> 的（目前只有 t9 MasterCAM）改 <code>type: 'download'</code> + 保持 <code>status: 'dev'</code>，url 留空</li>
+    <li><code>typeData</code> 全部建立成 <code>{}</code>，之後逐筆補</li>
+    <li>寫一個 <code>scripts/migrate-types.mjs</code>，用 service account 跑一次</li>
+  </ul>
+</section>
+
+<footer class="text-center mt-12 text-xs text-[var(--text-mid)]">
+  <p>📁 docs/mocks/resources-expansion-mockup-v2.html</p>
+  <p class="mt-1">看完告訴我：方向 OK 嗎？哪些畫面 / 文案要調？確認後我寫 spec + plan。</p>
+</footer>
+
+<script>
+function switchTab(e, tabId) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  e.currentTarget.classList.add('active');
+  document.getElementById(tabId).classList.add('active');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<title>SimHope 平台擴充 — 資源類型 mock</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root{
+    --clay-purple:#A78BFA; --clay-coral:#FF6B6B; --clay-orange:#FFA94D;
+    --clay-blue:#60A5FA; --clay-green:#34D399; --clay-yellow:#FFD166;
+    --text-dark:#1f1b3d; --text-mid:#5b5878;
+    --card-bg:#ffffff; --card-border:#ececf5;
+    --shadow-clay: 0 6px 18px rgba(31,27,61,0.08);
+  }
+  body{ background:linear-gradient(135deg,#fef9f3 0%,#fff5f0 60%,#f4f0fd 100%); font-family:"Nunito","Noto Sans TC",sans-serif; color:var(--text-dark); }
+  .mock-frame{ background:rgba(255,255,255,0.55); border:2px dashed rgba(167,139,250,0.35); border-radius:24px; padding:32px; margin-bottom:48px; }
+  .mock-title{ font-weight:900; font-size:1.5rem; margin-bottom:8px; }
+  .mock-subtitle{ font-size:0.9rem; color:var(--text-mid); margin-bottom:24px; }
+  .annotate{ background:#fffae6; border-left:4px solid var(--clay-yellow); padding:8px 14px; border-radius:0 8px 8px 0; font-size:0.85rem; color:#7a5d00; margin-bottom:16px; }
+  .badge{ display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:6px; font-size:0.7rem; font-weight:800; border:1px solid; }
+  .badge-webapp{ background:#f5edff; color:#7c3aed; border-color:#e0d4ff; }
+  .badge-download{ background:#eef4ff; color:#2563eb; border-color:#d4e2ff; }
+  .badge-doc{ background:#fff4e6; color:#c2410c; border-color:#ffe0bf; }
+  .badge-mcp{ background:#ecfdf5; color:#047857; border-color:#bbf7d0; }
+  .badge-api{ background:#fef3c7; color:#92400e; border-color:#fde68a; }
+  .badge-showcase{ background:#fce7f3; color:#9d174d; border-color:#fbcfe8; }
+  .badge-live{ background:#dcfce7; color:#15803d; border-color:#bbf7d0; }
+  .badge-beta{ background:#ffedd5; color:#c2410c; border-color:#fed7aa; }
+</style>
+</head>
+<body class="px-4 md:px-8 py-10 max-w-6xl mx-auto">
+
+<header class="mb-12 text-center">
+  <h1 class="text-4xl font-black mb-2">SimHope 平台擴充 — 資源類型 mock</h1>
+  <p class="text-[var(--text-mid)]">把 webapp/download 之外，MCP、API、文件、表單等通通納入平台</p>
+  <div class="mt-4 inline-block bg-white/80 rounded-full px-4 py-1.5 text-xs font-bold text-[var(--clay-purple)] border border-[var(--clay-purple)]/30">
+    🎨 這是 mock，所有資料都是假的，僅用來確認方向
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- 畫面 1：首頁 — 新增「資源類型」篩選 + tool card 顯示多種 badge -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<section class="mock-frame">
+  <div class="mock-title">📍 畫面 1 — 首頁 / 工具總覽</div>
+  <div class="mock-subtitle">左側篩選欄新增「資源類型」分類；卡片可同時顯示多個 delivery method badge。</div>
+
+  <div class="annotate">
+    <strong>變動重點：</strong>
+    <ul class="list-disc list-inside mt-1">
+      <li>側欄多一個「<strong>資源類型</strong>」區塊（在「適用場景」之下）</li>
+      <li>每張卡可以同時掛多個提供方式 badge（例如 MCP server 也可以提供 .mcpb 下載）</li>
+      <li>原本的「網頁版 / 下載版 / 展示」變成 deliveryMethods 的子集，不再是互斥</li>
+    </ul>
+  </div>
+
+  <div class="flex flex-col lg:flex-row gap-6">
+    <!-- Sidebar -->
+    <aside class="lg:w-60 flex-shrink-0">
+      <div class="bg-white border border-gray-100 rounded-2xl p-4 mb-4">
+        <h3 class="text-xs font-extrabold text-gray-400 uppercase tracking-wider mb-3">適用場景</h3>
+        <div class="flex flex-col gap-1 text-sm">
+          <label class="flex items-center gap-2.5 px-2 py-1 -mx-2"><input type="checkbox" checked class="accent-violet-500"><span class="font-semibold">全部</span><span class="ml-auto text-xs text-gray-400">14</span></label>
+          <label class="flex items-center gap-2.5 px-2 py-1 -mx-2"><input type="checkbox" class="accent-violet-500"><span>生產現場</span><span class="ml-auto text-xs text-gray-400">5</span></label>
+          <label class="flex items-center gap-2.5 px-2 py-1 -mx-2"><input type="checkbox" class="accent-violet-500"><span>法務合約</span><span class="ml-auto text-xs text-gray-400">2</span></label>
+          <label class="flex items-center gap-2.5 px-2 py-1 -mx-2"><input type="checkbox" class="accent-violet-500"><span>跨國溝通</span><span class="ml-auto text-xs text-gray-400">1</span></label>
+        </div>
+      </div>
+
+      <!-- 新增 -->
+      <div class="bg-white border-2 border-[var(--clay-purple)] rounded-2xl p-4 relative">
+        <div class="absolute -top-3 left-3 bg-[var(--clay-purple)] text-white text-[0.65rem] px-2 py-0.5 rounded-full font-extrabold">NEW</div>
+        <h3 class="text-xs font-extrabold text-gray-400 uppercase tracking-wider mb-3">資源類型</h3>
+        <div class="flex flex-col gap-1 text-sm">
+          <label class="flex items-center gap-2.5 px-2 py-1 -mx-2"><input type="checkbox" checked class="accent-violet-500"><span class="font-semibold">全部</span><span class="ml-auto text-xs text-gray-400">14</span></label>
+          <label class="flex items-center gap-2.5 px-2 py-1 -mx-2"><input type="checkbox" class="accent-violet-500"><span>🌐 網頁應用</span><span class="ml-auto text-xs text-gray-400">6</span></label>
+          <label class="flex items-center gap-2.5 px-2 py-1 -mx-2"><input type="checkbox" class="accent-violet-500"><span>⬇️ 軟體下載</span><span class="ml-auto text-xs text-gray-400">2</span></label>
+          <label class="flex items-center gap-2.5 px-2 py-1 -mx-2"><input type="checkbox" class="accent-violet-500"><span>📄 文件/表單</span><span class="ml-auto text-xs text-gray-400">3</span></label>
+          <label class="flex items-center gap-2.5 px-2 py-1 -mx-2"><input type="checkbox" class="accent-violet-500"><span>🔌 AI 連接器 (MCP)</span><span class="ml-auto text-xs text-gray-400">2</span></label>
+          <label class="flex items-center gap-2.5 px-2 py-1 -mx-2"><input type="checkbox" class="accent-violet-500"><span>🧩 API / SDK</span><span class="ml-auto text-xs text-gray-400">1</span></label>
+          <label class="flex items-center gap-2.5 px-2 py-1 -mx-2"><input type="checkbox" class="accent-violet-500"><span>📺 僅展示</span><span class="ml-auto text-xs text-gray-400">2</span></label>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Card grid -->
+    <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- 既有：webapp -->
+      <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-2xl">🌏</div>
+          <div class="flex-1 min-w-0">
+            <h3 class="font-extrabold text-[1.05rem] truncate">現場即時翻譯</h3>
+            <span class="text-[0.65rem] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-semibold">生產現場</span>
+          </div>
+        </div>
+        <p class="text-sm text-[var(--text-mid)] font-medium leading-snug line-clamp-2 h-10 mb-3">泰中英三語翻譯，工廠師傅手機直接用</p>
+        <div class="flex items-center gap-2 text-[0.7rem] font-bold pt-2 border-t border-gray-100">
+          <span class="badge badge-live">使用中</span>
+          <span class="badge badge-webapp">🌐 網頁版</span>
+        </div>
+      </div>
+
+      <!-- 新增：MCP server 範例 -->
+      <div class="bg-white rounded-2xl p-5 border-2 border-[var(--clay-green)]/40 shadow-sm relative">
+        <div class="absolute -top-2 -right-2 bg-[var(--clay-green)] text-white text-[0.6rem] px-2 py-0.5 rounded-full font-extrabold shadow">NEW</div>
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-100 to-emerald-200 flex items-center justify-center text-2xl">📋</div>
+          <div class="flex-1 min-w-0">
+            <h3 class="font-extrabold text-[1.05rem] truncate">ISO 表單查詢 MCP</h3>
+            <span class="text-[0.65rem] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-semibold">行政/文書</span>
+          </div>
+        </div>
+        <p class="text-sm text-[var(--text-mid)] font-medium leading-snug line-clamp-2 h-10 mb-3">把 ISO 表單接到 Claude/Cursor 裡，AI 直接幫你查條文跟填單</p>
+        <div class="flex items-center gap-2 text-[0.7rem] font-bold pt-2 border-t border-gray-100 flex-wrap">
+          <span class="badge badge-beta">測試中</span>
+          <span class="badge badge-mcp">🔌 AI 連接器</span>
+          <span class="badge badge-doc">📄 文件下載</span>
+        </div>
+      </div>
+
+      <!-- 新增：文件型 -->
+      <div class="bg-white rounded-2xl p-5 border-2 border-[var(--clay-orange)]/40 shadow-sm relative">
+        <div class="absolute -top-2 -right-2 bg-[var(--clay-orange)] text-white text-[0.6rem] px-2 py-0.5 rounded-full font-extrabold shadow">NEW</div>
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center text-2xl">📑</div>
+          <div class="flex-1 min-w-0">
+            <h3 class="font-extrabold text-[1.05rem] truncate">出差申請單 (含浮水印)</h3>
+            <span class="text-[0.65rem] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-semibold">行政/文書</span>
+          </div>
+        </div>
+        <p class="text-sm text-[var(--text-mid)] font-medium leading-snug line-clamp-2 h-10 mb-3">最新版 ISO 出差單，含部門代碼說明與範例</p>
+        <div class="flex items-center gap-2 text-[0.7rem] font-bold pt-2 border-t border-gray-100">
+          <span class="badge badge-live">使用中</span>
+          <span class="badge badge-doc">📄 文件下載</span>
+        </div>
+      </div>
+
+      <!-- 新增：API 型 -->
+      <div class="bg-white rounded-2xl p-5 border-2 border-[var(--clay-yellow)]/50 shadow-sm relative">
+        <div class="absolute -top-2 -right-2 bg-[var(--clay-yellow)] text-white text-[0.6rem] px-2 py-0.5 rounded-full font-extrabold shadow">NEW</div>
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center text-2xl">🧩</div>
+          <div class="flex-1 min-w-0">
+            <h3 class="font-extrabold text-[1.05rem] truncate">內部翻譯 API</h3>
+            <span class="text-[0.65rem] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-semibold">跨國溝通</span>
+          </div>
+        </div>
+        <p class="text-sm text-[var(--text-mid)] font-medium leading-snug line-clamp-2 h-10 mb-3">給工程師串接的翻譯 REST API，支援泰中英三語</p>
+        <div class="flex items-center gap-2 text-[0.7rem] font-bold pt-2 border-t border-gray-100 flex-wrap">
+          <span class="badge badge-beta">測試中</span>
+          <span class="badge badge-api">🧩 API / SDK</span>
+          <span class="badge badge-mcp">🔌 AI 連接器</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- 畫面 2：工具詳情頁 — 多 delivery method 展示區塊 -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<section class="mock-frame">
+  <div class="mock-title">📍 畫面 2 — 工具詳情頁（一個資源同時提供多種取得方式）</div>
+  <div class="mock-subtitle">舉例：ISO 表單查詢 MCP — 可用 npm 安裝、可用 .mcpb 一鍵安裝、也可以下載原始 ZIP 檔。每種方式都有「適合誰用」說明。</div>
+
+  <div class="annotate">
+    <strong>變動重點：</strong>
+    <ul class="list-disc list-inside mt-1">
+      <li>新增「<strong>怎麼取得這個資源</strong>」區塊，每個 delivery method 一張卡片</li>
+      <li>每張卡上方標「<strong>適合誰</strong>」（會寫程式的人 / 用 Claude Desktop 的人 / 完全不會技術的人）</li>
+      <li>原本的 blog block editor（步驟/說明/截圖）維持不變</li>
+    </ul>
+  </div>
+
+  <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+    <!-- header -->
+    <div class="p-8 border-b border-gray-100 flex items-start gap-5">
+      <div class="w-20 h-20 rounded-3xl bg-gradient-to-br from-emerald-100 to-emerald-200 flex items-center justify-center text-4xl flex-shrink-0">📋</div>
+      <div class="flex-1">
+        <h2 class="text-3xl font-black mb-1">ISO 表單查詢 MCP</h2>
+        <p class="text-[var(--text-mid)] font-semibold mb-3">把 ISO 表單接到 Claude/Cursor 裡，AI 直接幫你查條文跟填單</p>
+        <div class="flex flex-wrap gap-2">
+          <span class="badge badge-beta">測試中</span>
+          <span class="badge badge-mcp">🔌 AI 連接器</span>
+          <span class="badge badge-doc">📄 文件下載</span>
+          <span class="text-[0.7rem] text-gray-500 font-medium ml-2">行政/文書 · 更新於 2026-05-25</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ★ NEW: delivery methods -->
+    <div class="p-8 bg-gradient-to-b from-[var(--clay-purple)]/5 to-transparent border-b border-gray-100">
+      <h3 class="text-lg font-extrabold mb-1">🚀 怎麼取得這個資源</h3>
+      <p class="text-sm text-[var(--text-mid)] mb-5">這個工具有 <strong>3 種使用方式</strong>，依照你的需求挑一個就好。</p>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <!-- 方式 1：mcpb -->
+        <div class="bg-white rounded-2xl border-2 border-emerald-200 p-5 shadow-sm">
+          <div class="text-[0.65rem] px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 font-extrabold inline-block mb-2">⭐ 推薦給大多數人</div>
+          <h4 class="font-extrabold text-base mb-1">📦 一鍵安裝包 (.mcpb)</h4>
+          <p class="text-xs text-[var(--text-mid)] mb-3 leading-relaxed"><strong>適合誰：</strong>用 Claude Desktop 的同仁，不想碰指令列</p>
+          <p class="text-xs text-gray-500 mb-4">下載一個檔案 → 雙擊 → Claude 就會問你要不要啟用。3 分鐘搞定。</p>
+          <a href="#" class="block w-full text-center py-2.5 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white font-extrabold text-sm shadow hover:-translate-y-0.5 transition">
+            ⬇️ 下載 iso-form-mcp.mcpb
+          </a>
+        </div>
+
+        <!-- 方式 2：npm -->
+        <div class="bg-white rounded-2xl border-2 border-gray-200 p-5 shadow-sm">
+          <div class="text-[0.65rem] px-2 py-1 rounded-full bg-gray-100 text-gray-600 font-extrabold inline-block mb-2">給技術同仁</div>
+          <h4 class="font-extrabold text-base mb-1">🧰 npm 指令安裝</h4>
+          <p class="text-xs text-[var(--text-mid)] mb-3 leading-relaxed"><strong>適合誰：</strong>用 Cursor / VSCode、會編輯 config 檔的人</p>
+          <p class="text-xs text-gray-500 mb-3">把下面這段貼到你的 MCP config 裡：</p>
+          <div class="bg-gray-900 text-gray-100 text-xs font-mono p-3 rounded-lg mb-3 overflow-x-auto whitespace-pre-wrap break-all leading-relaxed">{
+  "mcpServers": {
+    "iso-form": {
+      "command": "npx",
+      "args": ["-y", "@simhope/iso-form-mcp"]
+    }
+  }
+}</div>
+          <button class="w-full text-center py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-extrabold text-xs transition">📋 複製 config</button>
+        </div>
+
+        <!-- 方式 3：純下載 -->
+        <div class="bg-white rounded-2xl border-2 border-orange-200 p-5 shadow-sm">
+          <div class="text-[0.65rem] px-2 py-1 rounded-full bg-orange-100 text-orange-700 font-extrabold inline-block mb-2">不會技術也能用</div>
+          <h4 class="font-extrabold text-base mb-1">📄 直接下載 ISO 表單 ZIP</h4>
+          <p class="text-xs text-[var(--text-mid)] mb-3 leading-relaxed"><strong>適合誰：</strong>不想接 AI，只想拿原始 PDF/Word 表單</p>
+          <p class="text-xs text-gray-500 mb-4">包含 28 份 ISO 表單原始檔，定期更新版本。</p>
+          <a href="#" class="block w-full text-center py-2.5 rounded-xl bg-orange-500 text-white font-extrabold text-sm shadow hover:-translate-y-0.5 transition">
+            ⬇️ iso-forms-v2026.05.zip
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 既有 blog block editor 區 -->
+    <div class="p-8">
+      <h3 class="text-lg font-extrabold mb-4">📖 使用說明</h3>
+      <div class="prose prose-sm">
+        <p class="text-[var(--text-mid)]">（這裡維持原本 rich block editor — 文字、步驟、圖片、提示、警告 6 種 block）</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- 畫面 3：Dashboard 提交表單 -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<section class="mock-frame">
+  <div class="mock-title">📍 畫面 3 — Dashboard 提交表單</div>
+  <div class="mock-subtitle">原本「網頁版 / 下載版」單選變成 deliveryMethods 多選；每選一種會展開該方式的輸入欄位。</div>
+
+  <div class="annotate">
+    <strong>變動重點：</strong>
+    <ul class="list-disc list-inside mt-1">
+      <li>原本 type radio（webapp/download）→ 多選 checkbox（6 種 delivery methods）</li>
+      <li>每個選項旁邊都有「<strong>什麼時候用</strong>」灰字說明（給不懂技術的同仁也看得懂）</li>
+      <li>勾選後展開該方式對應的輸入欄位（網頁 URL / 下載連結 / npm 指令 / mcpb 連結 / 文件連結 / API endpoint）</li>
+    </ul>
+  </div>
+
+  <div class="bg-white rounded-2xl border border-gray-100 p-6 md:p-8 shadow-sm">
+    <h3 class="font-extrabold text-xl mb-1">🚀 提交新工具/資源</h3>
+    <p class="text-sm text-[var(--text-mid)] mb-5">填完送出 → 等經企室審核 → 上架</p>
+
+    <!-- ...省略上面欄位 -->
+    <div class="text-xs text-gray-400 mb-6 italic">（工具名稱、tagline、emoji、部門、folder 等欄位維持原樣，略）</div>
+
+    <!-- ★ NEW: delivery methods 多選 -->
+    <div class="bg-blue-50/50 p-5 rounded-2xl border border-blue-100 mb-5">
+      <label class="block text-sm font-extrabold text-blue-800 mb-1">🔗 這個資源要怎麼讓人取得？</label>
+      <p class="text-xs text-blue-700/70 mb-4">可以複選。不確定就先勾「我不確定，等審核時討論」。</p>
+
+      <div class="flex flex-col gap-3">
+        <!-- 選項 1 -->
+        <label class="flex gap-3 items-start cursor-pointer bg-white rounded-xl p-3 border-2 border-purple-300 hover:border-purple-500 transition">
+          <input type="checkbox" checked class="mt-1 w-4 h-4 accent-purple-500">
+          <div class="flex-1">
+            <div class="font-extrabold text-sm">🌐 網頁應用 — 點連結就能用</div>
+            <div class="text-xs text-gray-500 mt-0.5">適合：在 Google AI Studio、Gemini Canvas、Vercel 上跑的工具。同仁不用安裝任何東西。</div>
+            <input class="mt-2 w-full bg-gray-50 p-2 rounded-lg border border-gray-200 text-sm" placeholder="https://aistudio.google.com/apps/drive/... 或 https://xxx.vercel.app">
+          </div>
+        </label>
+
+        <!-- 選項 2 -->
+        <label class="flex gap-3 items-start cursor-pointer bg-white rounded-xl p-3 border-2 border-gray-200 hover:border-blue-300 transition">
+          <input type="checkbox" class="mt-1 w-4 h-4 accent-blue-500">
+          <div class="flex-1">
+            <div class="font-extrabold text-sm">⬇️ 軟體下載 — 下載到電腦執行</div>
+            <div class="text-xs text-gray-500 mt-0.5">適合：需要存取本機檔案、或要在公司內網使用的工具（.exe / 安裝檔）。</div>
+          </div>
+        </label>
+
+        <!-- 選項 3 -->
+        <label class="flex gap-3 items-start cursor-pointer bg-white rounded-xl p-3 border-2 border-orange-300 hover:border-orange-500 transition">
+          <input type="checkbox" checked class="mt-1 w-4 h-4 accent-orange-500">
+          <div class="flex-1">
+            <div class="font-extrabold text-sm">📄 文件下載 — PDF / Word / Excel</div>
+            <div class="text-xs text-gray-500 mt-0.5">適合：ISO 表單、SOP、規格書、Notion 匯出的文件等可下載的檔案。</div>
+            <input class="mt-2 w-full bg-gray-50 p-2 rounded-lg border border-gray-200 text-sm" placeholder="Google Drive 共享連結，或檔案直連網址">
+          </div>
+        </label>
+
+        <!-- 選項 4 -->
+        <label class="flex gap-3 items-start cursor-pointer bg-white rounded-xl p-3 border-2 border-emerald-300 hover:border-emerald-500 transition">
+          <input type="checkbox" checked class="mt-1 w-4 h-4 accent-emerald-500">
+          <div class="flex-1">
+            <div class="font-extrabold text-sm">🔌 AI 連接器 (MCP) — 讓 Claude / Cursor 能直接用</div>
+            <div class="text-xs text-gray-500 mt-0.5">適合：把資料或能力包成 AI 工具的接口。同仁在 Claude Desktop 上設定一次，之後 AI 就能查/操作這份資源。</div>
+
+            <div class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
+              <div>
+                <div class="font-bold text-emerald-700 mb-1">📦 .mcpb 安裝包 URL</div>
+                <input class="w-full bg-gray-50 p-2 rounded-lg border border-gray-200" placeholder="https://.../xxx.mcpb">
+              </div>
+              <div>
+                <div class="font-bold text-emerald-700 mb-1">🧰 npm 套件名</div>
+                <input class="w-full bg-gray-50 p-2 rounded-lg border border-gray-200" placeholder="@simhope/iso-form-mcp">
+              </div>
+              <div>
+                <div class="font-bold text-emerald-700 mb-1">📂 原始 repo</div>
+                <input class="w-full bg-gray-50 p-2 rounded-lg border border-gray-200" placeholder="https://github.com/.../...">
+              </div>
+            </div>
+          </div>
+        </label>
+
+        <!-- 選項 5 -->
+        <label class="flex gap-3 items-start cursor-pointer bg-white rounded-xl p-3 border-2 border-gray-200 hover:border-amber-300 transition">
+          <input type="checkbox" class="mt-1 w-4 h-4 accent-amber-500">
+          <div class="flex-1">
+            <div class="font-extrabold text-sm">🧩 API / SDK — 給工程師串接的程式介面</div>
+            <div class="text-xs text-gray-500 mt-0.5">適合：HTTP REST API、Python SDK、JavaScript library 等技術介面。一般同仁用不到，是給有寫程式背景的人。</div>
+          </div>
+        </label>
+
+        <!-- 選項 6 -->
+        <label class="flex gap-3 items-start cursor-pointer bg-white rounded-xl p-3 border-2 border-gray-200 hover:border-pink-300 transition">
+          <input type="checkbox" class="mt-1 w-4 h-4 accent-pink-500">
+          <div class="flex-1">
+            <div class="font-extrabold text-sm">📺 僅展示 — 暫時還沒有可用版本</div>
+            <div class="text-xs text-gray-500 mt-0.5">適合：規劃中的工具、概念展示、規格公告。把方向跟功能先放上來，未來有實作了再補。</div>
+          </div>
+        </label>
+
+        <!-- 選項 7：不確定 -->
+        <label class="flex gap-3 items-start cursor-pointer bg-yellow-50 rounded-xl p-3 border-2 border-dashed border-yellow-300">
+          <input type="checkbox" class="mt-1 w-4 h-4 accent-yellow-600">
+          <div class="flex-1">
+            <div class="font-extrabold text-sm">🤔 我不確定，等審核時討論</div>
+            <div class="text-xs text-gray-500 mt-0.5">沒關係，先寫 tagline 跟 desc，經企室會跟你討論要怎麼上架。</div>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <button class="w-full px-6 py-4 rounded-xl bg-gradient-to-br from-purple-500 to-blue-500 text-white font-extrabold text-base shadow hover:-translate-y-0.5 transition">
+      📤 提交工具
+    </button>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- 設計說明 -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<section class="mock-frame border-solid border-[var(--clay-purple)]/30">
+  <div class="mock-title">💡 設計說明 / 後端 schema 草案</div>
+
+  <h3 class="font-extrabold text-base mt-3 mb-2">tools collection 欄位變動</h3>
+  <ul class="text-sm list-disc list-inside text-[var(--text-mid)] space-y-1 mb-4">
+    <li><strong>移除/棄用：</strong><code class="bg-gray-100 px-1.5 py-0.5 rounded">type</code>（單一字串，webapp/download/showcase）</li>
+    <li><strong>新增：</strong><code class="bg-gray-100 px-1.5 py-0.5 rounded">deliveryMethods</code> — array of objects</li>
+  </ul>
+
+  <pre class="bg-gray-900 text-green-200 text-xs font-mono p-4 rounded-xl overflow-x-auto leading-relaxed">{
+  "id": "t_xxx",
+  "title": "ISO 表單查詢 MCP",
+  "tagline": "把 ISO 表單接到 Claude/Cursor",
+  "desc": "...",
+  "dept": "admin",
+  "folder": "行政作業專案",
+  "scenarios": ["行政簽核"],
+  "status": "beta",
+  <span class="text-yellow-300">"deliveryMethods": [
+    {
+      "kind": "mcp",
+      "label": "AI 連接器",
+      "primary": true,
+      "fields": {
+        "mcpbUrl": "https://.../iso-form.mcpb",
+        "npmPackage": "@simhope/iso-form-mcp",
+        "repoUrl": "https://github.com/..."
+      }
+    },
+    {
+      "kind": "doc",
+      "label": "ISO 表單 ZIP",
+      "fields": {
+        "downloadUrl": "https://drive.google.com/...",
+        "fileType": "zip"
+      }
+    }
+  ],</span>
+  <span class="text-gray-400">// 維持不變：</span>
+  "tags": ["MCP", "ISO", "AI"],
+  "blog": { "summary": "...", "blocks": [...] },
+  "authorUid": "...",
+  "createdAt": ...
+}</pre>
+
+  <h3 class="font-extrabold text-base mt-5 mb-2">deliveryMethods 的 kind 列舉</h3>
+  <table class="text-sm w-full border-collapse">
+    <thead>
+      <tr class="border-b-2 border-gray-200">
+        <th class="text-left py-2 font-bold">kind</th>
+        <th class="text-left py-2 font-bold">使用者看到的標籤</th>
+        <th class="text-left py-2 font-bold">主要欄位</th>
+      </tr>
+    </thead>
+    <tbody class="text-[var(--text-mid)]">
+      <tr class="border-b border-gray-100"><td class="py-2"><code>webapp</code></td><td>🌐 網頁應用</td><td>url</td></tr>
+      <tr class="border-b border-gray-100"><td class="py-2"><code>download</code></td><td>⬇️ 軟體下載</td><td>downloadUrl, platform (win/mac)</td></tr>
+      <tr class="border-b border-gray-100"><td class="py-2"><code>doc</code></td><td>📄 文件/表單</td><td>downloadUrl, fileType (pdf/docx/xlsx/zip)</td></tr>
+      <tr class="border-b border-gray-100"><td class="py-2"><code>mcp</code></td><td>🔌 AI 連接器</td><td>mcpbUrl, npmPackage, repoUrl, configSnippet</td></tr>
+      <tr class="border-b border-gray-100"><td class="py-2"><code>api</code></td><td>🧩 API / SDK</td><td>endpoint, docsUrl, sdkPackage</td></tr>
+      <tr class="border-b border-gray-100"><td class="py-2"><code>showcase</code></td><td>📺 僅展示</td><td>（無 — 純說明）</td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="font-extrabold text-base mt-5 mb-2">遷移策略</h3>
+  <ol class="text-sm list-decimal list-inside text-[var(--text-mid)] space-y-1">
+    <li>新欄位 deliveryMethods 跟舊欄位 type+url 並存（向下相容）</li>
+    <li>讀取時：優先用 deliveryMethods，若不存在則 fallback 把 type+url 轉成單一 deliveryMethod 物件</li>
+    <li>寫一個 migration script，把現有 14 筆 tools 自動補上 deliveryMethods（從 type+url 推導）</li>
+    <li>新提交強制走 deliveryMethods，admin/dashboard 表單改版</li>
+  </ol>
+</section>
+
+<footer class="text-center mt-12 text-xs text-[var(--text-mid)]">
+  <p>📁 docs/mocks/resources-expansion-mockup.html</p>
+  <p class="mt-1">看完後告訴我：方向 OK 嗎？哪些 delivery method 要拿掉/加新的？文案有沒有要改？</p>
+</footer>
+
+</body>
+</html>
