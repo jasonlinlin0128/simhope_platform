@@ -17,7 +17,7 @@ const notoSansTC = Noto_Sans_TC({
   variable: "--font-noto-sans-tc",
   weight: ["400", "500", "700", "900"],
   display: "swap",
-  preload: false,   // required for CJK fonts — no latin subset to preload
+  preload: false, // required for CJK fonts — no latin subset to preload
 });
 
 export const metadata = {
@@ -28,7 +28,9 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="zh-TW" className="scroll-smooth">
-      <body className={`${nunito.variable} ${notoSansTC.variable} antialiased bg-[var(--color-bg)] text-[var(--color-text-dark)] min-h-screen flex flex-col`}>
+      <body
+        className={`${nunito.variable} ${notoSansTC.variable} antialiased bg-[var(--color-bg)] text-[var(--color-text-dark)] min-h-screen flex flex-col`}
+      >
         <ThemeProvider>
           <BlobBackground />
           <AuthProvider>
@@ -37,7 +39,7 @@ export default function RootLayout({ children }) {
               {children}
             </main>
             <footer className="w-full border-t border-[var(--color-nav-border)] py-4 text-center text-xs text-[var(--color-text-mid)] font-semibold opacity-60">
-              © 2026 SimHope · 內部使用 · v0.1.0
+              © 2026 SimHope · 內部使用 · v0.5
             </footer>
             <ChatbotWidget />
           </AuthProvider>
