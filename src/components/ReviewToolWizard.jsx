@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { doc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import Link from 'next/link';
-import { db } from '@/lib/firebase';
+import { db, auth } from '@/lib/firebase';
 import { DEPTS } from '@/lib/db';
 
 const TYPE_LABELS = {
@@ -55,6 +55,42 @@ export default function ReviewToolWizard({ tool, onClose, onSaved }) {
 
     const update = (patch) => setForm(prev => ({ ...prev, ...patch }));
     const updateTd = (patch) => setForm(prev => ({ ...prev, typeData: { ...prev.typeData, ...patch } }));
+
+    // AI 預填：讀 GitHub README → Gemini 生成 desc / scenarios / tags / icon / typeData
+    const [enriching, setEnriching] = useState(false);
+    const handleEnrich = async () => {
+        setEnriching(true);
+        try {
+            const idToken = await auth.currentUser.getIdToken();
+            const res = await fetch('/api/admin/enrich-tool', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
+                body: JSON.stringify({ url: form.url, title: form.title, tagline: form.tagline, type: form.type }),
+            });
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.error || 'AI 預填失敗');
+            }
+            const r = await res.json();
+            // 只覆蓋 AI 有回傳的欄位，保留 admin 已手動填的
+            setForm(prev => ({
+                ...prev,
+                desc: r.desc || prev.desc,
+                icon: r.icon || prev.icon,
+                scenarios: Array.isArray(r.scenarios) && r.scenarios.length ? r.scenarios.join(', ') : prev.scenarios,
+                tags: Array.isArray(r.tags) && r.tags.length ? r.tags.join(', ') : prev.tags,
+                typeData: { ...prev.typeData, ...(r.typeData || {}) },
+            }));
+            alert(r._readmeFound
+                ? '✨ AI 已讀取 GitHub README 並填入建議內容，請確認後再調整。'
+                : '✨ AI 已依名稱與介紹生成建議（沒抓到 README），請確認後再調整。');
+        } catch (err) {
+            console.error(err);
+            alert('AI 預填失敗：' + err.message);
+        } finally {
+            setEnriching(false);
+        }
+    };
 
     // 儲存到 Firestore（不改 status，只更新欄位）
     const handleSaveOnly = async (newStatus) => {
@@ -159,6 +195,18 @@ export default function ReviewToolWizard({ tool, onClose, onSaved }) {
             {/* === Step 2: 補完細節 === */}
             {step === 2 && (
                 <div className="flex flex-col gap-5">
+                    {/* AI 預填 */}
+                    <div className="flex items-center justify-between gap-3 p-4 rounded-2xl bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border border-purple-100 dark:border-purple-800/40">
+                        <div>
+                            <div className="font-extrabold text-sm text-[var(--color-text-dark)]">✨ AI 幫我補完</div>
+                            <div className="text-xs text-[var(--color-text-mid)] mt-0.5">讀主連結的 GitHub README，自動生成 desc（Before/After）、適用場景、標籤、icon、typeData。會覆蓋對應欄位。</div>
+                        </div>
+                        <button onClick={handleEnrich} disabled={enriching}
+                            className="px-4 py-2.5 rounded-xl bg-gradient-to-br from-purple-500 to-blue-500 text-white font-extrabold text-xs whitespace-nowrap shadow disabled:opacity-50">
+                            {enriching ? '生成中…' : '✨ AI 補完'}
+                        </button>
+                    </div>
+
                     {/* 4 個原始欄位（仍可修） */}
                     <div className="grid grid-cols-1 md:grid-cols-[80px_1fr] gap-3">
                         <FormField label="Emoji">
