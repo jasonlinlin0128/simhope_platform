@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import Fuse from "fuse.js";
 import { getApprovedTools, getApprovedPainCards } from "@/lib/db";
 import ToolCard from "@/components/ToolCard";
-import PainCard from "@/components/PainCard";
+import PainCard, { PAIN_CATEGORIES } from "@/components/PainCard";
 import Link from "next/link";
 
 // 5 種類型 chip 的顯示資料
@@ -172,16 +172,32 @@ export default function Home() {
   const hasActiveFilters =
     debouncedQuery || selectedType !== "all" || selectedScenarios.length > 0;
 
-  // 痛點卡片：不分組，依「有對應工具的優先 → 孤兒在後」排序
+  // 痛點類別篩選
+  const [selectedPainCategory, setSelectedPainCategory] = useState("all");
+
+  // 痛點各類別張數
+  const painCategoryCounts = useMemo(() => {
+    const counts = { all: painCards.length };
+    for (const key of Object.keys(PAIN_CATEGORIES)) {
+      counts[key] = painCards.filter((c) => c.category === key).length;
+    }
+    return counts;
+  }, [painCards]);
+
+  // 痛點卡片：依類別篩選 → 「有對應工具優先 → 孤兒在後」排序
   const sortedPainCards = useMemo(() => {
-    return [...painCards].sort((a, b) => {
+    const filtered =
+      selectedPainCategory === "all"
+        ? painCards
+        : painCards.filter((c) => c.category === selectedPainCategory);
+    return [...filtered].sort((a, b) => {
       const aHas = !!a.relatedToolId;
       const bHas = !!b.relatedToolId;
       if (aHas && !bHas) return -1;
       if (!aHas && bHas) return 1;
       return 0;
     });
-  }, [painCards]);
+  }, [painCards, selectedPainCategory]);
 
   return (
     <div className="flex flex-col gap-24 px-4 md:px-0">
@@ -275,6 +291,47 @@ export default function Home() {
             每個工具的出發點都是一個真實的工作痛點，不是為了用 AI 而用 AI。
           </p>
         </div>
+
+        {/* 痛點類別 chip 列 */}
+        {!loading && painCards.length > 0 && (
+          <div className="mb-8 max-w-5xl mx-auto">
+            <div className="flex flex-wrap gap-2 justify-center">
+              <button
+                onClick={() => setSelectedPainCategory("all")}
+                className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-extrabold border-2 transition-all ${
+                  selectedPainCategory === "all"
+                    ? "bg-[var(--color-clay-coral)] text-white border-[var(--color-clay-coral)] shadow-md"
+                    : "bg-white dark:bg-gray-800 text-[var(--color-text-mid)] border-gray-200 dark:border-gray-700 hover:border-[var(--color-clay-coral)]/40"
+                }`}
+              >
+                全部
+                <span className="text-xs opacity-70">
+                  {painCategoryCounts.all}
+                </span>
+              </button>
+              {Object.entries(PAIN_CATEGORIES).map(([key, cat]) => {
+                const active = selectedPainCategory === key;
+                const count = painCategoryCounts[key] ?? 0;
+                if (count === 0) return null;
+                return (
+                  <button
+                    key={key}
+                    onClick={() => setSelectedPainCategory(key)}
+                    className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-extrabold border-2 transition-all ${
+                      active
+                        ? "bg-[var(--color-clay-coral)] text-white border-[var(--color-clay-coral)] shadow-md"
+                        : "bg-white dark:bg-gray-800 text-[var(--color-text-mid)] border-gray-200 dark:border-gray-700 hover:border-[var(--color-clay-coral)]/40 hover:-translate-y-0.5"
+                    }`}
+                  >
+                    <span>{cat.emoji}</span>
+                    {cat.label}
+                    <span className="text-xs opacity-70">{count}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {loading ? (
           <div className="text-center py-10 text-gray-400">載入中，請稍候…</div>
