@@ -66,7 +66,7 @@ export default function PainCard({ card }) {
           </span>
         )}
         {clickable && (
-          <span className="ml-auto text-[0.7rem] text-[var(--color-clay-purple)] font-extrabold opacity-0 group-hover:opacity-100 transition-opacity">
+          <span className="ml-auto text-[0.7rem] text-[var(--color-clay-purple)]/70 font-extrabold group-hover:text-[var(--color-clay-purple)] transition-colors">
             看工具 →
           </span>
         )}

@@ -28,13 +28,14 @@ service cloud.firestore {
       );
     }
 
-    // Pain Cards: 同 tools 規則
+    // Pain Cards: 公開可讀，developer/admin 可建立，只有作者或 admin 可修改/刪除
+    // 注意：painCards 用 `approval` 欄位 (pending|approved|rejected)，跟 tools 的 `status` 不一樣
     match /painCards/{cardId} {
       allow read: if true;
       allow create: if request.auth != null
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['developer', 'admin']
         && request.resource.data.authorUid == request.auth.uid
-        && request.resource.data.status == 'pending';
+        && request.resource.data.approval == 'pending';
       allow update, delete: if request.auth != null && (
         resource.data.authorUid == request.auth.uid ||
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'

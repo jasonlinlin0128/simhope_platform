@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect, use } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { db } from '@/lib/firebase';
@@ -27,41 +29,31 @@ const AUDIO_SOURCES = {
     other:       { label: '其他來源',    cls: 'bg-gray-100 text-gray-600 border-gray-200' },
 };
 
-// ─── Simple markdown renderer (text blocks only) ───────────────────────────
-function renderInline(text) {
-    return text
-        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.+?)\*/g, '<em>$1</em>')
-        .replace(/`(.+?)`/g, '<code class="bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded text-[0.85em]">$1</code>');
-}
+// ─── Markdown 渲染 ──────────────────────────────────────────────────────────
+// 用 react-markdown + remark-gfm（GitHub Flavored Markdown）取代手寫 renderer
+// 支援 **粗體**、*斜體*、## 標題、- 清單、`code`、表格、連結 etc.
+const mdComponents = {
+    h2: (props) => <h2 className="text-xl font-black mt-6 mb-2 text-[var(--color-text-dark)]" {...props} />,
+    h3: (props) => <h3 className="text-lg font-extrabold mt-4 mb-1 text-[var(--color-text-dark)]" {...props} />,
+    ul: (props) => <ul className="list-disc ml-5 flex flex-col gap-1 my-2" {...props} />,
+    ol: (props) => <ol className="list-decimal ml-5 flex flex-col gap-1 my-2" {...props} />,
+    li: (props) => <li className="font-bold text-[var(--color-text-dark)]" {...props} />,
+    p:  (props) => <p className="font-bold text-[var(--color-text-dark)] leading-relaxed mb-2" {...props} />,
+    strong: (props) => <strong className="text-[var(--color-clay-purple)]" {...props} />,
+    code: ({ inline, ...props }) =>
+        inline
+            ? <code className="bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded text-[0.85em]" {...props} />
+            : <code className="block bg-gray-900 text-gray-100 p-3 rounded-lg text-sm font-mono overflow-x-auto" {...props} />,
+    a:  (props) => <a className="text-[var(--color-clay-blue)] underline hover:opacity-80" target="_blank" rel="noopener noreferrer" {...props} />,
+};
 
-function renderMarkdown(text) {
-    if (!text) return '';
-    const lines = text.split('\n');
-    const out = [];
-    let inList = false;
-
-    for (const line of lines) {
-        if (/^## (.+)/.test(line)) {
-            if (inList) { out.push('</ul>'); inList = false; }
-            out.push(`<h2 class="text-xl font-black mt-6 mb-2 text-[var(--color-text-dark)]">${renderInline(line.slice(3))}</h2>`);
-        } else if (/^### (.+)/.test(line)) {
-            if (inList) { out.push('</ul>'); inList = false; }
-            out.push(`<h3 class="text-lg font-extrabold mt-4 mb-1 text-[var(--color-text-dark)]">${renderInline(line.slice(4))}</h3>`);
-        } else if (/^- (.+)/.test(line)) {
-            if (!inList) { out.push('<ul class="list-disc ml-5 flex flex-col gap-1">'); inList = true; }
-            out.push(`<li class="font-bold text-[var(--color-text-dark)]">${renderInline(line.slice(2))}</li>`);
-        } else if (line.trim() === '') {
-            if (inList) { out.push('</ul>'); inList = false; }
-            out.push('<div class="h-2"></div>');
-        } else {
-            if (inList) { out.push('</ul>'); inList = false; }
-            out.push(`<p class="font-bold text-[var(--color-text-dark)] leading-relaxed">${renderInline(line)}</p>`);
-        }
-    }
-    if (inList) out.push('</ul>');
-    return out.join('');
+function MarkdownContent({ children }) {
+    if (!children) return null;
+    return (
+        <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
+            {children}
+        </ReactMarkdown>
+    );
 }
 
 // ─── YouTube ID extractor ──────────────────────────────────────────────────
@@ -158,10 +150,9 @@ function BlockView({ block }) {
 
     // Default: text with markdown
     return (
-        <div
-            className="flex flex-col gap-1"
-            dangerouslySetInnerHTML={{ __html: renderMarkdown(content) }}
-        />
+        <div className="flex flex-col gap-1">
+            <MarkdownContent>{content}</MarkdownContent>
+        </div>
     );
 }
 
@@ -488,11 +479,12 @@ function AdvancedSetupTab({ tool, td, type }) {
 
 // ─── 「詳細說明」tab — desc (Pattern C) 在頂部 + blog.blocks ──────────────────
 function DetailTab({ tool, blocks }) {
-    const descHtml = tool.desc ? renderMarkdown(tool.desc) : '';
     return (
         <div className="flex flex-col gap-8">
-            {descHtml && (
-                <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: descHtml }} />
+            {tool.desc && (
+                <div className="max-w-none">
+                    <MarkdownContent>{tool.desc}</MarkdownContent>
+                </div>
             )}
             {blocks.length > 0 && (
                 <div className="flex flex-col gap-6 border-t border-[var(--color-card-border)] pt-8">

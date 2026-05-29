@@ -77,10 +77,6 @@ export default function ReviewToolWizard({ tool, onClose, onSaved }) {
             };
             if (newStatus) {
                 payload.status = newStatus;
-                // 沿用 legacy approval 欄位以維相容
-                if (['live', 'beta', 'new'].includes(newStatus)) payload.approval = 'approved';
-                else if (newStatus === 'terminated') payload.approval = 'rejected';
-                else payload.approval = 'pending';
             }
             await updateDoc(doc(db, 'tools', tool.id), payload);
             onSaved?.();
