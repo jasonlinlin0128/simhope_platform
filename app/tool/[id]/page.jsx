@@ -14,8 +14,17 @@ const BLOCK_DEFS = {
     steps:   { label: '📋 步驟清單',  badge: 'bg-purple-50 text-purple-700 border-purple-200' },
     image:   { label: '🖼️ 圖片',      badge: 'bg-blue-50 text-blue-600 border-blue-200' },
     video:   { label: '▶️ 影片',      badge: 'bg-red-50 text-red-600 border-red-200' },
+    audio:   { label: '🔊 語音',      badge: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
     tip:     { label: '💡 提示框',    badge: 'bg-yellow-50 text-yellow-700 border-yellow-200' },
     warning: { label: '⚠️ 注意事項',  badge: 'bg-orange-50 text-orange-700 border-orange-200' },
+};
+
+// ─── 語音來源標籤定義 ───────────────────────────────────────────────────────
+const AUDIO_SOURCES = {
+    notebooklm:  { label: 'NotebookLM',  cls: 'bg-blue-100 text-blue-700 border-blue-200' },
+    soundcloud:  { label: 'SoundCloud',  cls: 'bg-orange-100 text-orange-700 border-orange-200' },
+    upload:      { label: '直接上傳',    cls: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
+    other:       { label: '其他來源',    cls: 'bg-gray-100 text-gray-600 border-gray-200' },
 };
 
 // ─── Simple markdown renderer (text blocks only) ───────────────────────────
@@ -64,7 +73,27 @@ function getYouTubeId(url) {
 
 // ─── View-mode block renderer ──────────────────────────────────────────────
 function BlockView({ block }) {
-    const { type, content, caption } = block;
+    const { type, content, caption, source } = block;
+
+    if (type === 'audio') {
+        if (!content) return null;
+        const src = source && AUDIO_SOURCES[source];
+        return (
+            <figure className="my-1 bg-emerald-50/40 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-800/40 rounded-2xl p-4 flex flex-col gap-2">
+                {src && (
+                    <span className={`self-start text-[0.7rem] px-2 py-0.5 rounded-full font-bold border ${src.cls}`}>
+                        🔊 {src.label}
+                    </span>
+                )}
+                <audio controls src={content} className="w-full" preload="metadata">
+                    瀏覽器不支援音檔播放
+                </audio>
+                {caption && (
+                    <figcaption className="text-sm text-[var(--color-text-mid)] font-bold mt-1">{caption}</figcaption>
+                )}
+            </figure>
+        );
+    }
 
     if (type === 'image') {
         if (!content) return null;
@@ -195,6 +224,38 @@ function BlockEditor({ block, idx, total, onChange, onDelete, onMove }) {
                             className="w-full rounded-xl border border-[var(--color-card-border)] max-h-48 object-contain mt-1"
                             onError={e => { e.target.style.display = 'none'; }}
                         />
+                    )}
+                </div>
+            )}
+
+            {block.type === 'audio' && (
+                <div className="flex flex-col gap-2">
+                    <input
+                        value={block.content || ''}
+                        onChange={e => onChange({ ...block, content: e.target.value })}
+                        placeholder="貼上音檔 URL（mp3/wav/m4a/ogg）或上傳到 Firebase Storage 後填網址"
+                        className="w-full bg-[var(--color-card-bg)] text-[var(--color-text-dark)] border border-[var(--color-card-border)] rounded-xl px-3 py-2 text-sm outline-none focus:border-[var(--color-clay-purple)]"
+                    />
+                    <div className="flex gap-2">
+                        <select
+                            value={block.source || ''}
+                            onChange={e => onChange({ ...block, source: e.target.value })}
+                            className="bg-[var(--color-card-bg)] text-[var(--color-text-dark)] border border-[var(--color-card-border)] rounded-xl px-3 py-2 text-sm outline-none focus:border-[var(--color-clay-purple)]"
+                        >
+                            <option value="">無來源標籤</option>
+                            {Object.entries(AUDIO_SOURCES).map(([key, val]) => (
+                                <option key={key} value={key}>🔊 {val.label}</option>
+                            ))}
+                        </select>
+                        <input
+                            value={block.caption || ''}
+                            onChange={e => onChange({ ...block, caption: e.target.value })}
+                            placeholder="音檔說明文字（選填）"
+                            className="flex-1 bg-[var(--color-card-bg)] text-[var(--color-text-mid)] border border-[var(--color-card-border)] rounded-xl px-3 py-2 text-sm outline-none focus:border-[var(--color-clay-purple)]"
+                        />
+                    </div>
+                    {block.content && (
+                        <audio controls src={block.content} className="w-full mt-1" preload="metadata" />
                     )}
                 </div>
             )}
