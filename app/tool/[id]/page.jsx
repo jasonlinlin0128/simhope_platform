@@ -9,6 +9,7 @@ import { db } from '@/lib/firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import AIPanel from '@/components/AIPanel';
 import { getStatusLabel } from '@/components/ToolCard';
+import UploadButton from '@/components/UploadButton';
 
 // ─── Block type definitions ────────────────────────────────────────────────
 const BLOCK_DEFS = {
@@ -197,12 +198,15 @@ function BlockEditor({ block, idx, total, onChange, onDelete, onMove }) {
             {/* Content input: varies by type */}
             {block.type === 'image' && (
                 <div className="flex flex-col gap-2">
-                    <input
-                        value={block.content || ''}
-                        onChange={e => onChange({ ...block, content: e.target.value })}
-                        placeholder="貼上圖片 URL（https://...）"
-                        className="w-full bg-[var(--color-card-bg)] text-[var(--color-text-dark)] border border-[var(--color-card-border)] rounded-xl px-3 py-2 text-sm outline-none focus:border-[var(--color-clay-purple)]"
-                    />
+                    <div className="flex gap-2">
+                        <input
+                            value={block.content || ''}
+                            onChange={e => onChange({ ...block, content: e.target.value })}
+                            placeholder="貼上圖片 URL（https://...）"
+                            className="flex-1 bg-[var(--color-card-bg)] text-[var(--color-text-dark)] border border-[var(--color-card-border)] rounded-xl px-3 py-2 text-sm outline-none focus:border-[var(--color-clay-purple)]"
+                        />
+                        <UploadButton pathPrefix="images" accept="image/*" onUploaded={url => onChange({ ...block, content: url })} />
+                    </div>
                     <input
                         value={block.caption || ''}
                         onChange={e => onChange({ ...block, caption: e.target.value })}
@@ -221,12 +225,15 @@ function BlockEditor({ block, idx, total, onChange, onDelete, onMove }) {
 
             {block.type === 'audio' && (
                 <div className="flex flex-col gap-2">
-                    <input
-                        value={block.content || ''}
-                        onChange={e => onChange({ ...block, content: e.target.value })}
-                        placeholder="貼上音檔 URL（mp3/wav/m4a/ogg）或上傳到 Firebase Storage 後填網址"
-                        className="w-full bg-[var(--color-card-bg)] text-[var(--color-text-dark)] border border-[var(--color-card-border)] rounded-xl px-3 py-2 text-sm outline-none focus:border-[var(--color-clay-purple)]"
-                    />
+                    <div className="flex gap-2">
+                        <input
+                            value={block.content || ''}
+                            onChange={e => onChange({ ...block, content: e.target.value })}
+                            placeholder="貼上音檔 URL（mp3/wav/m4a/ogg）"
+                            className="flex-1 bg-[var(--color-card-bg)] text-[var(--color-text-dark)] border border-[var(--color-card-border)] rounded-xl px-3 py-2 text-sm outline-none focus:border-[var(--color-clay-purple)]"
+                        />
+                        <UploadButton pathPrefix="audio" accept="audio/*" onUploaded={url => onChange({ ...block, content: url, source: block.source || 'upload' })} />
+                    </div>
                     <div className="flex gap-2">
                         <select
                             value={block.source || ''}

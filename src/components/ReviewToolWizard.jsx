@@ -5,6 +5,7 @@ import { doc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import Link from 'next/link';
 import { db, auth } from '@/lib/firebase';
 import { DEPTS } from '@/lib/db';
+import UploadButton from '@/components/UploadButton';
 
 const TYPE_LABELS = {
     webapp:   { emoji: '🌐', label: '網頁應用' },
@@ -409,8 +410,11 @@ function TypeDataEditor({ type, td, updateTd }) {
         return (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <FormField label="fileUrl（檔案實際下載連結）">
-                    <input value={td.fileUrl || ''} onChange={e => updateTd({ fileUrl: e.target.value })}
-                        className="w-full bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm font-mono" />
+                    <div className="flex gap-2">
+                        <input value={td.fileUrl || ''} onChange={e => updateTd({ fileUrl: e.target.value })}
+                            className="flex-1 bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm font-mono" />
+                        <UploadButton pathPrefix="downloads" onUploaded={url => updateTd({ fileUrl: url })} />
+                    </div>
                 </FormField>
                 <FormField label="platform">
                     <select value={td.platform || ''} onChange={e => updateTd({ platform: e.target.value })}
@@ -438,8 +442,11 @@ function TypeDataEditor({ type, td, updateTd }) {
         return (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <FormField label="fileUrl">
-                    <input value={td.fileUrl || ''} onChange={e => updateTd({ fileUrl: e.target.value })}
-                        className="w-full bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm font-mono" />
+                    <div className="flex gap-2">
+                        <input value={td.fileUrl || ''} onChange={e => updateTd({ fileUrl: e.target.value })}
+                            className="flex-1 bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm font-mono" />
+                        <UploadButton pathPrefix="docs" onUploaded={url => updateTd({ fileUrl: url })} />
+                    </div>
                 </FormField>
                 <FormField label="fileType">
                     <select value={td.fileType || ''} onChange={e => updateTd({ fileType: e.target.value })}
