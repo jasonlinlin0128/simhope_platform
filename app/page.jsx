@@ -172,15 +172,15 @@ export default function Home() {
   const hasActiveFilters =
     debouncedQuery || selectedType !== "all" || selectedScenarios.length > 0;
 
-  // 痛點卡片依 folder 分組
-  const folderGroups = useMemo(() => {
-    const groups = {};
-    painCards.forEach((c) => {
-      const folder = c.folder || "未分類專案";
-      if (!groups[folder]) groups[folder] = [];
-      groups[folder].push(c);
+  // 痛點卡片：不分組，依「有對應工具的優先 → 孤兒在後」排序
+  const sortedPainCards = useMemo(() => {
+    return [...painCards].sort((a, b) => {
+      const aHas = !!a.relatedToolId;
+      const bHas = !!b.relatedToolId;
+      if (aHas && !bHas) return -1;
+      if (!aHas && bHas) return 1;
+      return 0;
     });
-    return groups;
   }, [painCards]);
 
   return (
@@ -279,24 +279,10 @@ export default function Home() {
         {loading ? (
           <div className="text-center py-10 text-gray-400">載入中，請稍候…</div>
         ) : (
-          <div className="flex flex-col gap-10">
-            {Object.entries(folderGroups)
-              .sort()
-              .map(([folder, cards]) => (
-                <div key={folder}>
-                  <h3 className="text-lg font-extrabold text-[var(--color-text-dark)] border-b-2 border-gray-200 dark:border-gray-700 pb-2 mb-5 flex items-center">
-                    📁 {folder}{" "}
-                    <span className="text-sm text-gray-500 ml-2">
-                      ({cards.length})
-                    </span>
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {cards.map((c) => (
-                      <PainCard key={c.id} card={c} />
-                    ))}
-                  </div>
-                </div>
-              ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {sortedPainCards.map((c) => (
+              <PainCard key={c.id} card={c} />
+            ))}
           </div>
         )}
       </section>
