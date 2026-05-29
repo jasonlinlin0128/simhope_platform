@@ -7,7 +7,7 @@ import ToolCard from "@/components/ToolCard";
 import PainCard, { PAIN_CATEGORIES } from "@/components/PainCard";
 import Link from "next/link";
 
-// 5 種類型 chip 的顯示資料
+// 6 種類型 chip 的顯示資料
 const TYPE_CHIPS = [
   { key: "all", label: "全部", emoji: "" },
   { key: "webapp", label: "網頁應用", emoji: "🌐" },
@@ -15,6 +15,7 @@ const TYPE_CHIPS = [
   { key: "doc", label: "文件 / 表單", emoji: "📄" },
   { key: "mcp", label: "AI 連接器", emoji: "🔌" },
   { key: "api", label: "API / SDK", emoji: "🧩" },
+  { key: "embedded", label: "場域工具", emoji: "📍" },
 ];
 
 const TESTIMONIALS = [

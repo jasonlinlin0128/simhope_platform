@@ -1,0 +1,18 @@
+rules_version = '2';
+
+// SimHope 工具平台 — Firebase Storage 規則
+// tool-files/ 底下放工具的 .exe / .mcpb / 文件 / 截圖 / 語音等
+//   讀：公開（跟 tools collection 一樣對全公司同仁開放，免登入也能下載）
+//   寫：需登入 + 200MB 上限（UI 只在 admin wizard / dashboard 對 developer/admin 開放上傳）
+//
+// 註：Storage rules 無法跨服務查 Firestore 的 role，所以這裡只擋「需登入 + 大小」，
+//     真正的 developer/admin 權限由前端 UI + Firestore 寫入規則把關。
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /tool-files/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null
+        && request.resource.size < 200 * 1024 * 1024;
+    }
+  }
+}

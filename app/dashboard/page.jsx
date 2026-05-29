@@ -56,6 +56,15 @@ const TYPE_OPTIONS = [
         accent: 'border-gray-200 hover:border-amber-300 hover:bg-amber-50',
         activeAccent: 'border-amber-500 bg-amber-50',
     },
+    {
+        key: 'embedded',
+        emoji: '📍',
+        label: '場域工具',
+        helper: '綁定特定電腦或設備的工具，沒有可點的連結（例：機敏辦公室影印機浮水印、加工部電腦上的外掛）。同仁要到那台設備現場使用。',
+        urlPlaceholder: '參考連結（選填，沒有就留空）',
+        accent: 'border-gray-200 hover:border-indigo-300 hover:bg-indigo-50',
+        activeAccent: 'border-indigo-500 bg-indigo-50',
+    },
 ];
 
 export default function Dashboard() {
@@ -219,9 +228,12 @@ export default function Dashboard() {
 
                             {/* ③ 主連結 */}
                             <div>
-                                <label className="block text-xs font-extrabold text-[var(--color-text-mid)] mb-2">③ 主連結</label>
+                                <label className="block text-xs font-extrabold text-[var(--color-text-mid)] mb-2">
+                                    ③ 主連結{formData.type === 'embedded' && <span className="text-gray-400 font-normal">（場域工具可留空）</span>}
+                                </label>
                                 <input
-                                    name="url" value={formData.url} onChange={handleInputChange} required
+                                    name="url" value={formData.url} onChange={handleInputChange}
+                                    required={formData.type !== 'embedded'}
                                     placeholder={currentType.urlPlaceholder}
                                     className="w-full bg-gray-50 dark:bg-gray-700 p-3 rounded-xl border border-gray-200 dark:border-gray-600 text-sm outline-none focus:border-[var(--color-clay-purple)] transition-all"
                                 />
