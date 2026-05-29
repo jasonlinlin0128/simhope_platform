@@ -1,8 +1,28 @@
 # SimHope 平台：資源類型擴充 spec
 
 **建立日期**：2026-05-27
-**狀態**：✅ approved 2026-05-27（Jason 「ok」確認，§10 五題以下列預設答案敲定）
+**狀態**：✅ **implemented 2026-05-29** — 全 7 phase 完成（含追加的 2.5~2.9 polish phases）
 **參考 mock**：[docs/mocks/resources-expansion-mockup-v2.html](../../mocks/resources-expansion-mockup-v2.html)
+
+### Phase 完成狀態
+- ✅ Phase 1 — schema migration (commit f97fa8e)
+- ✅ Phase 2 — 首頁 Vercel Marketplace 風 (commit 2aad5be)
+- ✅ Phase 2.5 — 已終止藏底部 (commit 4264853)
+- ✅ Phase 2.6 — 17 工具 Pattern C 文案 (commit 4c4f66c)
+- ✅ Phase 2.7 — painCards 整理 + 可點 (commit 93a0137)
+- ✅ Phase 2.8 — 痛點類別系統 (commit a4c810a)
+- ✅ Phase 2.9 — testimonials 重寫 (commit b2db5ba)
+- ✅ Phase 3 — 詳情頁 tab 切換 (commit cc79eb5)
+- ✅ Phase 4 — block editor 加 audio (commit 9b1acf9)
+- ✅ Phase 5 — 提交表單砍到 4 欄 (commit c547134)
+- ✅ Phase 6 — admin 審核 wizard (commit a706287)
+- 🔲 Phase 7 — 文件 + PR (進行中)
+
+### 已知 deferred 事項
+- Firebase Storage 上傳功能（admin wizard 目前只接受 URL）—
+  需先在 Firebase Console 啟用 Storage + 部署 storage.rules
+- AI 預填（admin wizard 自動讀 GitHub README）— 推 phase 2
+- 拆分 /resources 獨立分頁 — 推 phase 2
 
 ### §10 預設答案
 
