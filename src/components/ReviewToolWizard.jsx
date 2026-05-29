@@ -12,6 +12,7 @@ const TYPE_LABELS = {
     doc:      { emoji: '📄', label: '文件 / 表單' },
     mcp:      { emoji: '🔌', label: 'AI 連接器 (MCP)' },
     api:      { emoji: '🧩', label: 'API / SDK' },
+    embedded: { emoji: '📍', label: '場域工具' },
 };
 
 const COLOR_OPTIONS = [
@@ -459,6 +460,28 @@ function TypeDataEditor({ type, td, updateTd }) {
                     <input value={td.sdkPackage || ''} onChange={e => updateTd({ sdkPackage: e.target.value })}
                         placeholder="@simhope/translate-sdk"
                         className="w-full bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm font-mono" />
+                </FormField>
+            </div>
+        );
+    }
+
+    if (type === 'embedded') {
+        return (
+            <div className="flex flex-col gap-3">
+                <FormField label="location（部署地點 — 哪台電腦 / 哪個設備 / 哪個區域）">
+                    <input value={td.location || ''} onChange={e => updateTd({ location: e.target.value })}
+                        placeholder="例：機敏辦公室影印機旁的專用電腦 / 加工部 3 號機台電腦"
+                        className="w-full bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm" />
+                </FormField>
+                <FormField label="accessNote（怎麼使用 / 找誰開通）">
+                    <textarea value={td.accessNote || ''} onChange={e => updateTd({ accessNote: e.target.value })} rows={3}
+                        placeholder="例：直接到該台電腦操作即可；需要權限請找 MIS。"
+                        className="w-full bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm resize-y" />
+                </FormField>
+                <FormField label="contact（負責窗口，選填）">
+                    <input value={td.contact || ''} onChange={e => updateTd({ contact: e.target.value })}
+                        placeholder="例：經企室 Jason / MIS 團隊"
+                        className="w-full bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm" />
                 </FormField>
             </div>
         );

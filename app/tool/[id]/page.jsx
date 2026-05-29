@@ -323,12 +323,16 @@ const TYPE_ACTION = {
 //   webapp  → 只有「詳細說明」
 //   download / doc → 「快速安裝」+「詳細說明」
 //   mcp / api → 「快速安裝」+「進階設定」+「詳細說明」
+//   embedded → 「部署資訊」+「詳細說明」
 function DetailTabs({ tool, blocks, activeTab, setActiveTab }) {
     const type = tool.type || 'webapp';
     const td = tool.typeData || {};
 
     // 依 type 決定 tabs
     const tabs = [];
+    if (type === 'embedded') {
+        tabs.push({ key: 'deploy', label: '📍 部署資訊' });
+    }
     if (['download', 'doc', 'mcp'].includes(type)) {
         tabs.push({ key: 'quick', label: '🚀 快速安裝' });
     }
@@ -362,9 +366,45 @@ function DetailTabs({ tool, blocks, activeTab, setActiveTab }) {
             )}
 
             {/* Tab content */}
+            {activeKey === 'deploy' && <DeployInfoTab td={td} />}
             {activeKey === 'quick' && <QuickInstallTab tool={tool} td={td} type={type} />}
             {activeKey === 'advanced' && <AdvancedSetupTab tool={tool} td={td} type={type} />}
             {activeKey === 'detail' && <DetailTab tool={tool} blocks={blocks} />}
+        </div>
+    );
+}
+
+// ─── 「部署資訊」tab — embedded 顯示 ──────────────────────────────────────────
+function DeployInfoTab({ td }) {
+    const hasAny = td.location || td.accessNote || td.contact;
+    return (
+        <div className="flex flex-col gap-5">
+            <div className="bg-indigo-50/50 dark:bg-indigo-900/10 border-2 border-indigo-200 dark:border-indigo-800/40 rounded-2xl p-6 flex flex-col gap-4">
+                <div className="flex items-center gap-2 text-indigo-700 dark:text-indigo-300 font-extrabold">
+                    <span className="text-xl">📍</span> 這是綁定特定設備 / 電腦的場域工具
+                </div>
+                {td.location && (
+                    <div>
+                        <div className="text-xs font-extrabold text-[var(--color-text-mid)] uppercase tracking-wider mb-1">部署地點</div>
+                        <p className="font-bold text-[var(--color-text-dark)]">{td.location}</p>
+                    </div>
+                )}
+                {td.accessNote && (
+                    <div>
+                        <div className="text-xs font-extrabold text-[var(--color-text-mid)] uppercase tracking-wider mb-1">怎麼使用</div>
+                        <p className="font-bold text-[var(--color-text-dark)] whitespace-pre-wrap leading-relaxed">{td.accessNote}</p>
+                    </div>
+                )}
+                {td.contact && (
+                    <div>
+                        <div className="text-xs font-extrabold text-[var(--color-text-mid)] uppercase tracking-wider mb-1">負責窗口</div>
+                        <p className="font-bold text-[var(--color-text-dark)]">{td.contact}</p>
+                    </div>
+                )}
+                {!hasAny && (
+                    <p className="text-sm text-[var(--color-text-mid)] italic">部署資訊還沒填，請聯絡經企室。</p>
+                )}
+            </div>
         </div>
     );
 }
@@ -535,7 +575,11 @@ export default function ToolDetail({ params }) {
             setLocalExtras({ url: data.url || '', type: data.type || 'webapp' });
             // 預設 tab：有「快速安裝」(download/doc/mcp) 就先顯示它；其他預設「詳細說明」
             const type = data.type || 'webapp';
-            setActiveTab(['download', 'doc', 'mcp'].includes(type) ? 'quick' : 'detail');
+            setActiveTab(
+                type === 'embedded' ? 'deploy'
+                : ['download', 'doc', 'mcp'].includes(type) ? 'quick'
+                : 'detail'
+            );
         } catch (e) { console.error(e); }
         setLoading(false);
     };
@@ -663,6 +707,16 @@ export default function ToolDetail({ params }) {
                                 <div className="mt-6 pt-6 border-t border-[var(--color-card-border)] flex justify-center">
                                     <div className="w-full text-center px-6 py-4 rounded-xl font-extrabold bg-red-100 text-red-600 cursor-not-allowed">
                                         ⛔ 已終止維護
+                                    </div>
+                                </div>
+                            );
+                        }
+                        // 場域工具：沒有啟動連結，提示去看「部署資訊」tab
+                        if (tool.type === 'embedded') {
+                            return (
+                                <div className="mt-6 pt-6 border-t border-[var(--color-card-border)] flex justify-center">
+                                    <div className="w-full text-center px-6 py-4 rounded-xl font-extrabold bg-indigo-50 text-indigo-600 border border-indigo-200">
+                                        📍 場域工具，請看右側部署資訊
                                     </div>
                                 </div>
                             );
