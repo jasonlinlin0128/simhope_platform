@@ -92,12 +92,7 @@ export default function AdminDashboard() {
 
     const handleUpdateToolStatus = async (id, status) => {
         try {
-            const update = { status };
-            // Keep approval field in sync for legacy compatibility during migration
-            if (['live', 'beta', 'new'].includes(status)) update.approval = 'approved';
-            else if (status === 'terminated') update.approval = 'rejected';
-            else update.approval = 'pending';
-            await updateDoc(doc(db, 'tools', id), update);
+            await updateDoc(doc(db, 'tools', id), { status });
             fetchAdminData();
         } catch (error) {
             console.error(error);
