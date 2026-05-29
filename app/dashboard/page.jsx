@@ -8,23 +8,70 @@ import AIPanel from '@/components/AIPanel';
 import ToolCard from '@/components/ToolCard';
 import { db, auth } from '@/lib/firebase';
 import { collection, query, where, getDocs, setDoc, doc, serverTimestamp } from 'firebase/firestore';
-import { DEPTS } from '@/lib/db';
+
+// 5 種類型 + 「適合什麼情況」說明（給非技術同仁看得懂）
+const TYPE_OPTIONS = [
+    {
+        key: 'webapp',
+        emoji: '🌐',
+        label: '網頁應用',
+        helper: '同仁點連結就能用，不用安裝。AI Studio / Gemini Canvas / Vercel 上的工具都算這類。',
+        urlPlaceholder: 'https://aistudio.google.com/apps/... 或 https://xxx.vercel.app',
+        accent: 'border-purple-300 hover:border-purple-500 hover:bg-purple-50',
+        activeAccent: 'border-purple-500 bg-purple-50',
+    },
+    {
+        key: 'download',
+        emoji: '⬇️',
+        label: '軟體下載',
+        helper: '同仁要下載安裝檔（.exe / .msi）到電腦執行。內網用、需要存取本機檔案的選這個。',
+        urlPlaceholder: 'Google Drive 共享連結或檔案直連網址',
+        accent: 'border-gray-200 hover:border-blue-300 hover:bg-blue-50',
+        activeAccent: 'border-blue-500 bg-blue-50',
+    },
+    {
+        key: 'doc',
+        emoji: '📄',
+        label: '文件 / 表單',
+        helper: 'PDF / Word / Excel 等可下載的檔案。ISO 表單、SOP、規格書、Notion 匯出文件都算這類。',
+        urlPlaceholder: 'Google Drive 共享連結或檔案直連網址',
+        accent: 'border-gray-200 hover:border-orange-300 hover:bg-orange-50',
+        activeAccent: 'border-orange-500 bg-orange-50',
+    },
+    {
+        key: 'mcp',
+        emoji: '🔌',
+        label: 'AI 連接器（MCP）',
+        helper: '把資料或能力包成 AI 可呼叫的接口。同仁裝一次以後 Claude / Cursor 就能直接幫他查/操作這份資源。',
+        urlPlaceholder: 'GitHub repo 連結（其他細節經企室審核時補）',
+        accent: 'border-gray-200 hover:border-emerald-300 hover:bg-emerald-50',
+        activeAccent: 'border-emerald-500 bg-emerald-50',
+    },
+    {
+        key: 'api',
+        emoji: '🧩',
+        label: 'API / SDK',
+        helper: '給工程師用程式接的接口（REST API / Python 套件 / JS library）。一般同仁用不到。',
+        urlPlaceholder: 'GitHub repo 或 API 文件連結',
+        accent: 'border-gray-200 hover:border-amber-300 hover:bg-amber-50',
+        activeAccent: 'border-amber-500 bg-amber-50',
+    },
+];
 
 export default function Dashboard() {
     const { user, loading: authLoading } = useAuth();
     const router = useRouter();
-    
+
     const [myTools, setMyTools] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isGenerating, setIsGenerating] = useState(false);
 
-    // Form states
+    // 4 欄表單 state
     const [formData, setFormData] = useState({
-        title: '', tagline: '', icon: '📦',
-        desc: '', dept: 'other', folder: '',
-        type: 'webapp', url: '',
-        s1: '', s2: '', s3: '',
-        tags: '' // comma-separated strings
+        title: '',
+        tagline: '',
+        url: '',
+        type: 'webapp',
     });
 
     useEffect(() => {
@@ -47,6 +94,7 @@ export default function Dashboard() {
         setLoading(false);
     };
 
+    // AI 文案生成 — 只填 title + tagline（其他細節經企室審核時補）
     const handleGenerate = async (prompt) => {
         setIsGenerating(true);
         try {
@@ -55,33 +103,21 @@ export default function Dashboard() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${idToken}`
+                    'Authorization': `Bearer ${idToken}`,
                 },
-                body: JSON.stringify({ prompt })
+                body: JSON.stringify({ prompt }),
             });
-
             if (!res.ok) {
                 const err = await res.json().catch(() => ({}));
                 throw new Error(err.error || 'API 呼叫失敗');
             }
             const result = await res.json();
-
-            // Typewriter effect function wrapper (mocked for React via simple state update for now,
-            // to implement real typewriter requires complex state queueing, doing direct set for MVP)
             setFormData(prev => ({
                 ...prev,
                 title: result.title || prev.title,
                 tagline: result.tagline || prev.tagline,
-                desc: result.desc || prev.desc,
-                icon: result.icon || prev.icon,
-                dept: result.dept && DEPTS[result.dept] ? result.dept : prev.dept,
-                s1: result.s1 || prev.s1,
-                s2: result.s2 || prev.s2,
-                s3: result.s3 || prev.s3,
-                tags: (result.tags || []).join(', ')
             }));
-
-            alert('✨ 文案生成完成！請確認內容後送出');
+            alert('✨ 文案生成完成！其他欄位請手動填，送出後經企室審核時會補完細節。');
         } catch (err) {
             console.error(err);
             alert('AI 生成失敗，請稍後再試');
@@ -94,42 +130,37 @@ export default function Dashboard() {
         e.preventDefault();
         try {
             const id = 't_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
-            
-            const steps = [formData.s1, formData.s2, formData.s3].filter(Boolean);
-            const tags = formData.tags.split(/[,，]/).map(s => s.trim()).filter(Boolean);
-            const scenarios = [DEPTS[formData.dept]?.label.replace(/^.*? /, '') || '其他'];
-            
+
+            // 提交資料：4 個必填 + 系統 metadata；
+            // 部門 / folder / scenarios / blog / icon / steps 等細節由 admin 審核時補
             const toolData = {
                 title: formData.title,
                 tagline: formData.tagline,
-                desc: formData.desc,
-                dept: formData.dept,
-                folder: formData.folder || '未分類專案',
-                type: formData.type,
                 url: formData.url,
-                icon: formData.icon,
-                steps, tags, scenarios,
+                type: formData.type,
                 status: 'pending',
                 authorUid: user.uid,
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp(),
+                // 預設值（讓詳情頁/卡片不會壞）
+                icon: '📦',
                 color: 'c' + (Math.floor(Math.random() * 6) + 1),
-                blog: { blocks: [] },
+                desc: '',
+                typeData: {},
+                blog: { summary: '', blocks: [] },
+                files: [],
                 versions: [],
-                files: []
             };
 
             await setDoc(doc(db, 'tools', id), toolData);
-            
-            alert('已送出！經企室審核ok後即上架');
-            setFormData({
-                title: '', tagline: '', icon: '📦', desc: '', dept: 'other', 
-                folder: '', type: 'webapp', url: '', s1: '', s2: '', s3: '', tags: ''
-            }); // Reset form
-            fetchMyTools(); // Refresh
+            alert('已送出！經企室審核後會跟你討論細節（截圖、使用步驟、適用部門、進階安裝方式等），通過後上架。');
+            setFormData({ title: '', tagline: '', url: '', type: 'webapp' });
+            fetchMyTools();
         } catch (error) {
             console.error(error);
-            alert('儲存失敗，請稍後再試');
+            alert(error.code === 'permission-denied'
+                ? '儲存失敗：你不是開發者帳號，無法提交工具。請聯絡管理員開通。'
+                : '儲存失敗，請稍後再試');
         }
     };
 
@@ -140,11 +171,13 @@ export default function Dashboard() {
 
     if (authLoading || loading) return <p className="text-center py-20 text-gray-400">載入中，請稍候…</p>;
 
+    const currentType = TYPE_OPTIONS.find(t => t.key === formData.type) || TYPE_OPTIONS[0];
+
     return (
         <div className="px-4 md:px-0 flex flex-col gap-10">
-            <div className="flex justify-between items-end border-b-2 border-gray-100 pb-4">
+            <div className="flex justify-between items-end border-b-2 border-gray-100 dark:border-gray-700 pb-4">
                 <div>
-                    <h2 className="text-3xl font-black">你好, {user?.displayName} 👋</h2>
+                    <h2 className="text-3xl font-black text-[var(--color-text-dark)]">你好, {user?.displayName} 👋</h2>
                     <p className="text-[var(--color-text-mid)] font-bold mt-2">歡迎來到開發者儀表板</p>
                 </div>
             </div>
@@ -153,122 +186,85 @@ export default function Dashboard() {
                 {/* Submit New Tool Form */}
                 <div className="lg:w-1/2">
                     <div className="bg-[var(--color-card-bg)] p-6 md:p-8 rounded-[24px] shadow-sm border border-[var(--color-card-border)]">
-                        <h3 className="font-extrabold text-xl mb-4 text-[var(--color-text-dark)] flex items-center gap-2">
-                            <span className="text-2xl">🚀</span> 提交新工具
+                        <h3 className="font-extrabold text-xl mb-1 text-[var(--color-text-dark)] flex items-center gap-2">
+                            <span className="text-2xl">🚀</span> 上架一個工具
                         </h3>
-                        <p className="text-[0.85rem] text-[var(--color-text-mid)] font-bold mb-6">
-                            請詳細填寫工具資訊，提交後將進入「審核」階段。
+                        <p className="text-sm text-[var(--color-text-mid)] mb-6">
+                            填這 <strong>4 個</strong>就好，其他細節（截圖、步驟、適用部門等）經企室審核時跟你討論補。
                         </p>
 
                         <AIPanel onGenerate={handleGenerate} isGenerating={isGenerating} />
 
-                        <form onSubmit={handleFormSubmit} className="flex flex-col gap-5">
-                            <div className="flex gap-4">
-                                <div className="w-[80px]">
-                                    <label className="block text-xs font-bold text-gray-500 mb-2">Emoji</label>
-                                    <input 
-                                        name="icon" value={formData.icon} onChange={handleInputChange} required
-                                        className="w-full bg-gray-50 p-3 rounded-xl border border-gray-200 text-xl text-center outline-none focus:border-[var(--color-clay-purple)] transition-all"
-                                    />
-                                </div>
-                                <div className="flex-1">
-                                    <label className="block text-xs font-bold text-gray-500 mb-2">工具名稱</label>
-                                    <input 
-                                        name="title" value={formData.title} onChange={handleInputChange} required placeholder="例如：自動會議記錄器"
-                                        className="w-full bg-gray-50 p-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-[var(--color-clay-purple)] transition-all"
-                                    />
-                                </div>
-                            </div>
+                        <form onSubmit={handleFormSubmit} className="flex flex-col gap-5 mt-4">
 
+                            {/* ① 名字 */}
                             <div>
-                                <label className="block text-xs font-bold text-gray-500 mb-2">一句話賣點 (Tagline)</label>
-                                <input 
-                                    name="tagline" value={formData.tagline} onChange={handleInputChange} required placeholder="例如：開完會 3 分鐘直接產出逐字稿跟重點整理"
-                                    className="w-full bg-gray-50 p-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-[var(--color-clay-purple)] transition-all"
+                                <label className="block text-xs font-extrabold text-[var(--color-text-mid)] mb-2">① 工具名字</label>
+                                <input
+                                    name="title" value={formData.title} onChange={handleInputChange} required
+                                    placeholder="例：ISO 表單查詢 MCP"
+                                    className="w-full bg-gray-50 dark:bg-gray-700 p-3 rounded-xl border border-gray-200 dark:border-gray-600 text-sm outline-none focus:border-[var(--color-clay-purple)] transition-all"
                                 />
                             </div>
 
+                            {/* ② Tagline */}
                             <div>
-                                <label className="block text-xs font-bold text-gray-500 mb-2">詳細情境介紹 / 解決了什麼問題</label>
-                                <textarea 
-                                    name="desc" value={formData.desc} onChange={handleInputChange} required rows="3"
-                                    className="w-full bg-gray-50 p-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-[var(--color-clay-purple)] transition-all resize-none"
-                                ></textarea>
-                            </div>
-
-                            <div className="flex gap-4">
-                                <div className="flex-1">
-                                    <label className="block text-xs font-bold text-gray-500 mb-2">歸屬專案目錄</label>
-                                    <input 
-                                        name="folder" value={formData.folder} onChange={handleInputChange} placeholder="例如：會計行政專案"
-                                        className="w-full bg-gray-50 p-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-[var(--color-clay-purple)] transition-all"
-                                    />
-                                </div>
-                                <div className="flex-1">
-                                    <label className="block text-xs font-bold text-gray-500 mb-2">主責部門</label>
-                                    <select 
-                                        name="dept" value={formData.dept} onChange={handleInputChange}
-                                        className="w-full bg-gray-50 p-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-[var(--color-clay-purple)] transition-all"
-                                    >
-                                        {Object.entries(DEPTS).map(([k, v]) => (
-                                            <option key={k} value={k}>{v.label}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100 flex flex-col gap-4">
-                                <label className="block text-xs font-bold text-blue-800 mb-1">🔗 工具來源類型</label>
-                                <div className="flex gap-4">
-                                    <label className="flex items-center gap-2 text-sm font-bold cursor-pointer">
-                                        <input type="radio" name="type" value="webapp" checked={formData.type === 'webapp'} onChange={handleInputChange} className="accent-[var(--color-clay-purple)] w-4 h-4" />
-                                        🌐 網頁應用 (Web App)
-                                    </label>
-                                    <label className="flex items-center gap-2 text-sm font-bold cursor-pointer">
-                                        <input type="radio" name="type" value="download" checked={formData.type === 'download'} onChange={handleInputChange} className="accent-[var(--color-clay-purple)] w-4 h-4" />
-                                        ⬇️ 本機軟體 (.exe 檔案)
-                                    </label>
-                                </div>
-
-                                <div>
-                                    <input
-                                        name="url" value={formData.url} onChange={handleInputChange} required
-                                        placeholder={formData.type === 'webapp' ? 'https://...' : 'https://drive.google.com/...'}
-                                        className="w-full bg-white p-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-[var(--color-clay-purple)] transition-all"
-                                    />
-                                    {formData.type === 'download' && (
-                                        <p className="text-xs text-gray-400 font-bold mt-2 ml-1">請貼上 Google Drive 的共享下載連結</p>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 mb-2">使用步驟 (最少一步，最多三步)</label>
-                                <div className="flex gap-2 mb-2">
-                                    <span className="text-xs font-bold text-gray-400 mt-3">1.</span>
-                                    <input name="s1" value={formData.s1} onChange={handleInputChange} required className="flex-1 bg-gray-50 p-2 rounded-lg border border-gray-200 text-sm outline-none focus:border-[var(--color-clay-purple)]" />
-                                </div>
-                                <div className="flex gap-2 mb-2">
-                                    <span className="text-xs font-bold text-gray-400 mt-3">2.</span>
-                                    <input name="s2" value={formData.s2} onChange={handleInputChange} className="flex-1 bg-gray-50 p-2 rounded-lg border border-gray-200 text-sm outline-none focus:border-[var(--color-clay-purple)]" />
-                                </div>
-                                <div className="flex gap-2">
-                                    <span className="text-xs font-bold text-gray-400 mt-3">3.</span>
-                                    <input name="s3" value={formData.s3} onChange={handleInputChange} className="flex-1 bg-gray-50 p-2 rounded-lg border border-gray-200 text-sm outline-none focus:border-[var(--color-clay-purple)]" />
-                                </div>
-                            </div>
-                            
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 mb-2">標籤 (用逗號分隔)</label>
-                                <input 
-                                    name="tags" value={formData.tags} onChange={handleInputChange} placeholder="AI, 翻譯, 手機版"
-                                    className="w-full bg-gray-50 p-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-[var(--color-clay-purple)] transition-all"
+                                <label className="block text-xs font-extrabold text-[var(--color-text-mid)] mb-2">② 一句話介紹（tagline）</label>
+                                <input
+                                    name="tagline" value={formData.tagline} onChange={handleInputChange} required
+                                    placeholder="例：把 ISO 表單接到 Claude/Cursor 裡，AI 直接查條文跟填單"
+                                    className="w-full bg-gray-50 dark:bg-gray-700 p-3 rounded-xl border border-gray-200 dark:border-gray-600 text-sm outline-none focus:border-[var(--color-clay-purple)] transition-all"
                                 />
                             </div>
 
-                            <button type="submit" className="mt-4 px-6 py-4 rounded-xl bg-gradient-to-br from-[var(--color-clay-purple)] to-[var(--color-clay-blue)] text-white font-extrabold text-[0.95rem] shadow-md hover:-translate-y-1 hover:shadow-lg transition-all text-center">
-                                📤 提交工具
+                            {/* ③ 主連結 */}
+                            <div>
+                                <label className="block text-xs font-extrabold text-[var(--color-text-mid)] mb-2">③ 主連結</label>
+                                <input
+                                    name="url" value={formData.url} onChange={handleInputChange} required
+                                    placeholder={currentType.urlPlaceholder}
+                                    className="w-full bg-gray-50 dark:bg-gray-700 p-3 rounded-xl border border-gray-200 dark:border-gray-600 text-sm outline-none focus:border-[var(--color-clay-purple)] transition-all"
+                                />
+                                <p className="text-xs text-gray-400 mt-1.5">不知道放什麼？貼 GitHub repo 連結就好，其他細節經企室審核時補。</p>
+                            </div>
+
+                            {/* ④ 類型 radio + 說明 */}
+                            <div>
+                                <label className="block text-xs font-extrabold text-[var(--color-text-mid)] mb-3">④ 類型（這是什麼樣的東西？）</label>
+                                <div className="grid grid-cols-1 gap-2">
+                                    {TYPE_OPTIONS.map(opt => {
+                                        const isActive = formData.type === opt.key;
+                                        return (
+                                            <label
+                                                key={opt.key}
+                                                className={`flex gap-3 items-start cursor-pointer rounded-xl p-3 border-2 transition ${isActive ? opt.activeAccent : opt.accent}`}
+                                            >
+                                                <input
+                                                    type="radio" name="type" value={opt.key}
+                                                    checked={isActive} onChange={handleInputChange}
+                                                    className="mt-1 accent-[var(--color-clay-purple)] w-4 h-4 flex-shrink-0"
+                                                />
+                                                <div className="flex-1">
+                                                    <div className="font-extrabold text-sm text-[var(--color-text-dark)]">
+                                                        {opt.emoji} {opt.label}
+                                                    </div>
+                                                    <div className="text-xs text-[var(--color-text-mid)] mt-0.5 leading-snug">
+                                                        {opt.helper}
+                                                    </div>
+                                                </div>
+                                            </label>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            <button type="submit" className="mt-2 px-6 py-4 rounded-xl bg-gradient-to-br from-[var(--color-clay-purple)] to-[var(--color-clay-blue)] text-white font-extrabold text-base shadow-md hover:-translate-y-0.5 hover:shadow-lg transition-all">
+                                📤 送出，等審核
                             </button>
+
+                            <p className="text-center text-xs text-gray-400">
+                                送出後經企室會跟你討論截圖、使用步驟、進階安裝方式、適用部門等細節。
+                            </p>
                         </form>
                     </div>
                 </div>
@@ -278,9 +274,9 @@ export default function Dashboard() {
                     <h3 className="font-extrabold text-xl mb-6 text-[var(--color-text-dark)] flex items-center gap-2">
                         <span className="text-2xl">🧰</span> 我提交的工具 ({myTools.length})
                     </h3>
-                    
+
                     {myTools.length === 0 ? (
-                        <div className="bg-gray-50 rounded-[24px] p-10 h-[300px] border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-center">
+                        <div className="bg-gray-50 dark:bg-gray-800 rounded-[24px] p-10 h-[300px] border-2 border-dashed border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center text-center">
                             <span className="text-4xl mb-4 grayscale opacity-50">📦</span>
                             <h4 className="font-bold text-gray-400">你還沒有提交任何工具</h4>
                         </div>
