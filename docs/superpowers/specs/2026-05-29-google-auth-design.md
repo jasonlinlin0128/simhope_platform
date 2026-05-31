@@ -1,7 +1,7 @@
 # Phase A：Google 登入 + 資安加固 — 設計 spec
 
 > **建立日期**：2026-05-29
-> **狀態**：✅ approved（Jason「ok」確認）
+> **狀態**：✅ **implemented & deployed 2026-05-29**（PR #6 merged；firestore.rules 加固版已發布並複驗；Jason 實測 Google 登入成功進 admin）
 > **範圍**：登入認證系統的 Phase A。Phase B（passkey / Face ID）、Phase C（LINE 登入）另開 spec。
 
 ---
