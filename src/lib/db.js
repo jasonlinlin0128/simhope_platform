@@ -121,6 +121,35 @@ export async function getUserProfile(uid) {
   }
 }
 
+/**
+ * 確保登入使用者在 Firestore 有一份 users 文件。
+ * 若不存在 → 建立「無 role」的 viewer 文件（受 firestore.rules 的
+ * roleIsViewerOrAbsent 約束，使用者無法藉此自我提權）。
+ * 已存在（含有 role 的）→ 不動。
+ * @param {import('firebase/auth').User} user
+ */
+export async function ensureUserDoc(user) {
+  if (!user?.uid) return;
+  try {
+    const ref = doc(db, "users", user.uid);
+    const snap = await getDoc(ref);
+    if (snap.exists()) return; // 既有文件（可能含 role）不覆蓋
+    const provider = user.providerData?.[0]?.providerId || "unknown";
+    await setDoc(ref, {
+      uid: user.uid,
+      email: user.email || "",
+      displayName: user.displayName || (user.email ? user.email.split("@")[0] : ""),
+      photoURL: user.photoURL || "",
+      provider,
+      createdAt: serverTimestamp(),
+      // 注意：不寫 role 欄位 → 視為 viewer，由 admin 後台手動提拔
+    });
+  } catch (e) {
+    // 建文件失敗不應擋住登入（例如規則暫時拒絕）— 靜默記錄
+    console.error("ensureUserDoc failed:", e);
+  }
+}
+
 /** Returns all documents in the `tools` collection (admin use only). */
 export async function getAllTools() {
   const snap = await getDocs(collection(db, "tools"));

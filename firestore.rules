@@ -2,43 +2,59 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Users: 本人可讀寫自己的資料，admin 可讀全部並管理任何帳號
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn()
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // 自建 users 文件時，role 必須「不存在」或為 'viewer'（擋自我提權成 developer/admin）
+    function roleIsViewerOrAbsent(data) {
+      return !('role' in data.keys()) || data.role == 'viewer';
+    }
+
+    // Users:
+    //   讀：登入即可（admin 後台需列使用者）
+    //   建：本人只能建「無 role / viewer」文件（首次 Google 登入自動建）；admin 可建任意 role
+    //   改：本人不可改自己的 role；admin 可改任何人
     match /users/{userId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null && (
-        request.auth.uid == userId ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && (
+        (request.auth.uid == userId && roleIsViewerOrAbsent(request.resource.data)) ||
+        isAdmin()
       );
-      allow update: if request.auth != null && (
-        (request.auth.uid == userId && !('role' in request.resource.data.diff(resource.data).affectedKeys())) ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+      allow update: if isSignedIn() && (
+        (request.auth.uid == userId
+          && !('role' in request.resource.data.diff(resource.data).affectedKeys())) ||
+        isAdmin()
       );
+      // 不開放 delete
     }
 
     // Tools: 公開可讀，developer/admin 可建立，只有作者或 admin 可修改/刪除
     match /tools/{toolId} {
       allow read: if true;
-      allow create: if request.auth != null
+      allow create: if isSignedIn()
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['developer', 'admin']
         && request.resource.data.authorUid == request.auth.uid
         && request.resource.data.status == 'pending';
-      allow update, delete: if request.auth != null && (
-        resource.data.authorUid == request.auth.uid ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+      allow update, delete: if isSignedIn() && (
+        resource.data.authorUid == request.auth.uid || isAdmin()
       );
     }
 
-    // Pain Cards: 公開可讀，developer/admin 可建立，只有作者或 admin 可修改/刪除
-    // 注意：painCards 用 `approval` 欄位 (pending|approved|rejected)，跟 tools 的 `status` 不一樣
+    // Pain Cards: 同 tools，但用 approval 欄位（pending/approved/rejected）
     match /painCards/{cardId} {
       allow read: if true;
-      allow create: if request.auth != null
+      allow create: if isSignedIn()
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['developer', 'admin']
         && request.resource.data.authorUid == request.auth.uid
         && request.resource.data.approval == 'pending';
-      allow update, delete: if request.auth != null && (
-        resource.data.authorUid == request.auth.uid ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+      allow update, delete: if isSignedIn() && (
+        resource.data.authorUid == request.auth.uid || isAdmin()
       );
     }
   }
