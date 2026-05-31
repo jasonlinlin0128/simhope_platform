@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import ThemeProvider from "@/components/ThemeProvider";
 import BlobBackground from "@/components/BlobBackground";
 import ChatbotWidget from "@/components/ChatbotWidget";
+import PasskeyPrompt from "@/components/PasskeyPrompt";
 
 const nunito = Nunito({
   variable: "--font-nunito",
@@ -42,6 +43,7 @@ export default function RootLayout({ children }) {
               © 2026 SimHope · 內部使用 · v0.6
             </footer>
             <ChatbotWidget />
+            <PasskeyPrompt />
           </AuthProvider>
         </ThemeProvider>
       </body>

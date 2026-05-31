@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { auth } from '@/lib/firebase';
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { loginWithPasskey, passkeySupported } from '@/lib/passkey';
 
 /**
  * Modal for developer email/password sign-in.
@@ -15,6 +16,27 @@ export default function LoginModal({ onClose }) {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showPasskey, setShowPasskey] = useState(false);
+
+  useEffect(() => {
+    setShowPasskey(passkeySupported());
+  }, []);
+
+  const handlePasskeyLogin = async () => {
+    setError('');
+    setLoading(true);
+    try {
+      await loginWithPasskey();
+      onClose();
+    } catch (err) {
+      const msg = err?.name === 'NotAllowedError'
+        ? '已取消，或這台裝置沒有註冊過 Face ID / 指紋。'
+        : (err?.message || 'passkey 登入失敗，請改用其他方式。');
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -95,6 +117,18 @@ export default function LoginModal({ onClose }) {
           </svg>
           用 Google 登入
         </button>
+
+        {/* Passkey / Face ID 登入（瀏覽器支援才顯示）*/}
+        {showPasskey && (
+          <button
+            type="button"
+            onClick={handlePasskeyLogin}
+            disabled={loading}
+            className="w-full py-3 rounded-xl bg-[var(--color-clay-purple)]/10 border-2 border-[var(--color-clay-purple)]/30 text-[var(--color-clay-purple)] font-extrabold text-sm hover:bg-[var(--color-clay-purple)]/20 transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            🔐 用 Face ID / 指紋登入
+          </button>
+        )}
 
         {/* 分隔線 */}
         <div className="flex items-center gap-3">

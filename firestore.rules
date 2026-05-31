@@ -57,5 +57,14 @@ service cloud.firestore {
         resource.data.authorUid == request.auth.uid || isAdmin()
       );
     }
+
+    // Passkeys / WebAuthn challenges: 只有 Admin SDK（伺服器端）能存取。
+    // client 一律拒絕（公鑰庫與 challenge 不可被前端讀寫）。
+    match /passkeys/{id} {
+      allow read, write: if false;
+    }
+    match /webauthnChallenges/{id} {
+      allow read, write: if false;
+    }
   }
 }

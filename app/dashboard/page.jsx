@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import AIPanel from '@/components/AIPanel';
 import ToolCard from '@/components/ToolCard';
+import PasskeyManager from '@/components/PasskeyManager';
 import { db, auth } from '@/lib/firebase';
 import { collection, query, where, getDocs, setDoc, doc, serverTimestamp } from 'firebase/firestore';
 
@@ -305,6 +306,14 @@ export default function Dashboard() {
                         </div>
                     )}
                 </div>
+            </div>
+
+            {/* 安全設定 — passkey / Face ID */}
+            <div>
+                <h3 className="font-extrabold text-xl mb-4 text-[var(--color-text-dark)] flex items-center gap-2">
+                    <span className="text-2xl">🛡️</span> 安全設定
+                </h3>
+                <PasskeyManager />
             </div>
         </div>
     );
