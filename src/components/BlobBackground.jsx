@@ -1,16 +1,86 @@
-'use client';
+"use client";
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from "react";
 
 // Match original landing-page blob sizes, colors, float config and mouse strength
 const BLOBS = [
-  { color: '#a78bfa', size: 600, top: '-200px', left: '-150px',  floatX: 30,  floatY: -40, floatDur: 12, scale: 1.05, strength: 0.70 },
-  { color: '#60a5fa', size: 500, top: '20%',    right: '-100px', floatX: -20, floatY: 30,  floatDur: 10, scale: 1.08, strength: 0.90 },
-  { color: '#ffd166', size: 400, bottom: '10%', left: '30%',     floatX: 10,  floatY: -20, floatDur: 14, scale: 0.95, strength: 0.50 },
-  { color: '#34d399', size: 350, bottom: '-100px', right: '10%', floatX: -25, floatY: 35,  floatDur: 9,  scale: 1.05, strength: 0.80 },
-  { color: '#ff6b6b', size: 450, top: '55%',    left: '-5%',     floatX: 20,  floatY: -30, floatDur: 11, scale: 1.06, strength: 0.75 },
-  { color: '#f472b6', size: 380, top: '72%',    right: '15%',    floatX: -15, floatY: 25,  floatDur: 13, scale: 1.04, strength: 0.85 },
-  { color: '#fb923c', size: 500, top: '90%',    left: '40%',     floatX: 30,  floatY: -15, floatDur: 15, scale: 1.07, strength: 0.60 },
+  {
+    color: "#a78bfa",
+    size: 600,
+    top: "-200px",
+    left: "-150px",
+    floatX: 30,
+    floatY: -40,
+    floatDur: 12,
+    scale: 1.05,
+    strength: 0.7,
+  },
+  {
+    color: "#60a5fa",
+    size: 500,
+    top: "20%",
+    right: "-100px",
+    floatX: -20,
+    floatY: 30,
+    floatDur: 10,
+    scale: 1.08,
+    strength: 0.9,
+  },
+  {
+    color: "#ffd166",
+    size: 400,
+    bottom: "10%",
+    left: "30%",
+    floatX: 10,
+    floatY: -20,
+    floatDur: 14,
+    scale: 0.95,
+    strength: 0.5,
+  },
+  {
+    color: "#34d399",
+    size: 350,
+    bottom: "-100px",
+    right: "10%",
+    floatX: -25,
+    floatY: 35,
+    floatDur: 9,
+    scale: 1.05,
+    strength: 0.8,
+  },
+  {
+    color: "#ff6b6b",
+    size: 450,
+    top: "55%",
+    left: "-5%",
+    floatX: 20,
+    floatY: -30,
+    floatDur: 11,
+    scale: 1.06,
+    strength: 0.75,
+  },
+  {
+    color: "#f472b6",
+    size: 380,
+    top: "72%",
+    right: "15%",
+    floatX: -15,
+    floatY: 25,
+    floatDur: 13,
+    scale: 1.04,
+    strength: 0.85,
+  },
+  {
+    color: "#fb923c",
+    size: 500,
+    top: "90%",
+    left: "40%",
+    floatX: 30,
+    floatY: -15,
+    floatDur: 15,
+    scale: 1.07,
+    strength: 0.6,
+  },
 ];
 
 export default function BlobBackground() {
@@ -29,7 +99,7 @@ export default function BlobBackground() {
 
     async function init() {
       try {
-        const gsapModule = await import('gsap');
+        const gsapModule = await import("gsap");
         gsapInstance = gsapModule.gsap || gsapModule.default;
 
         // Animate float state on JS objects inside a context
@@ -37,11 +107,16 @@ export default function BlobBackground() {
           BLOBS.forEach((blob, i) => {
             gsapInstance.to(floatState[i], {
               keyframes: [
-                { x: blob.floatX, y: blob.floatY, scale: blob.scale, duration: blob.floatDur / 2 },
+                {
+                  x: blob.floatX,
+                  y: blob.floatY,
+                  scale: blob.scale,
+                  duration: blob.floatDur / 2,
+                },
                 { x: 0, y: 0, scale: 1, duration: blob.floatDur / 2 },
               ],
               repeat: -1,
-              ease: 'sine.inOut',
+              ease: "sine.inOut",
               delay: i * 0.7,
             });
           });
@@ -52,21 +127,28 @@ export default function BlobBackground() {
           mouse.tx = e.clientX - window.innerWidth / 2;
           mouse.ty = e.clientY - window.innerHeight / 2;
         };
-        window.addEventListener('mousemove', handleMouseMove);
-        removeMouseMove = () => window.removeEventListener('mousemove', handleMouseMove);
+        window.addEventListener("mousemove", handleMouseMove);
+        removeMouseMove = () =>
+          window.removeEventListener("mousemove", handleMouseMove);
 
         // Dark mode opacity observer
         let lastDarkMode = null;
         observer = new MutationObserver(() => {
-          const isDark = document.documentElement.classList.contains('dark');
+          const isDark = document.documentElement.classList.contains("dark");
           if (isDark === lastDarkMode) return;
           lastDarkMode = isDark;
-          blobRefs.current.forEach(el => {
+          blobRefs.current.forEach((el) => {
             if (!el) return;
-            gsapInstance.to(el, { opacity: isDark ? 0.12 : 0.3, duration: 0.5 });
+            gsapInstance.to(el, {
+              opacity: isDark ? 0.12 : 0.3,
+              duration: 0.5,
+            });
           });
         });
-        observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+        observer.observe(document.documentElement, {
+          attributes: true,
+          attributeFilter: ["class"],
+        });
 
         // GSAP ticker: lerp mouse each frame + combine with float → gsap.set on DOM
         tickFn = () => {
@@ -85,7 +167,7 @@ export default function BlobBackground() {
         };
         gsapInstance.ticker.add(tickFn);
       } catch (err) {
-        console.error('BlobBackground: failed to initialize GSAP', err);
+        console.error("BlobBackground: failed to initialize GSAP", err);
       }
     }
 
@@ -102,24 +184,32 @@ export default function BlobBackground() {
   return (
     <div
       aria-hidden="true"
-      style={{ position: 'fixed', inset: 0, zIndex: -1, pointerEvents: 'none', overflow: 'hidden' }}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: -1,
+        pointerEvents: "none",
+        overflow: "hidden",
+      }}
     >
       {BLOBS.map((blob, i) => {
         const style = {
-          position: 'absolute',
+          position: "absolute",
           width: blob.size,
           height: blob.size,
-          borderRadius: '50%',
+          borderRadius: "50%",
           background: blob.color,
-          filter: 'blur(80px)',
+          filter: "blur(80px)",
           opacity: 0.3,
-          willChange: 'transform',
-          ...(blob.top    !== undefined && { top:    blob.top    }),
+          willChange: "transform",
+          ...(blob.top !== undefined && { top: blob.top }),
           ...(blob.bottom !== undefined && { bottom: blob.bottom }),
-          ...(blob.left   !== undefined && { left:   blob.left   }),
-          ...(blob.right  !== undefined && { right:  blob.right  }),
+          ...(blob.left !== undefined && { left: blob.left }),
+          ...(blob.right !== undefined && { right: blob.right }),
         };
-        return <div key={i} ref={el => blobRefs.current[i] = el} style={style} />;
+        return (
+          <div key={i} ref={(el) => (blobRefs.current[i] = el)} style={style} />
+        );
       })}
     </div>
   );

@@ -138,7 +138,8 @@ export async function ensureUserDoc(user) {
     await setDoc(ref, {
       uid: user.uid,
       email: user.email || "",
-      displayName: user.displayName || (user.email ? user.email.split("@")[0] : ""),
+      displayName:
+        user.displayName || (user.email ? user.email.split("@")[0] : ""),
       photoURL: user.photoURL || "",
       provider,
       createdAt: serverTimestamp(),
