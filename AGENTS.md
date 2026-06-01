@@ -31,5 +31,18 @@ Firestore 的 `approval` 欄位移除，但移除 approval 依賴的新版
 - 狀態只看 `status`（pending/live/beta/new/dev/terminated），**`approval` 欄位已廢除**。
 - 可見性：非 admin 看 `status in [live,beta,new,dev,terminated]`；pending 只有作者/admin 看得到。
 - painCards 仍用 `approval`（pending/approved/rejected）— 跟 tools 的 status 不同系統，別搞混。
-- 類型 `type`：webapp / download / doc / mcp / api（showcase 已廢除，用 status=dev 表達規劃中）。
+- 類型 `type`：webapp / download / doc / mcp / api / embedded（showcase 已廢除，用 status=dev 表達規劃中）。
 - 類型專屬欄位放 `typeData` 子物件。
+
+## 認證系統（v0.7，2026-05-29）
+
+- Phase A 已上線：Google 登入（與密碼並存）+ firestore.rules 提權漏洞修補
+  （`roleIsViewerOrAbsent` 擋自我提權）+ 首登自動建 viewer 文件。
+- Phase B 已上線：passkey / Face ID（WebAuthn，usernameless）。後端 Admin SDK
+  （`src/lib/firebaseAdmin.js`，吃 Vercel env `FIREBASE_SERVICE_ACCOUNT`）鑄 custom token。
+  `passkeys` / `webauthnChallenges` collection 是 server-only（rules deny）。
+- **Phase C（LINE 登入 + MCP/API 認證）暫緩（YAGNI）** — 觸發條件見
+  `docs/superpowers/specs/2026-05-29-phase-c-deferred.md`，需求來了再 brainstorm。
+- ⚠️ firestore.rules / storage.rules 發布：預設 Admin SDK SA 沒
+  `firebaserules.releases.create` → `deploy-*-rules.mjs` 只能建 ruleset 不能發布（403）
+  → 改用 Firebase Console 手動貼上發布（或授 SA `roles/firebaserules.admin`）。
