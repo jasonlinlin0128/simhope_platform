@@ -389,8 +389,47 @@ async function seed() {
     console.log('>>> 記得之後到各工具詳情頁補上截圖 URL（image block 的 content 欄位）');
 }
 
+async function checkUrls() {
+    const snapshot = await db.collection('tools').get();
+    const tools = snapshot.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .filter(t => t.title && t.title !== 'Test ToolTest Tool')
+        .sort((a, b) => a.id.localeCompare(b.id));
+
+    console.log('\n工具 URL / 執行檔狀態：\n');
+    console.log('ID       Title                          URL                              files');
+    console.log('─'.repeat(100));
+    for (const t of tools) {
+        const url   = t.url   ? t.url.slice(0, 45) : '（無）';
+        const files = t.files && t.files.length > 0
+            ? t.files.map(f => f.name || f.url || '(unnamed)').join(', ').slice(0, 30)
+            : '（無）';
+        console.log(`${t.id.padEnd(8)} ${(t.title || '').padEnd(30)} ${url.padEnd(47)} ${files}`);
+    }
+}
+
+// Field patches — run with --patch-urls to apply
+const FIELD_PATCHES = [
+    { id: 't7',  url: '' },                          // 已終止，清空錯誤的 Gemini share URL
+    { id: 't9',  type: 'showcase' },                 // DLL 外掛，純展示開發歷程
+    { id: 't15', status: 'beta' },                   // Teams Bot 上線中但目前不穩
+];
+
+async function patchUrls() {
+    const toolsRef = db.collection('tools');
+    for (const { id, ...fields } of FIELD_PATCHES) {
+        await toolsRef.doc(id).update(fields);
+        const summary = Object.entries(fields).map(([k, v]) => `${k}="${v}"`).join(', ');
+        console.log(`✅  ${id}  ${summary}`);
+    }
+    console.log('完成。');
+}
+
 const args = process.argv.slice(2);
-const runner = args.includes('--list') ? listTitles : seed;
+const runner = args.includes('--list')        ? listTitles
+             : args.includes('--check-urls')  ? checkUrls
+             : args.includes('--patch-urls')  ? patchUrls
+             : seed;
 runner().catch(err => {
     console.error('❌ 執行失敗：', err.message);
     process.exit(1);
