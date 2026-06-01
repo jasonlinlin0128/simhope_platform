@@ -48,3 +48,7 @@ serviceAccountKey.json
 
 # visual brainstorming sessions
 .superpowers/
+
+# Claude Code / tooling run artifacts — never commit
+.claude/bash-log.txt
+.playwright-mcp/
