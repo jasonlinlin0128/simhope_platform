@@ -1,7 +1,7 @@
 # Phase B：passkey / Face ID（WebAuthn）— 設計 spec
 
 > **建立日期**：2026-05-29
-> **狀態**：草案，等 Jason review
+> **狀態**：✅ **implemented & deployed 2026-05-29**（PR #7 merged；Vercel FIREBASE_SERVICE_ACCOUNT 已設；passkeys/webauthnChallenges deny 規則已發布並複驗；Jason 實測 passkey 註冊 + Face ID 登入成功）
 > **前置**：Phase A（Google 登入 + 資安加固）已上線。passkey 依賴「先用 Google/密碼登入後才能註冊」。
 > **決策（brainstorming）**：① service account 放 Vercel env（唯一正解，Jason OK）② usernameless 免輸入 email ③ 管理 UI = 首登提示 + dashboard 安全設定區，兩者都做。
 
