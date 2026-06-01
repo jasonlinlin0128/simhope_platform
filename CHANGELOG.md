@@ -1,5 +1,52 @@
 # Changelog
 
+## [0.7] — 2026-05-29
+
+登入認證系統大改版（3 階段中的前 2 階段）：Google 登入、passkey / Face ID
+（WebAuthn），並修掉一個提權漏洞。
+
+### 新增
+
+- **Google 登入**（Phase A）：LoginModal 加「用 Google 登入」按鈕，與
+  email/密碼並存。任何 Google 帳號可登；首次登入自動建「無 role」viewer
+  文件（admin 可見並提拔）
+  - 起因：admin 帳號 jasonlin@simhope.com.tw 是純 Google provider（無密碼），
+    舊版只做密碼登入 → 被鎖在外
+- **passkey / Face ID 登入**（Phase B / WebAuthn）：
+  - usernameless 免輸入 email — 點按鈕直接跳 Face ID / 指紋
+  - 自建 WebAuthn ceremony（`@simplewebauthn`）+ Admin SDK 鑄 Firebase
+    custom token（`signInWithCustomToken`）
+  - dashboard 安全設定區：註冊 / 列出 / 刪除已註冊裝置；首登提示
+  - 6 個 API route（register/login 的 options+verify、list、delete）
+- `src/lib/firebaseAdmin.js`：伺服器端 Admin SDK（吃 Vercel env
+  `FIREBASE_SERVICE_ACCOUNT`）
+
+### 安全
+
+- **🔒 修提權漏洞**：`firestore.rules` users create 原本沒擋 role → 任何登入者
+  可自建 `role:admin` 文件提權。加 `roleIsViewerOrAbsent()` 修死
+- firestore.rules 抽 `isSignedIn` / `isAdmin` helper；tools/painCards 沿用
+- `passkeys` / `webauthnChallenges` collection：deny 所有 client 存取
+  （只 Admin SDK 可碰；公鑰庫與 challenge 不外露）
+- passkey 安全對策：challenge 單次 + TTL 5 分、UV（生物辨識）強制、counter
+  防複製、custom token uid 來自伺服器查到的 credential owner（防假冒）
+- `createDeveloperAccount`：role 文件改由 admin(primary) session 寫
+  （配合加固規則，不需 server Admin SDK）
+
+### 內部
+
+- `scripts/deploy-firestore-rules.mjs`：用 SA 透過 Rules REST API 部署
+  firestore 規則（需 firebaserules.admin，否則 Console 手動發）
+- spec：`docs/superpowers/specs/2026-05-29-google-auth-design.md`、
+  `2026-05-29-passkey-design.md`
+- 新 dep：`@simplewebauthn/server` + `/browser`；firebase-admin 移到 dependencies
+
+### 後續
+
+- Phase C（LINE 登入 + MCP/API 認證）— 規劃中
+
+---
+
 ## [0.6] — 2026-05-29
 
 延續 v0.5 把 spec 的 deferred backlog 收尾：新增 embedded 場域工具類型、

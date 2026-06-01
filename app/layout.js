@@ -40,7 +40,7 @@ export default function RootLayout({ children }) {
               {children}
             </main>
             <footer className="w-full border-t border-[var(--color-nav-border)] py-4 text-center text-xs text-[var(--color-text-mid)] font-semibold opacity-60">
-              © 2026 SimHope · 內部使用 · v0.6
+              © 2026 SimHope · 內部使用 · v0.7
             </footer>
             <ChatbotWidget />
             <PasskeyPrompt />
