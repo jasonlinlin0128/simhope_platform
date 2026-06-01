@@ -318,11 +318,13 @@ export default function ReviewToolWizard({ tool, onClose, onSaved }) {
               onChange={(e) => update({ type: e.target.value })}
               className="w-full bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm"
             >
-              {Object.entries(TYPES).map(([k, v]) => (
-                <option key={k} value={k}>
-                  {v.label}
-                </option>
-              ))}
+              {Object.entries(TYPES)
+                .filter(([k]) => k !== "showcase")
+                .map(([k, v]) => (
+                  <option key={k} value={k}>
+                    {v.label}
+                  </option>
+                ))}
             </select>
           </FormField>
           <FormField label="主連結 (url)">
