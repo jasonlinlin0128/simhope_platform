@@ -184,6 +184,18 @@ export async function getApprovedTools() {
 }
 
 /**
+ * 取目錄（catalog）— 重用 getApprovedTools 的可見性，再依 category 過濾。
+ * @param {{category?: string}} opts  category 省略或 'all' = 全部
+ * @returns {Promise<object[]>}
+ */
+export async function getCatalog({ category } = {}) {
+  const tools = await getApprovedTools();
+  if (!category || category === "all") return tools;
+  // 無 category 欄位的舊資料視為 'tool'（與 categoryCounts 一致）
+  return tools.filter((t) => (t.category || "tool") === category);
+}
+
+/**
  * Returns approved pain cards, falling back to DEFAULT_SITE.painCards
  * when the Firestore collection is empty (e.g. fresh deploy).
  */
