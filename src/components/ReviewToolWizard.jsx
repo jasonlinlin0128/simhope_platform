@@ -5,16 +5,8 @@ import { doc, updateDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
 import Link from "next/link";
 import { db, auth } from "@/lib/firebase";
 import { DEPTS } from "@/lib/db";
+import { CATEGORIES, CATEGORY_ORDER, TYPES } from "@/lib/taxonomy";
 import UploadButton from "@/components/UploadButton";
-
-const TYPE_LABELS = {
-  webapp: { emoji: "🌐", label: "網頁應用" },
-  download: { emoji: "⬇️", label: "軟體下載" },
-  doc: { emoji: "📄", label: "文件 / 表單" },
-  mcp: { emoji: "🔌", label: "AI 連接器 (MCP)" },
-  api: { emoji: "🧩", label: "API / SDK" },
-  embedded: { emoji: "📍", label: "場域工具" },
-};
 
 const COLOR_OPTIONS = [
   {
@@ -65,6 +57,7 @@ export default function ReviewToolWizard({ tool, onClose, onSaved }) {
     tagline: tool.tagline || "",
     url: tool.url || "",
     type: tool.type || "webapp",
+    category: tool.category || "tool",
     icon: tool.icon || "📦",
     color: tool.color || "c1",
     dept: tool.dept || "other",
@@ -143,6 +136,7 @@ export default function ReviewToolWizard({ tool, onClose, onSaved }) {
         tagline: form.tagline,
         url: form.url,
         type: form.type,
+        category: form.category,
         icon: form.icon,
         color: form.color,
         dept: form.dept,
@@ -236,7 +230,7 @@ export default function ReviewToolWizard({ tool, onClose, onSaved }) {
             <FieldRow label="① 工具名字" value={tool.title} />
             <FieldRow
               label="④ 類型"
-              value={`${TYPE_LABELS[tool.type]?.emoji || ""} ${TYPE_LABELS[tool.type]?.label || tool.type}`}
+              value={TYPES[tool.type]?.label || tool.type}
             />
           </div>
           <FieldRow label="② 一句話介紹" value={tool.tagline} />
@@ -305,15 +299,28 @@ export default function ReviewToolWizard({ tool, onClose, onSaved }) {
               className="w-full bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm outline-none focus:border-[var(--color-clay-purple)]"
             />
           </FormField>
+          <FormField label="類別（目錄分類，使用者看的）">
+            <select
+              value={form.category}
+              onChange={(e) => update({ category: e.target.value })}
+              className="w-full bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm"
+            >
+              {CATEGORY_ORDER.map((k) => (
+                <option key={k} value={k}>
+                  {CATEGORIES[k].emoji} {CATEGORIES[k].label}
+                </option>
+              ))}
+            </select>
+          </FormField>
           <FormField label="類型">
             <select
               value={form.type}
               onChange={(e) => update({ type: e.target.value })}
               className="w-full bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm"
             >
-              {Object.entries(TYPE_LABELS).map(([k, v]) => (
+              {Object.entries(TYPES).map(([k, v]) => (
                 <option key={k} value={k}>
-                  {v.emoji} {v.label}
+                  {v.label}
                 </option>
               ))}
             </select>
@@ -341,8 +348,8 @@ export default function ReviewToolWizard({ tool, onClose, onSaved }) {
           {/* typeData — 依 type 不同 */}
           <div className="bg-[var(--color-card-bg)]/50 border border-dashed border-[var(--color-clay-purple)]/30 rounded-2xl p-4">
             <h4 className="font-extrabold text-sm text-[var(--color-text-dark)] mb-3">
-              🔧 類型專屬欄位 (typeData) — 依目前類型 [
-              {TYPE_LABELS[form.type]?.label}]
+              🔧 類型專屬欄位 (typeData) — 依目前類型 [{TYPES[form.type]?.label}
+              ]
             </h4>
             <TypeDataEditor
               type={form.type}
@@ -472,8 +479,7 @@ export default function ReviewToolWizard({ tool, onClose, onSaved }) {
                   {form.title}
                 </h4>
                 <span className="text-[0.65rem] inline-block px-1.5 py-0.5 rounded font-bold bg-gray-100 dark:bg-gray-700">
-                  {TYPE_LABELS[form.type]?.emoji}{" "}
-                  {TYPE_LABELS[form.type]?.label}
+                  {TYPES[form.type]?.label}
                 </span>
               </div>
             </div>
@@ -796,6 +802,44 @@ function TypeDataEditor({ type, td, updateTd }) {
             onChange={(e) => updateTd({ contact: e.target.value })}
             placeholder="例：經企室 Jason / MIS 團隊"
             className="w-full bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm"
+          />
+        </FormField>
+      </div>
+    );
+  }
+
+  if (type === "skill") {
+    return (
+      <div className="flex flex-col gap-3">
+        <FormField label="skillZipUrl（.zip 下載連結）">
+          <div className="flex gap-2">
+            <input
+              value={td.skillZipUrl || ""}
+              onChange={(e) => updateTd({ skillZipUrl: e.target.value })}
+              placeholder="https://.../my-skill.zip"
+              className="flex-1 bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm font-mono"
+            />
+            <UploadButton
+              pathPrefix="skills"
+              accept=".zip,application/zip"
+              onUploaded={(url) => updateTd({ skillZipUrl: url })}
+            />
+          </div>
+        </FormField>
+        <FormField label="version">
+          <input
+            value={td.version || ""}
+            onChange={(e) => updateTd({ version: e.target.value })}
+            placeholder="v1.0.0"
+            className="w-full bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm"
+          />
+        </FormField>
+        <FormField label="installPath">
+          <input
+            value={td.installPath || ""}
+            onChange={(e) => updateTd({ installPath: e.target.value })}
+            placeholder="~/.claude/skills/"
+            className="w-full bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm font-mono"
           />
         </FormField>
       </div>
