@@ -144,6 +144,14 @@ export const TYPES = {
     badgeCls:
       "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-700",
   },
+  // showcase 已廢除，但 Firestore 可能仍有舊資料（migration 前）。保留過渡定義，
+  // 沿用原 ToolCard.TYPE_BADGES.showcase，避免 refactor 後視覺迴歸。migration 後可刪。
+  showcase: {
+    key: "showcase",
+    label: "📺 展示",
+    badgeCls:
+      "bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600",
+  },
   skill: {
     key: "skill",
     label: "🧠 Agent Skill",
@@ -226,6 +234,10 @@ export function getCTA(tool) {
       label: "🔗 看 API 文件 →",
       cls: "bg-amber-500 text-white hover:bg-amber-600",
     },
+    showcase: {
+      label: "👀 看詳情 →",
+      cls: "bg-gray-500 text-white hover:bg-gray-600",
+    },
   };
   const base = ctaByType[type] || ctaByType.webapp;
 
@@ -292,7 +304,10 @@ export function defaultTabForType(type) {
   return "detail";
 }
 
-// ─── 各 type 在 wizard 要編輯的 typeData 欄位（給 TypeDataEditor 用） ───
+// ─── 各 type 在 wizard 要編輯的 typeData 欄位（資料字典） ───
+// ⚠️ Phase 1：此常數「只定義、不消費」— 當作 wizard 欄位的單一文件來源。
+//    Phase 1 的 TypeDataEditor 仍手刻各 type 的 JSX 分支（零遷移風險）；
+//    Phase 2 才把 TypeDataEditor 改成迴圈讀此常數動態渲染。現在別在 Task 5 用它。
 // 形狀：{ key, label, kind: 'text'|'textarea'|'select'|'upload', placeholder?, options?, uploadPrefix? }
 export const TYPE_DATA_FIELDS = {
   webapp: [],
@@ -544,6 +559,8 @@ const badge = typeBadge(type);
 
 並把 JSX 中 `typeBadge.cls` / `typeBadge.label` 改成 `badge.badgeCls` / `badge.label`。
 
+> ⚠️ **靜默迴歸警告**：注意屬性名從 `.cls` 改成 **`.badgeCls`**（taxonomy 的 TYPES 用 `badgeCls`）。現有 JSX 只有 **1 處**（`src/components/ToolCard.jsx:225` 的 `${typeBadge.cls}`）。若漏改，`badge.cls` 是 `undefined`、build **不會報錯**但 badge 顏色 class 整個消失（靜默視覺壞掉）。改完務必在 Step 3 目視確認 badge 仍有底色。
+
 - [ ] **Step 2: build**
 
 Run: `npm run build`
@@ -786,7 +803,10 @@ const [formData, setFormData] = useState({
 className={`flex gap-3 items-start cursor-pointer rounded-xl p-3 border-2 transition ${isActive ? 'border-[var(--color-clay-purple)] bg-[var(--color-clay-purple)]/5' : 'border-gray-200 hover:border-[var(--color-clay-purple)]/40'}`}
 ```
 
-標題改 `④ 類別（這是什麼樣的東西？）`。`currentType` 改 `currentCategory = CATEGORY_OPTIONS.find(c => c.key === formData.category) || CATEGORY_OPTIONS[0]`，③ 主連結的 `required`/placeholder 引用改用 `currentCategory`（skill/project 可留空：`required={!['project','skill'].includes(formData.category)}`）。
+標題改 `④ 類別（這是什麼樣的東西？）`。`currentType` 改 `currentCategory = CATEGORY_OPTIONS.find(c => c.key === formData.category) || CATEGORY_OPTIONS[0]`，③ 主連結的 `required`/placeholder 引用改用 `currentCategory`。
+
+> url 必填豁免：`required={!['project','skill','platform'].includes(formData.category)}`（platform 可能僅展示、url 放 typeData，故一併豁免——Backend 審查指出）。
+> **embedded 處理（刻意設計）**：dashboard 不提供 embedded 選項（embedded 是「交付格式 type」不是「類別 category」）。開發者提場域工具時選「工具」類別即可；admin 在 wizard Step 2 把 type 改成 embedded、補 location/accessNote。提交時 `type` 由 `CATEGORIES['tool'].defaultType='webapp'` 帶入，admin 再改。
 
 - [ ] **Step 4: build**
 
@@ -832,7 +852,7 @@ import { CATEGORIES, CATEGORY_ORDER, TYPES } from "@/lib/taxonomy";
 `useState` 的 `form` 初值加：
 
 ```js
-        category: tool.category || CATEGORIES[tool.type]?.key || 'tool',
+        category: tool.category || 'tool',
 ```
 
 `handleSaveOnly` 的 `payload` 加：
@@ -989,7 +1009,7 @@ import Link from "next/link";
 export default function Footer() {
   return (
     <footer className="mt-24 border-t border-[var(--color-nav-border)] bg-[var(--color-nav-bg)]">
-      <div className="max-w-6xl mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-4 gap-8">
         <div className="md:col-span-1">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-400 to-blue-400 flex items-center justify-center text-lg">
@@ -1122,13 +1142,19 @@ export default function Banner({
 </Link>
 ```
 
-（保留 `關於這個平台` `/#about`、`同仁回饋` `/#feedback`。「找工具 →」CTA 的 href 由 `/#tools` 改 `/hub`。）
+（保留 `關於這個平台` `/#about`、`同仁回饋` `/#feedback`。）
+**另外**：同檔 `src/components/Navbar.jsx:44` 的「找工具 →」CTA，把 `href="/#tools"` 改成 `href="/hub"`（這是獨立一處，別漏改）。
 
-- [ ] **Step 4: layout 掛 Footer**
+- [ ] **Step 4: layout 掛 Footer（⚠️ 先刪既有 footer，否則雙 footer）**
 
-`app/layout.js` 中，在主要內容容器結束、`</body>` 之前掛上 `<Footer />`（import 自 `@/components/Footer`）。Banner 先不啟用（預設 show=false），保留日後可加。
+> ⚠️ **Blocking 修正（審查指出）**：`app/layout.js` 目前**已有一個 inline `<footer>`**（版權列「© 2026 SimHope · 內部使用 · v0.7」，約 line 42-44）。若直接加 `<Footer />` 而不刪舊的，每頁會出現**兩個 footer**（且版號 v0.7 vs v0.8 衝突）。
 
-> 先 Read `app/layout.js` 確認現有結構（Navbar 怎麼掛、main wrapper 在哪），把 `<Footer />` 放在主內容之後、同一層。
+步驟：
+
+1. 先 Read `app/layout.js` 確認結構與既有 `<footer>...</footer>` 的確切位置。
+2. **刪除**既有的 inline `<footer>...</footer>` 整段。
+3. `import Footer from "@/components/Footer";`，在主內容容器（`<main>`/children wrapper）之後、`</body>` 之前掛 `<Footer />`。
+4. Banner 先不 import（預設 show=false 等於不顯示，留 import 是多餘 overhead；Phase 2 要用再加）。
 
 - [ ] **Step 5: build + 視覺實測**
 
@@ -1202,15 +1228,15 @@ export default function CategoryTabs({ active, counts, onChange }) {
 ```jsx
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Fuse from "fuse.js";
 import { getCatalog } from "@/lib/db";
-import { categoryCounts, CATEGORIES } from "@/lib/taxonomy";
+import { categoryCounts, CATEGORIES, CATEGORY_ORDER } from "@/lib/taxonomy";
 import ToolCard from "@/components/ToolCard";
 import CategoryTabs from "@/components/CategoryTabs";
 
-export default function HubPage() {
+function HubInner() {
   const searchParams = useSearchParams();
   const initialCat = searchParams.get("cat") || "all";
 
@@ -1252,7 +1278,11 @@ export default function HubPage() {
     let result = activeTools;
     if (debouncedQuery) result = fuse.search(debouncedQuery).map((r) => r.item);
     if (activeCat !== "all")
-      result = result.filter((t) => (t.category || "tool") === activeCat);
+      result = result.filter(
+        (t) =>
+          (CATEGORY_ORDER.includes(t.category) ? t.category : "tool") ===
+          activeCat,
+      );
     return result;
   }, [activeTools, debouncedQuery, fuse, activeCat]);
 
@@ -1311,14 +1341,25 @@ export default function HubPage() {
     </div>
   );
 }
-```
 
-> Next.js 16 注意：`useSearchParams()` 需在 client component 且包在 `<Suspense>` 內才不會在 build 時警告。若 `npm run build` 報 "useSearchParams should be wrapped in a suspense boundary"，把 `HubPage` 內容抽成 `<HubInner/>`，外層 `export default function HubPage(){ return <Suspense fallback={null}><HubInner/></Suspense> }`（import `Suspense` from "react"）。實作時依 build 結果決定。
+// ⚠️ Blocking 修正（審查指出）：useSearchParams() 必須包在 <Suspense> 內，
+//    否則 Next.js 16 `npm run build` 會「硬性 fail」（不是 warning）。
+//    已直接把 Suspense 包好——不要等 build 報錯再補。
+export default function HubPage() {
+  return (
+    <Suspense
+      fallback={<div className="text-center py-20 text-gray-400">載入中…</div>}
+    >
+      <HubInner />
+    </Suspense>
+  );
+}
+```
 
 - [ ] **Step 3: build**
 
 Run: `npm run build`
-Expected: 成功（若 useSearchParams 報錯，依 Step 2 註記包 Suspense 後重 build）。
+Expected: 成功（Suspense 已內建，不會再有 useSearchParams 的 build error）。
 
 - [ ] **Step 4: 視覺實測**
 
@@ -1430,6 +1471,8 @@ const counts = useMemo(() => categoryCounts(tools), [tools]);
 const activeCount = counts.all;
 ```
 
+> ⚠️ **殘留引用警告（審查指出）**：現有 `app/page.jsx` 在 **HERO 的 `<p>`**（約 line 234-239「目前收錄 … `{activeTools.length}` 個工具」）也引用了 `activeTools`。移除 `activeTools` state 後，這裡若不改會 build error（`activeTools is not defined`）。一併把 `{activeTools.length}` 改成 `{activeCount}`（文案可改成「目前收錄 N 個資源」）。grep `activeTools` 確認首頁已無殘留引用再 build。
+
 3c. HERO 內的 stats 改用 `MetricsBand`：
 
 ```jsx
@@ -1471,16 +1514,22 @@ const activeCount = counts.all;
       <CategoryEntryCard
         key={k}
         category={CATEGORIES[k]}
-        count={loading ? 0 : counts[k]}
+        count={loading ? "…" : counts[k]}
       />
     ))}
   </div>
 </section>;
 ```
 
-3e. **刪除**整個 `{/* ── TOOLS（Vercel Marketplace 風） ── */}` section（搜尋框 + type chip + scenario chip + grid + terminated 摺疊）。HERO 的兩個按鈕 href 把 `#tools` 改 `#catalog` 或 `/hub`。
+3e. **刪除**整個 `{/* ── TOOLS（Vercel Marketplace 風） ── */}` section（搜尋框 + type chip + scenario chip + grid + terminated 摺疊）。
 
-3f. 保留 `§painpoints`（痛點卡）、`§feedback`（同仁回饋）、`§about`（CTA help）三段不動。
+3f. **修所有指向 `#tools` 的錨點**（刪 TOOLS section 後 `#tools` 已不存在，審查指出）：
+
+- HERO 的兩個按鈕（約 line 243「🔧 馬上找工具」、line 249「👀 看看解決什麼問題」）→ 前者 `href="#catalog"`、後者維持 `href="#painpoints"`。
+- **`§about` 段的「🔧 找現有工具」按鈕**（約 line 609 `href="#tools"`）→ 改 `href="/hub"`。
+- grep `#tools` 確認首頁已無殘留錨點。
+
+3g. 保留 `§painpoints`（痛點卡）、`§feedback`（同仁回饋）、`§about`（CTA help）三段的其餘內容不動。
 
 - [ ] **Step 4: build**
 
@@ -1527,47 +1576,55 @@ Run: `cat scripts/migrate-embedded-type.mjs`
 // 為現有 tools 補 category 欄位。預設 dry-run；--apply 才寫入。寫入前備份到 tools-backup-2026-06-01/。
 // 映射：type==='mcp'→mcp；type==='skill'→skill；其餘→tool。platform/project 用 MANUAL_OVERRIDE 指定。
 // ⚠️ 依 AGENTS.md：依賴 category 的 code 先 merge+deploy 成功才跑 --apply，跑完連 live 站驗證。
+// ⚠️ 只在「本機」執行（吃 repo root 的 serviceAccountKey.json）；不在 CI / Vercel 上跑。
+//    若 Step 1 看到的範本是用 env var 初始化 Admin SDK，照範本改用相同方式。
 import { initializeApp, cert } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
 
 const APPLY = process.argv.includes("--apply");
 const BACKUP = "tools-backup-2026-06-01";
 
-// 人工指定（Jason 過目後填）：{ toolId: 'platform' | 'project' }
+// 人工指定（Jason 看完 dry-run 後填）：{ toolId: 'platform' | 'project' }
 const MANUAL_OVERRIDE = {
   // 例：'t_xxx': 'platform',
 };
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
 const sa = JSON.parse(
-  readFileSync(new URL("../serviceAccountKey.json", import.meta.url)),
+  readFileSync(join(__dirname, "..", "serviceAccountKey.json"), "utf8"),
 );
 initializeApp({ credential: cert(sa) });
 const db = getFirestore();
 
-function deriveCategory(data) {
-  if (MANUAL_OVERRIDE[data.__id]) return MANUAL_OVERRIDE[data.__id];
+// 安全檢查：印出要動的 project（dry-run 也印），避免改錯環境。
+console.log(`🔑 Firebase project: ${sa.project_id}`);
+console.log(`模式：${APPLY ? "APPLY（會寫入！）" : "DRY-RUN（只印，不寫）"}`);
+
+// docId 與 data 分離 — 不把 __id 注入文件（審查指出）。
+function deriveCategory(docId, data) {
+  if (MANUAL_OVERRIDE[docId]) return MANUAL_OVERRIDE[docId];
   if (data.type === "mcp") return "mcp";
   if (data.type === "skill") return "skill";
   return "tool";
 }
 
 const snap = await db.collection("tools").get();
-console.log(
-  `tools 共 ${snap.size} 筆。模式：${APPLY ? "APPLY（會寫入）" : "DRY-RUN（只印）"}`,
-);
+console.log(`tools 共 ${snap.size} 筆。`);
 
 let changed = 0;
 for (const doc of snap.docs) {
-  const data = { __id: doc.id, ...doc.data() };
-  const target = deriveCategory(data);
+  const data = doc.data();
+  const target = deriveCategory(doc.id, data);
   if (data.category === target) continue; // idempotent
   changed += 1;
   console.log(
     `  ${doc.id}: category ${data.category || "(無)"} → ${target}  [type=${data.type}]`,
   );
   if (APPLY) {
-    await db.collection(BACKUP).doc(doc.id).set(doc.data()); // 備份原文件
+    await db.collection(BACKUP).doc(doc.id).set(data); // 備份原文件
     await doc.ref.update({ category: target });
   }
 }
@@ -1594,9 +1651,50 @@ Co-Authored-By: Jason simhope ai agent <jasonlin@simhope.com.tw>"
 > **⚠️ `--apply` 不在本 plan 執行範圍。** 正確時序（人工，部署後）：
 >
 > 1. feature-hub-phase1 開 PR → review → merge main；
-> 2. Vercel production deploy 成功；
-> 3. （視需要先填 `MANUAL_OVERRIDE` 再）`node scripts/migrate-category.mjs --apply`；
-> 4. **連 live 站驗證**：首頁「可用資源」數不掉、`/hub` 各 tab 計數正確。
+> 2. **到 Vercel Dashboard 確認 production deployment 狀態為 Ready（綠燈）** —— 此 repo 無 GitHub Actions，Vercel 是 push-to-main 自動部署，沒有別的 build gate，所以**別靠「merge 後幾分鐘」估算**，要目視確認 Ready 再往下。
+> 3. dry-run 再跑一次確認 `🔑 Firebase project` 印的是 **production project**、且 `MANUAL_OVERRIDE` 已填好 platform/project（否則 `/hub` 的「平臺」「專案」tab 會是 0，破驗收標準）；
+> 4. `node scripts/migrate-category.mjs --apply`；
+> 5. **連 live 站驗證**：首頁「可用資源」數不掉、`/hub` 各 tab 計數正確。
+>
+> **Rollback SOP（驗證失敗時）**：備份在 `tools-backup-2026-06-01/`。快速復原 = 寫一個 restore script 把 backup collection 的每筆 `set()` 回 `tools/{id}`，或在 Firestore Console 手動覆寫受影響文件。category 是「加欄位」非「刪欄位」，所以最壞情況把 `category` 欄位移除即回到原狀（影響面比 2026-05-29 的刪 approval 小）。
+
+---
+
+## Task 11（選配）: Storage rules 對 skill zip 加固
+
+**Files:**
+
+- Modify: `storage.rules`
+
+**背景（Backend 審查指出）**：現有 `storage.rules` 對 `tool-files/{allPaths=**}` 允許任何登入者寫 ≤200MB 任意類型檔。Storage rules 無法跨查 Firestore role，所以理論上 viewer 也能繞過 UI 直接上傳。內部站風險可接受（孤兒 zip 沒有 tools 文件指向它，且 tools create 需 developer/admin），但加上「zip 類型 + 較小上限」是低成本的縱深防禦。
+
+**⚠️ 此 task 選配，且需手動發布**：依 AGENTS.md，SA 沒 `firebaserules.releases.create` → `deploy-storage-rules.mjs` 只能建 ruleset 不能發布 → **改用 Firebase Console 手動貼上發布**。若這次不想碰發布流程，可整個 Task 11 跳過，列入 backlog。
+
+- [ ] **Step 1: 在 `storage.rules` 既有 `tool-files` 規則內，為 skills 路徑加子規則**
+
+```
+match /tool-files/skills/{f} {
+  allow read: if true;
+  allow write: if request.auth != null
+    && request.resource.size < 50 * 1024 * 1024
+    && request.resource.contentType.matches('application/(zip|x-zip-compressed|octet-stream)');
+}
+```
+
+（放在原 `match /tool-files/{allPaths=**}` 之前或之內，依現有 storage.rules 結構調整；先 Read `storage.rules` 確認。）
+
+- [ ] **Step 2: 手動發布 + 驗證**
+
+到 Firebase Console → Storage → Rules 貼上發布。驗證：dashboard/wizard 仍能上傳 .zip；嘗試上傳非 zip 應被拒。
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add storage.rules
+git commit -m "chore(storage): skills 路徑加 zip 類型 + 50MB 上限（縱深防禦）
+
+Co-Authored-By: Jason simhope ai agent <jasonlin@simhope.com.tw>"
+```
 
 ---
 
@@ -1620,5 +1718,33 @@ Co-Authored-By: Jason simhope ai agent <jasonlin@simhope.com.tw>"
 - **§2.7 上傳 UX**：Task 4（dashboard 主選 category）+ Task 5（wizard category 下拉）。✅
 - **§3 Phase 1 清單 1-9**：對應 Task 1-10（順序重排為安全增量）。✅
 - **descHtml bug**：Task 3 Step 4。✅
-- **型別一致性**：getCTA/getTabsForType/categoryCounts/TYPE_ACTION/TYPE_DATA_FIELDS 在 Task 1 定義，後續 task 引用名稱一致。✅
+- **型別一致性**：getCTA/getTabsForType/categoryCounts/TYPE_ACTION 在 Task 1 定義，後續 task 引用名稱一致。`TYPE_DATA_FIELDS` 為 Phase 1「只定義不消費」（已在碼註明，Phase 2 才動態化）。✅
 - **無 placeholder**：各 step 附實際程式碼或精確指令。MANUAL_OVERRIDE 留空是刻意（待 Jason 看 dry-run 後填），已註明。✅
+
+---
+
+## 審查回饋已併入（2026-06-01，4-agent 平行審查）
+
+派 CICD / 前端 / 後端 / Code-Review 4 個 agent 平行審查後，已 patch 進本 plan 的修正：
+
+**🔴 Blocking（已修）**
+
+1. **雙 footer** → Task 7 Step 4 明確「先刪 `app/layout.js` 既有 `<footer>` 再掛 `<Footer/>`」。
+2. **useSearchParams 缺 Suspense** → Task 8 直接把 `<Suspense>` 包法寫進碼（`HubInner` + `HubPage` wrapper），不再「依 build 結果決定」。
+3. **showcase 漏接** → taxonomy `TYPES` + `getCTA.ctaByType` 補回 showcase 過渡定義（沿用原灰 badge），避免舊資料視覺迴歸。
+4. **首頁殘留引用** → Task 9 Step 3b 補修 hero `<p>` 的 `activeTools.length`；Step 3f 補修 `§about` 的 `href="#tools"`。
+5. **`.cls`→`.badgeCls` 靜默迴歸** → Task 2 Step 1 加警告（line 225，1 處，漏改 build 不報錯但 badge 壞）。
+
+**🟡 Should-fix（已修）**
+
+- migration script 對齊範本：`fileURLToPath/dirname/join` + `'utf8'`、`docId` 與 `data` 分離（不注入 `__id`）、印 `project_id`、加 Vercel Ready 確認 + Rollback SOP。
+- wizard category 初值簡化為 `tool.category || 'tool'`（移除脆弱的 `CATEGORIES[tool.type]?.key`）。
+- `/hub` filtered fallback 與 `categoryCounts` 對齊（`CATEGORY_ORDER.includes`）。
+- Task 4 url 必填豁免加 platform；補 embedded「由 admin 設 type」的刻意設計說明。
+- Footer `max-w` 對齊 7xl；CategoryEntryCard loading 顯示「…」。
+- 新增 **Task 11（選配）**：storage.rules 對 skill zip 加 zip 類型 + 50MB 上限（需手動 Console 發布）。
+
+**判斷後「不改」的（記錄理由）**
+
+- **mcp 外連**：reviewer 建議把 mcp 加進 external，但會改變現有行為 → 違反 Task 2「零差異 refactor」原則，保持與現狀一致，不在 refactor 動。
+- **firestore.rules category enum 驗證**：發布要手動 Console（SA 無發布權），且 admin wizard 會校正 category → 列 backlog，不擋主線。
