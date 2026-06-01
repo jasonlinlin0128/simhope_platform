@@ -1662,6 +1662,30 @@ Co-Authored-By: Jason simhope ai agent <jasonlin@simhope.com.tw>"
 
 ## Task 11（選配）: Storage rules 對 skill zip 加固
 
+> 🔲 **DEFERRED → backlog（2026-06-02）**。實作時 review 發現**下面 Step 1 的子規則寫法無效**：
+> Firebase Storage rules 對重疊 `match` 用 **OR 評估**——只要任一規則放行就允許。既有
+> `match /tool-files/{allPaths=**}`（任何登入者 ≤200MB）**遞迴涵蓋 `tool-files/skills/`**，所以
+> 額外加一條嚴格 skills 規則**不會真正限制**（廣域規則仍放行）。
+>
+> **正確做法（之後用 Firebase emulator 驗證再做）**：移除獨立 skills 區塊，把條件**折進唯一的廣域規則**，
+> 用路徑判斷避免 OR-overlap：
+>
+> ```
+> match /tool-files/{allPaths=**} {
+>   allow read: if true;
+>   allow write: if request.auth != null
+>     && request.resource.size < 200 * 1024 * 1024
+>     && (
+>       !allPaths.matches('skills/.*')
+>       || (request.resource.size < 50 * 1024 * 1024
+>           && request.resource.contentType.matches('application/(zip|x-zip-compressed|octet-stream)'))
+>     );
+> }
+> ```
+>
+> 風險低（內部站 + 要登入 + 孤兒 zip 無 tools 文件指向 + viewer 建不了 tools），故 backlog，不擋 hub 主線。
+> **下面的原始 Step 1-3 保留作參考，但「不要照 Step 1 的獨立子規則寫法」。**
+
 **Files:**
 
 - Modify: `storage.rules`
