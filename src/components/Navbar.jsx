@@ -36,10 +36,10 @@ export default function Navbar() {
         <div className="flex items-center gap-4 md:gap-5 text-sm font-bold text-gray-600 dark:text-gray-300">
           {/* Nav links */}
           <Link
-            href="/#tools"
+            href="/hub"
             className="hidden md:inline hover:text-violet-500 dark:hover:text-violet-400 transition-colors"
           >
-            工具總覽
+            資源中心
           </Link>
           <Link
             href="/#about"
@@ -56,7 +56,7 @@ export default function Navbar() {
 
           {/* Find tool CTA */}
           <Link
-            href="/#tools"
+            href="/hub"
             className="hidden md:inline px-4 py-2 rounded-full bg-[#1e1b4b] text-white dark:bg-gray-100 dark:text-[#1e1b4b] font-extrabold text-[0.82rem] hover:opacity-90 transition-opacity"
           >
             找工具 →
