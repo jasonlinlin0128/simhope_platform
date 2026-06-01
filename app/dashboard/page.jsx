@@ -8,6 +8,7 @@ import AIPanel from "@/components/AIPanel";
 import ToolCard from "@/components/ToolCard";
 import PasskeyManager from "@/components/PasskeyManager";
 import { db, auth } from "@/lib/firebase";
+import { CATEGORIES } from "@/lib/taxonomy";
 import {
   collection,
   query,
@@ -18,68 +19,42 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 
-// 5 種類型 + 「適合什麼情況」說明（給非技術同仁看得懂）
-const TYPE_OPTIONS = [
+// 5 大類別 + 「適合什麼情況」說明（給非技術同仁看得懂）
+const CATEGORY_OPTIONS = [
   {
-    key: "webapp",
-    emoji: "🌐",
-    label: "網頁應用",
-    helper:
-      "同仁點連結就能用，不用安裝。AI Studio / Gemini Canvas / Vercel 上的工具都算這類。",
-    urlPlaceholder:
-      "https://aistudio.google.com/apps/... 或 https://xxx.vercel.app",
-    accent: "border-purple-300 hover:border-purple-500 hover:bg-purple-50",
-    activeAccent: "border-purple-500 bg-purple-50",
+    key: "tool",
+    emoji: "🧰",
+    label: "工具",
+    helper: "單點 AI 小工具，同仁點連結或下載就能用。",
+    urlPlaceholder: "https://... 或 GitHub repo 連結",
   },
   {
-    key: "download",
-    emoji: "⬇️",
-    label: "軟體下載",
-    helper:
-      "同仁要下載安裝檔（.exe / .msi）到電腦執行。內網用、需要存取本機檔案的選這個。",
-    urlPlaceholder: "Google Drive 共享連結或檔案直連網址",
-    accent: "border-gray-200 hover:border-blue-300 hover:bg-blue-50",
-    activeAccent: "border-blue-500 bg-blue-50",
+    key: "platform",
+    emoji: "🏢",
+    label: "平臺",
+    helper: "較大型、多功能、長期維運的系統或應用。",
+    urlPlaceholder: "https://平臺網址",
   },
   {
-    key: "doc",
-    emoji: "📄",
-    label: "文件 / 表單",
-    helper:
-      "PDF / Word / Excel 等可下載的檔案。ISO 表單、SOP、規格書、Notion 匯出文件都算這類。",
-    urlPlaceholder: "Google Drive 共享連結或檔案直連網址",
-    accent: "border-gray-200 hover:border-orange-300 hover:bg-orange-50",
-    activeAccent: "border-orange-500 bg-orange-50",
+    key: "project",
+    emoji: "📁",
+    label: "專案",
+    helper: "單一、時限性的案子（例：某個補助案），展示進度與成果。",
+    urlPlaceholder: "參考連結（可留空）",
   },
   {
     key: "mcp",
     emoji: "🔌",
-    label: "AI 連接器（MCP）",
-    helper:
-      "把資料或能力包成 AI 可呼叫的接口。同仁裝一次以後 Claude / Cursor 就能直接幫他查/操作這份資源。",
-    urlPlaceholder: "GitHub repo 連結（其他細節經企室審核時補）",
-    accent: "border-gray-200 hover:border-emerald-300 hover:bg-emerald-50",
-    activeAccent: "border-emerald-500 bg-emerald-50",
+    label: "MCP",
+    helper: "給 AI agent 串接的連接器，裝一次 Claude/Cursor 就能用。",
+    urlPlaceholder: "GitHub repo 連結",
   },
   {
-    key: "api",
-    emoji: "🧩",
-    label: "API / SDK",
-    helper:
-      "給工程師用程式接的接口（REST API / Python 套件 / JS library）。一般同仁用不到。",
-    urlPlaceholder: "GitHub repo 或 API 文件連結",
-    accent: "border-gray-200 hover:border-amber-300 hover:bg-amber-50",
-    activeAccent: "border-amber-500 bg-amber-50",
-  },
-  {
-    key: "embedded",
-    emoji: "📍",
-    label: "場域工具",
-    helper:
-      "綁定特定電腦或設備的工具，沒有可點的連結（例：機敏辦公室影印機浮水印、加工部電腦上的外掛）。同仁要到那台設備現場使用。",
-    urlPlaceholder: "參考連結（選填，沒有就留空）",
-    accent: "border-gray-200 hover:border-indigo-300 hover:bg-indigo-50",
-    activeAccent: "border-indigo-500 bg-indigo-50",
+    key: "skill",
+    emoji: "🧠",
+    label: "Skill",
+    helper: "Agent skill，下載 .zip 裝到 ~/.claude/skills/。",
+    urlPlaceholder: "GitHub repo 連結（zip 審核時上傳）",
   },
 ];
 
@@ -96,7 +71,7 @@ export default function Dashboard() {
     title: "",
     tagline: "",
     url: "",
-    type: "webapp",
+    category: "tool",
   });
 
   useEffect(() => {
@@ -168,7 +143,8 @@ export default function Dashboard() {
         title: formData.title,
         tagline: formData.tagline,
         url: formData.url,
-        type: formData.type,
+        category: formData.category,
+        type: CATEGORIES[formData.category]?.defaultType || "webapp",
         status: "pending",
         authorUid: user.uid,
         createdAt: serverTimestamp(),
@@ -187,7 +163,7 @@ export default function Dashboard() {
       alert(
         "已送出！經企室審核後會跟你討論細節（截圖、使用步驟、適用部門、進階安裝方式等），通過後上架。",
       );
-      setFormData({ title: "", tagline: "", url: "", type: "webapp" });
+      setFormData({ title: "", tagline: "", url: "", category: "tool" });
       fetchMyTools();
     } catch (error) {
       console.error(error);
@@ -207,8 +183,9 @@ export default function Dashboard() {
   if (authLoading || loading)
     return <p className="text-center py-20 text-gray-400">載入中，請稍候…</p>;
 
-  const currentType =
-    TYPE_OPTIONS.find((t) => t.key === formData.type) || TYPE_OPTIONS[0];
+  const currentCategory =
+    CATEGORY_OPTIONS.find((c) => c.key === formData.category) ||
+    CATEGORY_OPTIONS[0];
 
   return (
     <div className="px-4 md:px-0 flex flex-col gap-10">
@@ -275,9 +252,11 @@ export default function Dashboard() {
               <div>
                 <label className="block text-xs font-extrabold text-[var(--color-text-mid)] mb-2">
                   ③ 主連結
-                  {formData.type === "embedded" && (
+                  {["project", "skill", "platform"].includes(
+                    formData.category,
+                  ) && (
                     <span className="text-gray-400 font-normal">
-                      （場域工具可留空）
+                      （可留空）
                     </span>
                   )}
                 </label>
@@ -285,8 +264,12 @@ export default function Dashboard() {
                   name="url"
                   value={formData.url}
                   onChange={handleInputChange}
-                  required={formData.type !== "embedded"}
-                  placeholder={currentType.urlPlaceholder}
+                  required={
+                    !["project", "skill", "platform"].includes(
+                      formData.category,
+                    )
+                  }
+                  placeholder={currentCategory.urlPlaceholder}
                   className="w-full bg-gray-50 dark:bg-gray-700 p-3 rounded-xl border border-gray-200 dark:border-gray-600 text-sm outline-none focus:border-[var(--color-clay-purple)] transition-all"
                 />
                 <p className="text-xs text-gray-400 mt-1.5">
@@ -295,22 +278,22 @@ export default function Dashboard() {
                 </p>
               </div>
 
-              {/* ④ 類型 radio + 說明 */}
+              {/* ④ 類別 radio + 說明 */}
               <div>
                 <label className="block text-xs font-extrabold text-[var(--color-text-mid)] mb-3">
-                  ④ 類型（這是什麼樣的東西？）
+                  ④ 類別（這是什麼樣的東西？）
                 </label>
                 <div className="grid grid-cols-1 gap-2">
-                  {TYPE_OPTIONS.map((opt) => {
-                    const isActive = formData.type === opt.key;
+                  {CATEGORY_OPTIONS.map((opt) => {
+                    const isActive = formData.category === opt.key;
                     return (
                       <label
                         key={opt.key}
-                        className={`flex gap-3 items-start cursor-pointer rounded-xl p-3 border-2 transition ${isActive ? opt.activeAccent : opt.accent}`}
+                        className={`flex gap-3 items-start cursor-pointer rounded-xl p-3 border-2 transition ${isActive ? "border-[var(--color-clay-purple)] bg-[var(--color-clay-purple)]/5" : "border-gray-200 hover:border-[var(--color-clay-purple)]/40"}`}
                       >
                         <input
                           type="radio"
-                          name="type"
+                          name="category"
                           value={opt.key}
                           checked={isActive}
                           onChange={handleInputChange}
