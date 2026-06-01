@@ -462,11 +462,7 @@ function BlockEditor({ block, idx, total, onChange, onDelete, onMove }) {
 }
 
 // ─── 詳情頁 tab 元件（view-mode 用） ─────────────────────────────────────────
-// 依 type 決定有哪些 tab：
-//   webapp  → 只有「詳細說明」
-//   download / doc → 「快速安裝」+「詳細說明」
-//   mcp / api → 「快速安裝」+「進階設定」+「詳細說明」
-//   embedded → 「部署資訊」+「詳細說明」
+// tab 組成由 src/lib/taxonomy.js 的 getTabsForType(type) 決定（單一真相來源）。
 function DetailTabs({ tool, blocks, activeTab, setActiveTab }) {
   const type = tool.type || "webapp";
   const td = tool.typeData || {};
