@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, useCallback, use } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useAuth } from "@/context/AuthContext";
@@ -786,11 +786,7 @@ export default function ToolDetail({ params }) {
   const [localBlocks, setLocalBlocks] = useState([]);
   const [localExtras, setLocalExtras] = useState({ url: "", type: "webapp" });
 
-  useEffect(() => {
-    if (!authLoading) fetchTool();
-  }, [id, authLoading]);
-
-  const fetchTool = async () => {
+  const fetchTool = useCallback(async () => {
     try {
       const docSnap = await getDoc(doc(db, "tools", id));
       if (!docSnap.exists()) {
@@ -818,7 +814,11 @@ export default function ToolDetail({ params }) {
       console.error(e);
     }
     setLoading(false);
-  };
+  }, [id, router, user, isAdmin]);
+
+  useEffect(() => {
+    if (!authLoading) fetchTool();
+  }, [authLoading, fetchTool]);
 
   const isAuthor = tool && user && tool.authorUid === user.uid;
   const canEdit = isAdmin || isAuthor;
