@@ -67,10 +67,7 @@ export default function Footer() {
               </Link>
             </li>
             <li>
-              <RequestButton
-                type="feature"
-                className="hover:text-[var(--color-clay-purple)] cursor-pointer"
-              >
+              <RequestButton className="hover:text-[var(--color-clay-purple)] cursor-pointer">
                 提需求
               </RequestButton>
             </li>
