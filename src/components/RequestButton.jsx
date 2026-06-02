@@ -1,21 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import RequestModal from "@/components/RequestModal";
+import RequestCard from "@/components/RequestCard";
 
-/** client 觸發鈕 — 讓 server 元件（Footer）也能開 RequestModal。 */
-export default function RequestButton({
-  type = "feature",
-  className = "",
-  children,
-}) {
+/** client 觸發鈕 — 讓 server 元件（Footer / 首頁）也能開提需求卡。 */
+export default function RequestButton({ className = "", children }) {
   const [open, setOpen] = useState(false);
   return (
     <>
       <button type="button" onClick={() => setOpen(true)} className={className}>
         {children}
       </button>
-      {open && <RequestModal type={type} onClose={() => setOpen(false)} />}
+      {open && <RequestCard onClose={() => setOpen(false)} />}
     </>
   );
 }
