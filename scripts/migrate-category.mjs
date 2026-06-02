@@ -13,9 +13,14 @@ import { dirname, join } from "node:path";
 const APPLY = process.argv.includes("--apply");
 const BACKUP = "tools-backup-2026-06-01";
 
-// 人工指定（Jason 看完 dry-run 後填）：{ toolId: 'platform' | 'project' }
+// 人工指定（Jason 看完 dry-run 後決定，2026-06-02）：{ toolId: 'platform' | 'project' }
+// 其餘工具自動歸 tool（含 t8/t9 embedded、t3a/t3b 日報表等單點工具）。
 const MANUAL_OVERRIDE = {
-  // 例：'t_xxx': 'platform',
+  t_toolbox: "platform", // SimHope 工具箱（32 模組桌面套件）
+  t10: "platform", // SimHope 行事曆（整合行事曆）
+  t_sop_interface: "platform", // SOP-Interface APP（多角色 SOP 數位化）
+  t4: "project", // 內部文件問答庫（已終止 RAG 構想，被 LINE Bot 取代）
+  t7: "project", // 物管籌料數位化作業系統（已終止）
 };
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
