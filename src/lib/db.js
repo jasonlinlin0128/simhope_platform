@@ -184,6 +184,18 @@ export async function getApprovedTools() {
 }
 
 /**
+ * 取已發布的 FAQ，依 category 內 order 升冪。
+ * @returns {Promise<object[]>}
+ */
+export async function getFaqs() {
+  const snap = await getDocs(collection(db, "faqs"));
+  return snap.docs
+    .map((d) => ({ id: d.id, ...d.data() }))
+    .filter((f) => f.published !== false)
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+}
+
+/**
  * 取目錄（catalog）— 重用 getApprovedTools 的可見性，再依 category 過濾。
  * @param {{category?: string}} opts  category 省略或 'all' = 全部
  * @returns {Promise<object[]>}
