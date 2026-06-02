@@ -27,7 +27,7 @@ export async function POST(req) {
     const type = body.type === "feature" ? "feature" : "access";
     const message = String(body.message || "").slice(0, 2000);
     const name = String(body.name || decoded.name || "").slice(0, 100);
-    const email = decoded.email || body.email || "";
+    const email = String(decoded.email || body.email || "").slice(0, 200);
 
     const ref = await adminDb.collection("requests").add({
       type,
