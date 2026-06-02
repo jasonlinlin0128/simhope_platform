@@ -58,6 +58,19 @@ service cloud.firestore {
       );
     }
 
+    // FAQ：公開可讀；僅 admin 可寫（前端後台 CRUD）
+    match /faqs/{faqId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 申請開發者 / 提需求：只由伺服器端 Admin SDK 寫入（/api/request）；
+    // client 不可寫（防偽造 uid）；admin 可讀（後台看待辦）。
+    match /requests/{reqId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
     // Passkeys / WebAuthn challenges: 只有 Admin SDK（伺服器端）能存取。
     // client 一律拒絕（公鑰庫與 challenge 不可被前端讀寫）。
     match /passkeys/{id} {

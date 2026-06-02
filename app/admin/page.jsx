@@ -15,6 +15,7 @@ import {
 } from "firebase/firestore";
 import { createDeveloperAccount } from "@/lib/adminAuth";
 import ReviewToolWizard from "@/components/ReviewToolWizard";
+import FaqManager from "@/components/FaqManager";
 
 export default function AdminDashboard() {
   const { user, isAdmin, loading: authLoading } = useAuth();
@@ -163,6 +164,12 @@ export default function AdminDashboard() {
             <span className="float-right bg-white/20 px-2 rounded-full text-xs py-0.5">
               {users.length}
             </span>
+          </button>
+          <button
+            onClick={() => setActiveTab("faqs")}
+            className={`w-full text-left px-4 py-3 rounded-xl font-bold transition-all ${activeTab === "faqs" ? "bg-[var(--color-clay-purple)] text-white shadow-md" : "text-gray-600 hover:bg-gray-100"}`}
+          >
+            ❓ FAQ
           </button>
         </nav>
       </aside>
@@ -458,6 +465,11 @@ export default function AdminDashboard() {
                 )}
               </div>
             </div>
+          </div>
+        )}
+        {activeTab === "faqs" && (
+          <div className="bg-[var(--color-card-bg)] rounded-[24px] shadow-sm border border-[var(--color-card-border)] p-8">
+            <FaqManager />
           </div>
         )}
       </main>

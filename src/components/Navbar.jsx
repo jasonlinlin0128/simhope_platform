@@ -42,6 +42,24 @@ export default function Navbar() {
             資源中心
           </Link>
           <Link
+            href="/docs"
+            className="hidden md:inline hover:text-violet-500 dark:hover:text-violet-400 transition-colors"
+          >
+            文件
+          </Link>
+          <Link
+            href="/faq"
+            className="hidden md:inline hover:text-violet-500 dark:hover:text-violet-400 transition-colors"
+          >
+            FAQ
+          </Link>
+          <Link
+            href="/changelog"
+            className="hidden md:inline hover:text-violet-500 dark:hover:text-violet-400 transition-colors"
+          >
+            更新日誌
+          </Link>
+          <Link
             href="/#about"
             className="hidden md:inline hover:text-violet-500 dark:hover:text-violet-400 transition-colors"
           >
