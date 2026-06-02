@@ -11,6 +11,7 @@ import AIPanel from "@/components/AIPanel";
 import { getStatusLabel } from "@/components/ToolCard";
 import UploadButton from "@/components/UploadButton";
 import { TYPE_ACTION, getTabsForType, defaultTabForType } from "@/lib/taxonomy";
+import Accordion from "@/components/Accordion";
 
 // ─── Block type definitions ────────────────────────────────────────────────
 const BLOCK_DEFS = {
@@ -38,6 +39,10 @@ const BLOCK_DEFS = {
   warning: {
     label: "⚠️ 注意事項",
     badge: "bg-orange-50 text-orange-700 border-orange-200",
+  },
+  faq: {
+    label: "❓ 常見問題",
+    badge: "bg-sky-50 text-sky-700 border-sky-200",
   },
 };
 
@@ -247,6 +252,12 @@ function BlockView({ block }) {
     );
   }
 
+  if (type === "faq") {
+    const items = (block.items || []).filter((qa) => qa.q);
+    if (!items.length) return null;
+    return <Accordion items={items} />;
+  }
+
   // Default: text with markdown
   return (
     <div className="flex flex-col gap-1">
@@ -430,6 +441,67 @@ function BlockEditor({ block, idx, total, onChange, onDelete, onMove }) {
             rows={4}
             className="w-full bg-[var(--color-card-bg)] text-[var(--color-text-dark)] border border-[var(--color-card-border)] rounded-xl px-3 py-2 text-sm outline-none focus:border-[var(--color-clay-purple)] resize-y"
           />
+        </div>
+      )}
+
+      {block.type === "faq" && (
+        <div className="flex flex-col gap-3">
+          <p className="text-xs font-bold text-[var(--color-text-mid)]">
+            這個工具的常見問答。答案支援 markdown。
+          </p>
+          {(block.items || []).map((qa, qi) => (
+            <div
+              key={qi}
+              className="flex flex-col gap-2 border border-[var(--color-card-border)] rounded-xl p-3"
+            >
+              <div className="flex gap-2">
+                <input
+                  value={qa.q || ""}
+                  onChange={(e) => {
+                    const items = [...(block.items || [])];
+                    items[qi] = { ...items[qi], q: e.target.value };
+                    onChange({ ...block, items });
+                  }}
+                  placeholder="問題"
+                  className="flex-1 bg-[var(--color-card-bg)] text-[var(--color-text-dark)] border border-[var(--color-card-border)] rounded-lg px-3 py-2 text-sm font-bold outline-none focus:border-[var(--color-clay-purple)]"
+                />
+                <button
+                  onClick={() => {
+                    const items = (block.items || []).filter(
+                      (_, i) => i !== qi,
+                    );
+                    onChange({ ...block, items });
+                  }}
+                  className="w-9 rounded-lg bg-red-50 text-red-400 hover:bg-red-100 text-sm"
+                  title="刪除此問答"
+                >
+                  ✕
+                </button>
+              </div>
+              <textarea
+                value={qa.a || ""}
+                onChange={(e) => {
+                  const items = [...(block.items || [])];
+                  items[qi] = { ...items[qi], a: e.target.value };
+                  onChange({ ...block, items });
+                }}
+                placeholder="答案（支援 markdown）"
+                rows={2}
+                className="bg-[var(--color-card-bg)] text-[var(--color-text-dark)] border border-[var(--color-card-border)] rounded-lg px-3 py-2 text-sm outline-none focus:border-[var(--color-clay-purple)] resize-y"
+              />
+            </div>
+          ))}
+          <button
+            onClick={() =>
+              onChange({
+                ...block,
+                items: [...(block.items || []), { q: "", a: "" }],
+              })
+            }
+            className="self-start text-xs font-bold text-[var(--color-clay-purple)] border border-[var(--color-clay-purple)]/30 rounded-full px-3 py-1.5 hover:bg-[var(--color-clay-purple)]/5"
+          >
+            ＋ 加一題
+          </button>
         </div>
       )}
 
@@ -838,7 +910,13 @@ export default function ToolDetail({ params }) {
   const addBlock = (type) =>
     setLocalBlocks((bs) => [
       ...bs,
-      { id: crypto.randomUUID(), type, content: "", caption: "" },
+      {
+        id: crypto.randomUUID(),
+        type,
+        content: "",
+        caption: "",
+        ...(type === "faq" ? { items: [{ q: "", a: "" }] } : {}),
+      },
     ]);
 
   // ── Save ──
