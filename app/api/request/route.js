@@ -29,6 +29,10 @@ export async function POST(req) {
     const name = String(body.name || decoded.name || "").slice(0, 100);
     const email = String(decoded.email || body.email || "").slice(0, 200);
 
+    if (!message) {
+      return NextResponse.json({ error: "缺少留言內容" }, { status: 400 });
+    }
+
     const ref = await adminDb.collection("requests").add({
       type,
       uid: decoded.uid,

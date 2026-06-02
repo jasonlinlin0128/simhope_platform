@@ -26,16 +26,21 @@ export default function FaqManager() {
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
-    const snap = await getDocs(collection(db, "faqs"));
-    setFaqs(
-      snap.docs
-        .map((d) => ({ id: d.id, ...d.data() }))
-        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0)),
-    );
-    setLoading(false);
+    try {
+      const snap = await getDocs(collection(db, "faqs"));
+      setFaqs(
+        snap.docs
+          .map((d) => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => (a.order ?? 0) - (b.order ?? 0)),
+      );
+    } catch (e) {
+      // 不 rethrow：避免 save()/remove() 的 await load() 失敗時誤報「儲存失敗」
+      console.error("載入 FAQ 失敗（faqs 規則是否已發布？）:", e);
+    } finally {
+      setLoading(false);
+    }
   };
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
   }, []);
 

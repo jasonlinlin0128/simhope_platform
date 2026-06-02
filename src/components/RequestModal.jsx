@@ -37,12 +37,16 @@ export default function RequestModal({ type = "feature", onClose }) {
           email: user.email || "",
         }),
       });
-      if (!res.ok) throw new Error((await res.json()).error || "送出失敗");
+      if (!res.ok)
+        throw new Error(
+          (await res.json().catch(() => ({}))).error || "送出失敗",
+        );
       setDone(true);
     } catch (e) {
       setErr(e.message || "送出失敗，請稍後再試");
+    } finally {
+      setSending(false);
     }
-    setSending(false);
   };
 
   return (
