@@ -1,4 +1,5 @@
 import Link from "next/link";
+import RequestButton from "@/components/RequestButton";
 
 /** 全站 footer — 品牌 + 三欄 + 版權。內部站，無外部社群連結。 */
 export default function Footer() {
@@ -16,6 +17,9 @@ export default function Footer() {
           </div>
           <p className="text-sm text-[var(--color-text-mid)] font-semibold leading-relaxed">
             公司內部 AI 資源中心 · 工具 / 平臺 / 專案 / MCP / Skill
+          </p>
+          <p className="text-xs text-[var(--color-text-mid)] font-semibold mt-1">
+            經企室建置維運
           </p>
         </div>
         <div>
@@ -63,22 +67,53 @@ export default function Footer() {
               </Link>
             </li>
             <li>
-              <a
-                href="mailto:jasonlin@simhope.com.tw?subject=AI工具需求"
-                className="hover:text-[var(--color-clay-purple)]"
+              <RequestButton
+                type="feature"
+                className="hover:text-[var(--color-clay-purple)] cursor-pointer"
               >
                 提需求
-              </a>
+              </RequestButton>
             </li>
           </ul>
         </div>
         <div>
           <div className="text-xs font-extrabold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">
-            關於
+            說明
           </div>
-          <p className="text-sm text-[var(--color-text-mid)] font-semibold">
-            經企室建置維運
-          </p>
+          <ul className="flex flex-col gap-2 text-sm font-bold text-[var(--color-text-mid)]">
+            <li>
+              <Link
+                href="/docs"
+                className="hover:text-[var(--color-clay-purple)]"
+              >
+                新手上路
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/faq"
+                className="hover:text-[var(--color-clay-purple)]"
+              >
+                常見問題
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/changelog"
+                className="hover:text-[var(--color-clay-purple)]"
+              >
+                更新日誌
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/access"
+                className="hover:text-[var(--color-clay-purple)]"
+              >
+                取用說明
+              </Link>
+            </li>
+          </ul>
         </div>
       </div>
       <div className="border-t border-[var(--color-nav-border)] py-5 text-center text-xs text-[var(--color-text-mid)] font-semibold">
