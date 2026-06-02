@@ -138,7 +138,8 @@ export async function ensureUserDoc(user) {
     await setDoc(ref, {
       uid: user.uid,
       email: user.email || "",
-      displayName: user.displayName || (user.email ? user.email.split("@")[0] : ""),
+      displayName:
+        user.displayName || (user.email ? user.email.split("@")[0] : ""),
       photoURL: user.photoURL || "",
       provider,
       createdAt: serverTimestamp(),
@@ -180,6 +181,18 @@ export async function getApprovedTools() {
     ),
   );
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+/**
+ * 取目錄（catalog）— 重用 getApprovedTools 的可見性，再依 category 過濾。
+ * @param {{category?: string}} opts  category 省略或 'all' = 全部
+ * @returns {Promise<object[]>}
+ */
+export async function getCatalog({ category } = {}) {
+  const tools = await getApprovedTools();
+  if (!category || category === "all") return tools;
+  // 無 category 欄位的舊資料視為 'tool'（與 categoryCounts 一致）
+  return tools.filter((t) => (t.category || "tool") === category);
 }
 
 /**

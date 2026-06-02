@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { typeBadge, getCTA } from "@/lib/taxonomy";
 
 // Helper color map for the icon background
 const colorMap = {
@@ -50,127 +51,6 @@ export const getStatusLabel = (status) => {
 };
 
 /**
- * 各「類型」對應的小標籤（卡片左上角顯示）
- */
-export const TYPE_BADGES = {
-  webapp: {
-    label: "🌐 網頁應用",
-    cls: "bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-700",
-  },
-  download: {
-    label: "⬇️ 軟體下載",
-    cls: "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-700",
-  },
-  doc: {
-    label: "📄 文件 / 表單",
-    cls: "bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-700",
-  },
-  mcp: {
-    label: "🔌 AI 連接器",
-    cls: "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-700",
-  },
-  api: {
-    label: "🧩 API / SDK",
-    cls: "bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-700",
-  },
-  embedded: {
-    label: "📍 場域工具",
-    cls: "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-700",
-  },
-  showcase: {
-    label: "📺 展示",
-    cls: "bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600",
-  },
-};
-
-/**
- * Vercel Marketplace 風的「一鍵動作」按鈕。依 type + status 決定文字、顏色、連結。
- * 回傳 { label, href, cls, disabled } 物件供卡片渲染用。
- * @param {{type:string, status:string, url:string, id:string}} tool
- */
-export function getCTA(tool) {
-  const { type = "webapp", status, url, id } = tool;
-
-  // 已終止：紅色，不能點
-  if (status === "terminated") {
-    return {
-      label: "⛔ 已終止維護",
-      href: null,
-      cls: "bg-red-100 text-red-600 cursor-not-allowed",
-      disabled: true,
-    };
-  }
-  // 開發中 / 待驗收：灰色，引導去詳情頁
-  if (status === "dev" || status === "pending") {
-    return {
-      label: "🚧 開發中，敬請期待",
-      href: `/tool/${id}`,
-      cls: "bg-gray-200 text-gray-500 hover:bg-gray-300",
-      disabled: false,
-    };
-  }
-
-  // 場域工具：綁定特定電腦/設備，沒有可點的啟動連結，引導去看部署資訊
-  if (type === "embedded") {
-    return {
-      label: "📍 查看部署資訊 →",
-      href: `/tool/${id}`,
-      cls: "bg-indigo-500 text-white hover:bg-indigo-600",
-      disabled: false,
-    };
-  }
-
-  // 正常狀態：依 type 給不同 CTA
-  const ctaByType = {
-    webapp: {
-      label: "🌐 馬上打開 →",
-      cls: "bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:opacity-90",
-    },
-    download: {
-      label: "⬇️ 下載安裝檔 →",
-      cls: "bg-blue-500 text-white hover:bg-blue-600",
-    },
-    doc: {
-      label: "⬇️ 下載 →",
-      cls: "bg-orange-500 text-white hover:bg-orange-600",
-    },
-    mcp: {
-      label: "📦 安裝到 Claude / Cursor →",
-      cls: "bg-emerald-500 text-white hover:bg-emerald-600",
-    },
-    api: {
-      label: "🔗 看 API 文件 →",
-      cls: "bg-amber-500 text-white hover:bg-amber-600",
-    },
-    showcase: {
-      label: "👀 看詳情 →",
-      cls: "bg-gray-500 text-white hover:bg-gray-600",
-    },
-  };
-  const base = ctaByType[type] || ctaByType.webapp;
-
-  // 沒有 url → 灰色降級為「看詳情」
-  if (!url) {
-    return {
-      label: "👀 看詳情 →",
-      href: `/tool/${id}`,
-      cls: "bg-gray-300 text-gray-700 hover:bg-gray-400",
-      disabled: false,
-    };
-  }
-  return {
-    ...base,
-    href: url,
-    external:
-      type === "webapp" ||
-      type === "download" ||
-      type === "doc" ||
-      type === "api",
-    disabled: false,
-  };
-}
-
-/**
  * 工具卡。Vercel Marketplace 風 — 卡片本體連到詳情頁；卡片底部「一鍵動作」按鈕依類型開外連或內頁。
  * @param {{ tool: { id, title, tagline, icon, color, dept, scenarios, status, type, url, updatedAt } }} props
  */
@@ -192,7 +72,7 @@ export default function ToolCard({ tool }) {
     scenarios && Array.isArray(scenarios) ? scenarios : [dept || "other"];
   const iconClass = colorMap[color] || colorMap["c1"];
   const sObj = getStatusLabel(status);
-  const typeBadge = TYPE_BADGES[type] || TYPE_BADGES.webapp;
+  const badge = typeBadge(type);
   const cta = getCTA(tool);
 
   // CTA 點擊處理：阻止冒泡到卡片連結
@@ -222,9 +102,9 @@ export default function ToolCard({ tool }) {
             </h3>
             {/* 類型 badge */}
             <span
-              className={`inline-block mt-1 text-[0.65rem] px-2 py-0.5 rounded-md font-bold border ${typeBadge.cls}`}
+              className={`inline-block mt-1 text-[0.65rem] px-2 py-0.5 rounded-md font-bold border ${badge.badgeCls}`}
             >
-              {typeBadge.label}
+              {badge.label}
             </span>
           </div>
         </div>

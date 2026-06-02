@@ -2,6 +2,7 @@ import { Nunito, Noto_Sans_TC } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import ThemeProvider from "@/components/ThemeProvider";
 import BlobBackground from "@/components/BlobBackground";
 import ChatbotWidget from "@/components/ChatbotWidget";
@@ -39,9 +40,7 @@ export default function RootLayout({ children }) {
             <main className="flex-1 w-full max-w-7xl mx-auto py-8">
               {children}
             </main>
-            <footer className="w-full border-t border-[var(--color-nav-border)] py-4 text-center text-xs text-[var(--color-text-mid)] font-semibold opacity-60">
-              © 2026 SimHope · 內部使用 · v0.7
-            </footer>
+            <Footer />
             <ChatbotWidget />
             <PasskeyPrompt />
           </AuthProvider>

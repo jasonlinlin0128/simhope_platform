@@ -1,22 +1,12 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import Fuse from "fuse.js";
-import { getApprovedTools, getApprovedPainCards } from "@/lib/db";
-import ToolCard from "@/components/ToolCard";
+import { getCatalog, getApprovedPainCards } from "@/lib/db";
+import { categoryCounts, CATEGORIES, CATEGORY_ORDER } from "@/lib/taxonomy";
+import CategoryEntryCard from "@/components/CategoryEntryCard";
+import MetricsBand from "@/components/MetricsBand";
 import PainCard, { PAIN_CATEGORIES } from "@/components/PainCard";
 import Link from "next/link";
-
-// 6 種類型 chip 的顯示資料
-const TYPE_CHIPS = [
-  { key: "all", label: "全部", emoji: "" },
-  { key: "webapp", label: "網頁應用", emoji: "🌐" },
-  { key: "download", label: "軟體下載", emoji: "⬇️" },
-  { key: "doc", label: "文件 / 表單", emoji: "📄" },
-  { key: "mcp", label: "AI 連接器", emoji: "🔌" },
-  { key: "api", label: "API / SDK", emoji: "🧩" },
-  { key: "embedded", label: "場域工具", emoji: "📍" },
-];
 
 const TESTIMONIALS = [
   {
@@ -70,15 +60,9 @@ export default function Home() {
   const [painCards, setPainCards] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // 新版篩選狀態
-  const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedQuery, setDebouncedQuery] = useState("");
-  const [selectedType, setSelectedType] = useState("all");
-  const [selectedScenarios, setSelectedScenarios] = useState([]);
-
   // 讀資料
   useEffect(() => {
-    Promise.all([getApprovedTools(), getApprovedPainCards()])
+    Promise.all([getCatalog(), getApprovedPainCards()])
       .then(([toolsData, painsData]) => {
         setTools(toolsData);
         setPainCards(painsData);
@@ -87,91 +71,9 @@ export default function Home() {
       .finally(() => setLoading(false));
   }, []);
 
-  // debounce 搜尋字串 (300ms)
-  useEffect(() => {
-    const t = setTimeout(() => setDebouncedQuery(searchQuery.trim()), 300);
-    return () => clearTimeout(t);
-  }, [searchQuery]);
-
-  // 把工具分成「在用中」與「已終止」兩組 — 主列表只顯示在用中，底部摺疊區顯示已終止
-  const activeTools = useMemo(
-    () => tools.filter((t) => t.status !== "terminated"),
-    [tools],
-  );
-  const terminatedTools = useMemo(
-    () => tools.filter((t) => t.status === "terminated"),
-    [tools],
-  );
-
-  // 場景 chip 候選 — 只從在用中工具聚合（已終止的場景不該污染篩選列）
-  const allScenarios = useMemo(() => {
-    const set = new Set();
-    activeTools.forEach((t) => {
-      if (Array.isArray(t.scenarios)) t.scenarios.forEach((s) => set.add(s));
-    });
-    return Array.from(set).sort();
-  }, [activeTools]);
-
-  // 各類型工具數（顯示在 chip 旁邊）— 只算在用中
-  const typeCounts = useMemo(() => {
-    const counts = { all: activeTools.length };
-    for (const chip of TYPE_CHIPS) {
-      if (chip.key === "all") continue;
-      counts[chip.key] = activeTools.filter(
-        (t) => (t.type || "webapp") === chip.key,
-      ).length;
-    }
-    return counts;
-  }, [activeTools]);
-
-  // Fuse.js — 模糊比對 title / tagline / tags（只搜尋在用中）
-  const fuse = useMemo(
-    () =>
-      new Fuse(activeTools, {
-        keys: ["title", "tagline", "tags", "desc"],
-        threshold: 0.4,
-        ignoreLocation: true,
-      }),
-    [activeTools],
-  );
-
-  // 三段式篩選：搜尋 → 類型 → 場景
-  const filteredTools = useMemo(() => {
-    let result = activeTools;
-
-    if (debouncedQuery) {
-      result = fuse.search(debouncedQuery).map((r) => r.item);
-    }
-
-    if (selectedType !== "all") {
-      result = result.filter((t) => (t.type || "webapp") === selectedType);
-    }
-
-    if (selectedScenarios.length > 0) {
-      result = result.filter((t) =>
-        t.scenarios?.some((s) => selectedScenarios.includes(s)),
-      );
-    }
-
-    return result;
-  }, [activeTools, debouncedQuery, fuse, selectedType, selectedScenarios]);
-
-  const toggleScenario = (scenario) => {
-    setSelectedScenarios((prev) =>
-      prev.includes(scenario)
-        ? prev.filter((s) => s !== scenario)
-        : [...prev, scenario],
-    );
-  };
-
-  const clearAllFilters = () => {
-    setSearchQuery("");
-    setSelectedType("all");
-    setSelectedScenarios([]);
-  };
-
-  const hasActiveFilters =
-    debouncedQuery || selectedType !== "all" || selectedScenarios.length > 0;
+  // 各 category 計數（入口卡 / metrics 用）— terminated 不算（categoryCounts 內處理）
+  const counts = useMemo(() => categoryCounts(tools), [tools]);
+  const activeCount = counts.all;
 
   // 痛點類別篩選
   const [selectedPainCategory, setSelectedPainCategory] = useState("all");
@@ -233,14 +135,14 @@ export default function Home() {
           <br />
           目前收錄{" "}
           <strong className="text-[var(--color-text-dark)]">
-            {loading ? "…" : activeTools.length} 個工具
+            {loading ? "…" : activeCount} 個資源
           </strong>
           ，持續新增中。
         </p>
 
         <div className="flex gap-4 flex-wrap justify-center mb-16">
           <Link
-            href="#tools"
+            href="#catalog"
             className="px-8 py-4 rounded-full bg-gradient-to-br from-[var(--color-clay-coral)] to-[var(--color-clay-orange)] text-white font-extrabold text-lg shadow-[0_6px_20px_rgba(255,107,107,0.45)] hover:-translate-y-1 hover:shadow-[0_12px_30px_rgba(255,107,107,0.55)] transition-all"
           >
             🔧 馬上找工具
@@ -253,28 +155,39 @@ export default function Home() {
           </Link>
         </div>
 
-        <div className="flex flex-wrap gap-5 justify-center">
-          {[
-            {
-              id: "tools",
-              value: loading ? "…" : activeTools.length,
-              label: "可用工具",
-            },
-            { id: "users", value: "30+", label: "同仁每週使用" },
-            { id: "hrs", value: "10h", label: "估計每週省下" },
-          ].map((s, i) => (
-            <div
-              key={s.id}
-              className="bg-white/85 dark:bg-gray-800/85 border-2 border-white/90 dark:border-white/10 backdrop-blur-sm rounded-2xl px-7 py-5 text-center shadow-[var(--shadow-clay)]"
-              style={{ animationDelay: `${i * 0.8}s` }}
+        <MetricsBand
+          stats={[
+            { value: loading ? "…" : activeCount, label: "可用資源" },
+            { value: "30+", label: "同仁每週使用" },
+            { value: "10h", label: "估計每週省下" },
+          ]}
+        />
+      </section>
+
+      {/* ── 5 類別入口 ── */}
+      <section id="catalog" className="scroll-mt-32">
+        <div className="mb-8 text-center">
+          <h2 className="text-3xl md:text-4xl font-black text-[var(--color-text-dark)] mb-3">
+            探索資源
+          </h2>
+          <p className="text-[var(--color-text-mid)] font-semibold">
+            依類別瀏覽，或到
+            <Link
+              href="/hub"
+              className="text-[var(--color-clay-purple)] font-bold underline mx-1"
             >
-              <div className="text-3xl font-black text-[var(--color-text-dark)]">
-                {s.value}
-              </div>
-              <div className="text-sm font-semibold text-[var(--color-text-mid)] mt-1">
-                {s.label}
-              </div>
-            </div>
+              資源中心
+            </Link>
+            搜尋全部。
+          </p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          {CATEGORY_ORDER.map((k) => (
+            <CategoryEntryCard
+              key={k}
+              category={CATEGORIES[k]}
+              count={loading ? "…" : counts[k]}
+            />
           ))}
         </div>
       </section>
@@ -342,195 +255,6 @@ export default function Home() {
               <PainCard key={c.id} card={c} />
             ))}
           </div>
-        )}
-      </section>
-
-      {/* ── TOOLS（Vercel Marketplace 風） ── */}
-      <section id="tools" className="scroll-mt-32 mb-20">
-        <div className="mb-10 text-center">
-          <div className="inline-block px-3 py-1 rounded bg-blue-100/50 dark:bg-blue-900/20 text-[var(--color-clay-blue)] font-bold text-sm mb-4">
-            🧰 工具總覽
-          </div>
-          <h2 className="text-3xl md:text-4xl font-black text-[var(--color-text-dark)] mb-4">
-            所有現成解決方案
-          </h2>
-          <p className="text-[var(--color-text-mid)] font-semibold">
-            每個工具都標示了適用場景，可依類型 / 場景或搜尋找到合適的。
-          </p>
-        </div>
-
-        {/* === 篩選列 === */}
-        <div className="mb-8 max-w-5xl mx-auto">
-          {/* 搜尋框 */}
-          <div className="relative mb-5">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="🔍 搜尋工具名稱、描述、關鍵字..."
-              className="w-full pl-5 pr-12 py-3.5 rounded-2xl bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 text-base font-medium focus:border-[var(--color-clay-purple)] focus:outline-none focus:ring-4 focus:ring-[var(--color-clay-purple)]/10 transition-all shadow-sm"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition"
-                aria-label="清除搜尋"
-              >
-                ✕
-              </button>
-            )}
-          </div>
-
-          {/* 類型 chip 列 (單選) */}
-          <div className="mb-4">
-            <div className="text-xs font-extrabold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
-              類型
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {TYPE_CHIPS.map((chip) => {
-                const active = selectedType === chip.key;
-                const count = typeCounts[chip.key] ?? 0;
-                return (
-                  <button
-                    key={chip.key}
-                    onClick={() => setSelectedType(chip.key)}
-                    className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-extrabold border-2 transition-all ${
-                      active
-                        ? "bg-[var(--color-clay-purple)] text-white border-[var(--color-clay-purple)] shadow-md"
-                        : "bg-white dark:bg-gray-800 text-[var(--color-text-mid)] border-gray-200 dark:border-gray-700 hover:border-[var(--color-clay-purple)]/40 hover:-translate-y-0.5"
-                    }`}
-                  >
-                    {chip.emoji && <span>{chip.emoji}</span>}
-                    {chip.label}
-                    <span
-                      className={`text-xs ${active ? "opacity-80" : "opacity-60"}`}
-                    >
-                      {count}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* 場景 chip 列 (多選) */}
-          {allScenarios.length > 0 && (
-            <div className="mb-3">
-              <div className="text-xs font-extrabold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
-                適用場景（可複選）
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {allScenarios.map((scenario) => {
-                  const active = selectedScenarios.includes(scenario);
-                  const count = tools.filter((t) =>
-                    t.scenarios?.includes(scenario),
-                  ).length;
-                  return (
-                    <button
-                      key={scenario}
-                      onClick={() => toggleScenario(scenario)}
-                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border-2 transition-all ${
-                        active
-                          ? "bg-[var(--color-clay-blue)] text-white border-[var(--color-clay-blue)] shadow-md"
-                          : "bg-white dark:bg-gray-800 text-[var(--color-text-mid)] border-gray-200 dark:border-gray-700 hover:border-[var(--color-clay-blue)]/40"
-                      }`}
-                    >
-                      {scenario}
-                      <span
-                        className={`${active ? "opacity-80" : "opacity-60"}`}
-                      >
-                        {count}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* 清除全部 + 結果摘要 */}
-          {hasActiveFilters && (
-            <div className="flex items-center justify-between gap-3 mt-3 text-sm">
-              <span className="text-[var(--color-text-mid)] font-semibold">
-                找到{" "}
-                <strong className="text-[var(--color-text-dark)]">
-                  {filteredTools.length}
-                </strong>{" "}
-                個工具
-              </span>
-              <button
-                onClick={clearAllFilters}
-                className="text-[var(--color-clay-purple)] font-bold hover:underline"
-              >
-                清除全部篩選 ✕
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* === 工具網格 === */}
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 opacity-60">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div
-                key={i}
-                className="bg-white dark:bg-gray-800 rounded-[24px] p-5 h-[260px] border border-gray-200 dark:border-gray-700 animate-pulse"
-              >
-                <div className="w-14 h-14 bg-gray-200 dark:bg-gray-600 rounded-2xl mb-4" />
-                <div className="w-3/4 h-5 bg-gray-200 dark:bg-gray-600 rounded-lg mb-2" />
-                <div className="w-1/2 h-5 bg-gray-200 dark:bg-gray-600 rounded-lg" />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {filteredTools.map((t) => (
-              <ToolCard key={t.id} tool={t} />
-            ))}
-            {filteredTools.length === 0 && (
-              <div className="col-span-full py-20 text-center text-gray-500 dark:text-gray-400 font-bold bg-white dark:bg-gray-800 rounded-[24px] border border-dashed border-gray-300 dark:border-gray-600">
-                {hasActiveFilters
-                  ? "沒有符合篩選條件的工具"
-                  : "目前沒有上架工具"}
-                {hasActiveFilters && (
-                  <div className="mt-3">
-                    <button
-                      onClick={clearAllFilters}
-                      className="text-[var(--color-clay-purple)] font-bold hover:underline text-sm"
-                    >
-                      清除篩選看全部
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ── 已終止工具 (摺疊區) ── */}
-        {!loading && terminatedTools.length > 0 && (
-          <details className="mt-12 max-w-5xl mx-auto group">
-            <summary className="cursor-pointer flex items-center justify-center gap-2 py-3 px-5 rounded-2xl bg-white/60 dark:bg-gray-800/60 border border-dashed border-gray-300 dark:border-gray-600 text-sm font-bold text-[var(--color-text-mid)] hover:bg-white dark:hover:bg-gray-800 transition list-none">
-              <span className="text-base">🗄️</span>
-              <span>已終止的工具</span>
-              <span className="text-xs opacity-70">
-                ({terminatedTools.length})
-              </span>
-              <span className="text-xs opacity-50 group-open:rotate-180 transition-transform">
-                ▾
-              </span>
-            </summary>
-            <div className="mt-5 pl-4 border-l-2 border-gray-200 dark:border-gray-700">
-              <p className="text-xs text-[var(--color-text-mid)] mb-4 italic">
-                這些工具已停止維護或已整合到別的工具裡，保留作為歷史紀錄。
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 opacity-75">
-                {terminatedTools.map((t) => (
-                  <ToolCard key={t.id} tool={t} />
-                ))}
-              </div>
-            </div>
-          </details>
         )}
       </section>
 
@@ -606,7 +330,7 @@ export default function Home() {
           </p>
           <div className="flex gap-4 flex-wrap justify-center mb-6">
             <Link
-              href="#tools"
+              href="/hub"
               className="px-8 py-4 rounded-full bg-gradient-to-br from-[var(--color-clay-purple)] to-[var(--color-clay-blue)] text-white font-extrabold text-base shadow-[0_6px_20px_rgba(167,139,250,0.45)] hover:-translate-y-1 hover:shadow-[0_12px_30px_rgba(167,139,250,0.55)] transition-all"
             >
               🔧 找現有工具
