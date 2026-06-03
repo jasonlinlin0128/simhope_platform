@@ -18,6 +18,7 @@ export default function Navbar() {
   const { user, isAdmin, loading } = useAuth();
   const { isDark, toggle } = useTheme();
   const [showLogin, setShowLogin] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <>
@@ -80,6 +81,15 @@ export default function Navbar() {
             找工具 →
           </Link>
 
+          {/* Hamburger (mobile only) */}
+          <button
+            onClick={() => setMenuOpen((o) => !o)}
+            className="md:hidden w-9 h-9 rounded-full border border-gray-200 dark:border-gray-600 flex items-center justify-center text-lg"
+            aria-label="選單"
+          >
+            ☰
+          </button>
+
           {/* Dark mode toggle */}
           <button
             onClick={toggle}
@@ -95,7 +105,7 @@ export default function Navbar() {
               onClick={() => setShowLogin(true)}
               className="px-4 py-2 rounded-full border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 font-bold text-[0.82rem] text-gray-600 dark:text-gray-300 hover:-translate-y-0.5 hover:shadow-md transition-all"
             >
-              👨‍💻 開發者登入
+              登入👨‍💻 / 註冊🔑
             </button>
           )}
 
@@ -117,6 +127,70 @@ export default function Navbar() {
           )}
         </div>
       </nav>
+
+      {menuOpen && (
+        <div className="md:hidden bg-[var(--color-nav-bg)] border-b border-[var(--color-nav-border)] px-6 py-4 flex flex-col gap-3 text-sm font-bold text-gray-600 dark:text-gray-300">
+          <Link href="/hub" onClick={() => setMenuOpen(false)}>
+            資源中心
+          </Link>
+          <Link href="/docs" onClick={() => setMenuOpen(false)}>
+            文件
+          </Link>
+          <Link href="/faq" onClick={() => setMenuOpen(false)}>
+            FAQ
+          </Link>
+          <Link href="/changelog" onClick={() => setMenuOpen(false)}>
+            更新日誌
+          </Link>
+          <Link href="/#about" onClick={() => setMenuOpen(false)}>
+            關於這個平台
+          </Link>
+          <Link href="/#feedback" onClick={() => setMenuOpen(false)}>
+            同仁回饋
+          </Link>
+          <Link
+            href="/hub"
+            onClick={() => setMenuOpen(false)}
+            className="text-[var(--color-clay-purple)]"
+          >
+            🔧 找工具
+          </Link>
+          <div className="h-px bg-[var(--color-nav-border)]" />
+          {!loading && !user && (
+            <button
+              onClick={() => {
+                setMenuOpen(false);
+                setShowLogin(true);
+              }}
+              className="text-left text-[var(--color-clay-purple)]"
+            >
+              登入👨‍💻 / 註冊🔑
+            </button>
+          )}
+          {!loading && user && (
+            <>
+              <Link
+                href={isAdmin ? "/admin" : "/dashboard"}
+                onClick={() => setMenuOpen(false)}
+              >
+                🛠️ {isAdmin ? "管理後台" : "我的工具"}
+              </Link>
+              <button
+                onClick={() => {
+                  setMenuOpen(false);
+                  signOut(auth);
+                }}
+                className="text-left text-red-500"
+              >
+                登出
+              </button>
+            </>
+          )}
+          <button onClick={toggle} className="text-left">
+            {isDark ? "☀️ 淺色" : "🌙 深色"}
+          </button>
+        </div>
+      )}
 
       {showLogin && <LoginModal onClose={() => setShowLogin(false)} />}
     </>
