@@ -7,6 +7,7 @@ import CategoryEntryCard from "@/components/CategoryEntryCard";
 import MetricsBand from "@/components/MetricsBand";
 import PainCard, { PAIN_CATEGORIES } from "@/components/PainCard";
 import Link from "next/link";
+import RequestButton from "@/components/RequestButton";
 
 const TESTIMONIALS = [
   {
@@ -335,12 +336,9 @@ export default function Home() {
             >
               🔧 找現有工具
             </Link>
-            <a
-              href="mailto:jasonlin@simhope.com.tw?subject=AI工具需求"
-              className="px-8 py-4 rounded-full bg-white dark:bg-gray-700 text-[var(--color-text-dark)] dark:text-gray-100 font-extrabold text-base border-2 border-[#1e1b4b]/15 dark:border-white/10 shadow-sm hover:-translate-y-1 hover:shadow-md transition-all"
-            >
+            <RequestButton className="px-8 py-4 rounded-full bg-white dark:bg-gray-700 text-[var(--color-text-dark)] dark:text-gray-100 font-extrabold text-base border-2 border-[#1e1b4b]/15 dark:border-white/10 shadow-sm hover:-translate-y-1 hover:shadow-md transition-all cursor-pointer">
               💬 提需求給我
-            </a>
+            </RequestButton>
           </div>
           <p className="text-xs text-[var(--color-text-mid)] opacity-70">
             需求會由經企室評估，不保證每項都能實現，但每條都會看!

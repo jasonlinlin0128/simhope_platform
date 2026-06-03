@@ -64,11 +64,11 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // 申請開發者 / 提需求：只由伺服器端 Admin SDK 寫入（/api/request）；
-    // client 不可寫（防偽造 uid）；admin 可讀（後台看待辦）。
+    // 申請/需求：client 不可建（只 server Admin SDK 建，防偽造）；admin 可讀 + 改 status/刪除
     match /requests/{reqId} {
       allow read: if isAdmin();
-      allow write: if false;
+      allow create: if false;
+      allow update, delete: if isAdmin();
     }
 
     // Passkeys / WebAuthn challenges: 只有 Admin SDK（伺服器端）能存取。
