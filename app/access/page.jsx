@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import RequestModal from "@/components/RequestModal";
+import LoginModal from "@/components/LoginModal";
 
 const ROLES = [
   {
@@ -165,7 +165,7 @@ export default function AccessPage() {
       )}
 
       {showReq && (
-        <RequestModal type="access" onClose={() => setShowReq(false)} />
+        <LoginModal initialTab="register" onClose={() => setShowReq(false)} />
       )}
     </div>
   );
