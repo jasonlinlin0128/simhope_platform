@@ -34,8 +34,9 @@ export default function RequestCard({ onClose }) {
       setSuggestions(data.suggestions || []);
     } catch (e) {
       setErr(e.message || "AI 輔助失敗，請稍後再試");
+    } finally {
+      setAiLoading(false);
     }
-    setAiLoading(false);
   };
 
   const submit = async () => {

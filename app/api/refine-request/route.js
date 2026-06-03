@@ -56,7 +56,7 @@ export async function POST(request) {
       },
     );
     if (!res.ok) {
-      const errBody = await res.json().catch(() => ({}));
+      await res.json().catch(() => ({}));
       return NextResponse.json(
         { error: `AI 服務暫時無法使用 (${res.status})` },
         { status: 502 },
