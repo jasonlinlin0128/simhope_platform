@@ -116,11 +116,9 @@ export default function ReviewToolWizard({ tool, onClose, onSaved }) {
             ? r.tags.join(", ")
             : prev.tags,
         typeData: (() => {
-          const incoming = { ...(r.typeData || {}) };
-          delete incoming.version;
-          delete incoming.fileUrl;
-          delete incoming.skillZipUrl;
-          return { ...prev.typeData, ...incoming };
+          // version/fileUrl/skillZipUrl 已移轉到 versions[]，AI 預填不再寫回
+          const { version, fileUrl, skillZipUrl, ...rest } = r.typeData || {};
+          return { ...prev.typeData, ...rest };
         })(),
       }));
       alert(
