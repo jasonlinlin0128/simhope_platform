@@ -119,6 +119,8 @@ async function main() {
   }
 
   console.log(`\n── 備份 + 寫入 ──\n`);
+  // 單一 batch：每筆 2 ops（備份 set + update），Firestore batch 上限 500
+  // → 安全到 ~250 筆待 seed。目前工具數遠低於此；若日後超過需分批 commit。
   const batch = db.batch();
   const backupRef = db.collection(BACKUP_COLLECTION);
   const toolsRef = db.collection("tools");
