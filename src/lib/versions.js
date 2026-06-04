@@ -5,10 +5,14 @@
 /** 目前版（陣列最後一筆）。無版本回 null。 */
 export function latestVersion(tool) {
   const vs = tool?.versions;
-  return Array.isArray(vs) && vs.length ? vs[vs.length - 1] : null;
+  return Array.isArray(vs) && vs.length ? vs.at(-1) : null;
 }
 
-/** 目前版號字串（給「版本：」標籤）。fallback 舊 typeData.version；都無回空字串。 */
+/**
+ * 目前版號字串（給「版本：」標籤）。fallback 舊 typeData.version；都無回空字串。
+ * 註：草稿列（version === ""）視為「未填」，會 fall through 到 typeData.version
+ * — 此處刻意用 ||（非 ??），別改成 ??。
+ */
 export function latestVersionLabel(tool) {
   return latestVersion(tool)?.version || tool?.typeData?.version || "";
 }

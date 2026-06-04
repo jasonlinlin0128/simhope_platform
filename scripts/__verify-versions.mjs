@@ -21,6 +21,11 @@ assert.equal(
 // 空 versions → fallback typeData.version
 assert.equal(latestVersionLabel({ typeData: { version: "v9" } }), "v9");
 assert.equal(latestVersionLabel({}), "");
+// 草稿列（version === ""）視為未填 → fall through 到 typeData.version（鎖 || 語意）
+assert.equal(
+  latestVersionLabel({ versions: [{ version: "" }], typeData: { version: "v3" } }),
+  "v3",
+);
 assert.equal(
   lastUpdatedDate({ versions: [{ date: "2026-01-01" }, { date: "2026-06-05" }] }),
   "2026-06-05",
