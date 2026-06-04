@@ -77,6 +77,7 @@ export default function VersionEditor({
                 disabled={idx === 0}
                 className="w-7 h-7 rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 disabled:opacity-25 text-sm"
                 title="上移"
+                aria-label="上移此版"
               >
                 ↑
               </button>
@@ -86,6 +87,7 @@ export default function VersionEditor({
                 disabled={idx === versions.length - 1}
                 className="w-7 h-7 rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 disabled:opacity-25 text-sm"
                 title="下移"
+                aria-label="下移此版"
               >
                 ↓
               </button>
@@ -94,6 +96,7 @@ export default function VersionEditor({
                 onClick={() => delRow(idx)}
                 className="w-7 h-7 rounded-lg bg-red-50 text-red-400 hover:bg-red-100 text-sm"
                 title="刪除此版"
+                aria-label="刪除此版"
               >
                 ✕
               </button>
