@@ -68,19 +68,33 @@ export default function RequestCard({ onClose }) {
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
       <div
-        className="bg-[var(--color-card-bg)] rounded-3xl p-6 w-full max-w-2xl shadow-xl"
+        className="relative bg-[var(--color-card-bg)] rounded-3xl p-6 w-full max-w-2xl shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-between items-center mb-4">
+        {/* 右上角凸出的圓角小卡片：關閉 */}
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="關閉"
+          className="absolute -right-3 -top-3 flex h-9 w-9 items-center justify-center rounded-2xl border border-[var(--color-card-border)] bg-[var(--color-card-bg)] text-[var(--color-text-mid)] shadow-lg transition hover:text-[var(--color-text-dark)] hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-clay-purple)]/40"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="16"
+            height="16"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            aria-hidden="true"
+          >
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
+        </button>
+        <div className="mb-4">
           <h3 className="font-black text-lg text-[var(--color-text-dark)]">
             提需求 / 想要的工具
           </h3>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-700 text-xl"
-          >
-            ✕
-          </button>
         </div>
 
         {done ? (

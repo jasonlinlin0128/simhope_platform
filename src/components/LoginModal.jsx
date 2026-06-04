@@ -176,7 +176,27 @@ export default function LoginModal({ onClose, initialTab = "login" }) {
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="bg-[var(--color-card-bg)] rounded-3xl shadow-2xl border border-[var(--color-card-border)] w-full max-w-sm mx-4 p-8 flex flex-col gap-5">
+      <div className="relative bg-[var(--color-card-bg)] rounded-3xl shadow-2xl border border-[var(--color-card-border)] w-full max-w-sm mx-4 p-8 flex flex-col gap-5">
+        {/* 右上角凸出的圓角小卡片：關閉 */}
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="關閉"
+          className="absolute -right-3 -top-3 flex h-9 w-9 items-center justify-center rounded-2xl border border-[var(--color-card-border)] bg-[var(--color-card-bg)] text-[var(--color-text-mid)] shadow-lg transition hover:text-[var(--color-text-dark)] hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-clay-purple)]/40"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="16"
+            height="16"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            aria-hidden="true"
+          >
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
+        </button>
         {/* tab bar */}
         <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
           {[
@@ -194,12 +214,6 @@ export default function LoginModal({ onClose, initialTab = "login" }) {
               {lbl}
             </button>
           ))}
-          <button
-            onClick={onClose}
-            className="w-8 text-gray-400 hover:text-gray-700 text-lg"
-          >
-            ✕
-          </button>
         </div>
 
         {error && (
