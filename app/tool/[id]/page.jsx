@@ -12,6 +12,9 @@ import { getStatusLabel } from "@/components/ToolCard";
 import UploadButton from "@/components/UploadButton";
 import { TYPE_ACTION, getTabsForType, defaultTabForType } from "@/lib/taxonomy";
 import Accordion from "@/components/Accordion";
+import VersionEditor from "@/components/VersionEditor";
+import VersionHistory from "@/components/VersionHistory";
+import { latestVersionLabel } from "@/lib/versions";
 
 // ─── Block type definitions ────────────────────────────────────────────────
 const BLOCK_DEFS = {
@@ -539,8 +542,9 @@ function DetailTabs({ tool, blocks, activeTab, setActiveTab }) {
   const type = tool.type || "webapp";
   const td = tool.typeData || {};
 
-  // 依 type 決定 tabs
-  const tabs = getTabsForType(type);
+  // 依 type 決定 tabs；有版本紀錄才追加「🕒 版本」tab
+  const tabs = [...getTabsForType(type)];
+  if (tool.versions?.length) tabs.push({ key: "versions", label: "🕒 版本" });
 
   // 修正 active tab：若當前 active 不在 tabs 列表中，退回第一個
   const activeKey = tabs.some((t) => t.key === activeTab)
@@ -577,6 +581,9 @@ function DetailTabs({ tool, blocks, activeTab, setActiveTab }) {
         <AdvancedSetupTab tool={tool} td={td} type={type} />
       )}
       {activeKey === "detail" && <DetailTab tool={tool} blocks={blocks} />}
+      {activeKey === "versions" && (
+        <VersionHistory versions={tool.versions || []} />
+      )}
     </div>
   );
 }
@@ -633,7 +640,8 @@ function DeployInfoTab({ td }) {
 // ─── 「快速安裝」tab — download / doc / mcp 顯示 ─────────────────────────────
 function QuickInstallTab({ tool, td, type }) {
   if (type === "skill") {
-    const zip = td.skillZipUrl || tool.url || "";
+    const zip =
+      tool.versions?.at(-1)?.fileUrl || td.skillZipUrl || tool.url || "";
     const installPath = td.installPath || "~/.claude/skills/";
     return (
       <div className="flex flex-col gap-5">
@@ -660,10 +668,10 @@ function QuickInstallTab({ tool, td, type }) {
               .zip 還沒上傳，請聯絡作者或看詳細說明。
             </p>
           )}
-          {td.version && (
+          {latestVersionLabel(tool) && (
             <p className="text-sm text-[var(--color-text-mid)] mt-3">
               <strong>版本：</strong>
-              {td.version}
+              {latestVersionLabel(tool)}
             </p>
           )}
         </div>
@@ -700,8 +708,8 @@ function QuickInstallTab({ tool, td, type }) {
     );
   }
 
-  // download / doc 共用
-  const url = tool.url || td.fileUrl || tool.versions?.at(-1)?.fileUrl || "";
+  // download / doc 共用 — 最新版檔最優先，再 fallback 舊欄位
+  const url = tool.versions?.at(-1)?.fileUrl || tool.url || td.fileUrl || "";
   const cta = TYPE_ACTION[type] || TYPE_ACTION.download;
   return (
     <div className="flex flex-col gap-4">
@@ -725,10 +733,10 @@ function QuickInstallTab({ tool, td, type }) {
           {td.platform}
         </p>
       )}
-      {td.version && (
+      {latestVersionLabel(tool) && (
         <p className="text-sm text-[var(--color-text-mid)]">
           <strong>版本：</strong>
-          {td.version}
+          {latestVersionLabel(tool)}
         </p>
       )}
     </div>
@@ -857,6 +865,8 @@ export default function ToolDetail({ params }) {
 
   const [localBlocks, setLocalBlocks] = useState([]);
   const [localExtras, setLocalExtras] = useState({ url: "", type: "webapp" });
+  const [localVersions, setLocalVersions] = useState([]);
+  const todayYMD = new Date().toISOString().slice(0, 10);
 
   const fetchTool = useCallback(async () => {
     try {
@@ -880,6 +890,7 @@ export default function ToolDetail({ params }) {
       );
       setLocalBlocks(blocks);
       setLocalExtras({ url: data.url || "", type: data.type || "webapp" });
+      setLocalVersions(Array.isArray(data.versions) ? data.versions : []);
       // 預設 tab：依 type 決定（embedded→deploy；download/doc/mcp/skill→quick；其他→detail）
       setActiveTab(defaultTabForType(data.type || "webapp"));
     } catch (e) {
@@ -928,6 +939,7 @@ export default function ToolDetail({ params }) {
         blog: { ...tool.blog, blocks: localBlocks },
         url: localExtras.url,
         type: localExtras.type,
+        versions: localVersions,
         updatedAt: new Date(),
       });
       alert("儲存成功！");
@@ -983,6 +995,9 @@ export default function ToolDetail({ params }) {
                       (tool.blog?.blocks || []).map((b) =>
                         b.id ? b : { ...b, id: crypto.randomUUID() },
                       ),
+                    );
+                    setLocalVersions(
+                      Array.isArray(tool.versions) ? tool.versions : [],
                     );
                   }}
                   className="px-5 py-2.5 rounded-full bg-[var(--color-card-bg)] font-extrabold text-[var(--color-text-mid)] border border-[var(--color-card-border)] transition-all"
@@ -1068,9 +1083,9 @@ export default function ToolDetail({ params }) {
             (() => {
               const url =
                 tool.type === "download"
-                  ? tool.url ||
+                  ? tool.versions?.at(-1)?.fileUrl ||
+                    tool.url ||
                     tool.typeData?.fileUrl ||
-                    tool.versions?.at(-1)?.fileUrl ||
                     ""
                   : tool.url;
               const isDisabled = ["dev", "pending"].includes(tool.status);
@@ -1162,6 +1177,14 @@ export default function ToolDetail({ params }) {
                     </button>
                   ))}
                 </div>
+              </div>
+              <div className="mt-10 pt-8 border-t-2 border-[var(--color-clay-purple)]/20">
+                <VersionEditor
+                  versions={localVersions}
+                  type={localExtras.type}
+                  onChange={setLocalVersions}
+                  todayYMD={todayYMD}
+                />
               </div>
             </>
           ) : (
