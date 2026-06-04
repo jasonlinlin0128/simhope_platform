@@ -105,6 +105,7 @@ export function typeBadge(type) {
 // 回傳 { label, href, cls, disabled, external? }
 export function getCTA(tool) {
   const { type = "webapp", status, url, id, typeData = {}, versions } = tool;
+  // versions 約定：舊→新，最後一筆＝目前版（見 src/lib/versions.js）
   const latestFileUrl =
     Array.isArray(versions) && versions.length
       ? versions[versions.length - 1].fileUrl
