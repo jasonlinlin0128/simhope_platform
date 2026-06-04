@@ -643,6 +643,7 @@ function QuickInstallTab({ tool, td, type }) {
     const zip =
       tool.versions?.at(-1)?.fileUrl || td.skillZipUrl || tool.url || "";
     const installPath = td.installPath || "~/.claude/skills/";
+    const verLabel = latestVersionLabel(tool);
     return (
       <div className="flex flex-col gap-5">
         <div className="bg-gradient-to-br from-fuchsia-50 to-white dark:from-fuchsia-900/10 dark:to-transparent border-2 border-fuchsia-200 dark:border-fuchsia-800/40 rounded-2xl p-6">
@@ -668,10 +669,10 @@ function QuickInstallTab({ tool, td, type }) {
               .zip 還沒上傳，請聯絡作者或看詳細說明。
             </p>
           )}
-          {latestVersionLabel(tool) && (
+          {verLabel && (
             <p className="text-sm text-[var(--color-text-mid)] mt-3">
               <strong>版本：</strong>
-              {latestVersionLabel(tool)}
+              {verLabel}
             </p>
           )}
         </div>
@@ -711,6 +712,7 @@ function QuickInstallTab({ tool, td, type }) {
   // download / doc 共用 — 最新版檔最優先，再 fallback 舊欄位
   const url = tool.versions?.at(-1)?.fileUrl || tool.url || td.fileUrl || "";
   const cta = TYPE_ACTION[type] || TYPE_ACTION.download;
+  const verLabel = latestVersionLabel(tool);
   return (
     <div className="flex flex-col gap-4">
       {url ? (
@@ -733,10 +735,10 @@ function QuickInstallTab({ tool, td, type }) {
           {td.platform}
         </p>
       )}
-      {latestVersionLabel(tool) && (
+      {verLabel && (
         <p className="text-sm text-[var(--color-text-mid)]">
           <strong>版本：</strong>
-          {latestVersionLabel(tool)}
+          {verLabel}
         </p>
       )}
     </div>
