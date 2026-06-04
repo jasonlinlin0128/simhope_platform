@@ -31,7 +31,7 @@ service cloud.firestore {
           && !('role' in request.resource.data.diff(resource.data).affectedKeys())) ||
         isAdmin()
       );
-      // 不開放 delete
+      allow delete: if isAdmin();
     }
 
     // Tools: 公開可讀，developer/admin 可建立，只有作者或 admin 可修改/刪除
