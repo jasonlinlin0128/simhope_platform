@@ -101,6 +101,22 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleRemoveUser = async (u) => {
+    if (u.id === user.uid) return; // 不能移除自己
+    if (
+      !confirm(
+        `確定移除 ${u.displayName || u.email || u.id} 的權限？\n該帳號會降回一般同仁（viewer），仍可瀏覽/使用工具。`,
+      )
+    )
+      return;
+    try {
+      await deleteDoc(doc(db, "users", u.id));
+      setUsers((prev) => prev.filter((x) => x.id !== u.id));
+    } catch (e) {
+      alert("移除失敗：" + (e.code || e.message));
+    }
+  };
+
   const handleUpdateToolStatus = async (id, status) => {
     try {
       await updateDoc(doc(db, "tools", id), { status });
@@ -464,6 +480,16 @@ export default function AdminDashboard() {
                           (目前帳號)
                         </span>
                       )}
+                      <button
+                        onClick={() => handleRemoveUser(u)}
+                        disabled={u.id === user.uid}
+                        className="px-3 py-2 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm font-bold hover:bg-red-100 dark:hover:bg-red-900/40 transition disabled:opacity-40 disabled:cursor-not-allowed"
+                        title={
+                          u.id === user.uid ? "不能移除自己" : "移除此帳號權限"
+                        }
+                      >
+                        🗑 移除
+                      </button>
                     </div>
                   </div>
                 ))}

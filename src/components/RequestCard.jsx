@@ -66,10 +66,7 @@ export default function RequestCard({ onClose }) {
   };
 
   return (
-    <div
-      className="fixed inset-0 z-[120] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
       <div
         className="bg-[var(--color-card-bg)] rounded-3xl p-6 w-full max-w-2xl shadow-xl"
         onClick={(e) => e.stopPropagation()}
