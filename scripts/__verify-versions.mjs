@@ -38,4 +38,42 @@ assert.deepEqual(blankVersionRow("2026-06-05"), {
   fileUrl: "",
 });
 
+// ── getCTA × versions ──
+import { getCTA } from "../src/lib/taxonomy.js";
+
+// download：最新版 fileUrl 優先於舊 url
+const dl = getCTA({
+  type: "download",
+  status: "live",
+  id: "x",
+  url: "https://old/legacy.exe",
+  versions: [
+    { version: "v1", fileUrl: "https://old/v1.exe" },
+    { version: "v2", fileUrl: "https://new/v2.exe" },
+  ],
+});
+assert.equal(dl.href, "https://new/v2.exe");
+
+// download：versions 為空 → fallback 舊 url（不迴歸）
+assert.equal(
+  getCTA({ type: "download", status: "live", id: "x", url: "https://old/legacy.exe" }).href,
+  "https://old/legacy.exe",
+);
+
+// skill：最新版 fileUrl 優先於 typeData.skillZipUrl
+const sk = getCTA({
+  type: "skill",
+  status: "live",
+  id: "x",
+  typeData: { skillZipUrl: "https://z/old.zip" },
+  versions: [{ version: "v1", fileUrl: "https://z/new.zip" }],
+});
+assert.equal(sk.href, "https://z/new.zip");
+
+// skill：versions 空 → fallback skillZipUrl（不迴歸）
+assert.equal(
+  getCTA({ type: "skill", status: "live", id: "x", typeData: { skillZipUrl: "https://z/old.zip" } }).href,
+  "https://z/old.zip",
+);
+
 console.log("✅ versions verify passed");

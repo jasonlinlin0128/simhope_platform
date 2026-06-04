@@ -104,7 +104,11 @@ export function typeBadge(type) {
 // ─── 卡片「一鍵動作」CTA（沿用原 ToolCard.getCTA 邏輯，多加 skill） ───
 // 回傳 { label, href, cls, disabled, external? }
 export function getCTA(tool) {
-  const { type = "webapp", status, url, id, typeData = {} } = tool;
+  const { type = "webapp", status, url, id, typeData = {}, versions } = tool;
+  const latestFileUrl =
+    Array.isArray(versions) && versions.length
+      ? versions[versions.length - 1].fileUrl
+      : undefined;
 
   if (status === "terminated") {
     return {
@@ -132,7 +136,7 @@ export function getCTA(tool) {
   }
   // skill：下載 zip（典型 href 來自 typeData.skillZipUrl）
   if (type === "skill") {
-    const zip = typeData.skillZipUrl || url;
+    const zip = latestFileUrl || typeData.skillZipUrl || url;
     if (!zip) {
       return {
         label: "👀 看詳情 →",
@@ -178,7 +182,8 @@ export function getCTA(tool) {
   };
   const base = ctaByType[type] || ctaByType.webapp;
 
-  if (!url) {
+  const dlUrl = latestFileUrl || url;
+  if (!dlUrl) {
     return {
       label: "👀 看詳情 →",
       href: `/tool/${id}`,
@@ -188,7 +193,7 @@ export function getCTA(tool) {
   }
   return {
     ...base,
-    href: url,
+    href: dlUrl,
     external: ["webapp", "download", "doc", "api"].includes(type),
     disabled: false,
   };
