@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { auth } from "@/lib/firebase";
 import {
   signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
   GoogleAuthProvider,
   signInWithPopup,
 } from "firebase/auth";
@@ -47,6 +48,7 @@ export default function LoginModal({ onClose, initialTab = "login" }) {
   const [error, setError] = useState("");
   const [showPasskey, setShowPasskey] = useState(false);
   const [applied, setApplied] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   useEffect(() => {
     setShowPasskey(passkeySupported());
@@ -63,6 +65,9 @@ export default function LoginModal({ onClose, initialTab = "login" }) {
       "auth/cancelled-popup-request": "請稍候，前一個登入視窗還在處理。",
       "auth/account-exists-with-different-credential":
         "這個 email 已用其他方式註冊，請改用原本的登入方式。",
+      "auth/email-already-in-use": "此 email 已註冊，請改用「登入」分頁。",
+      "auth/weak-password": "密碼至少 6 碼。",
+      "auth/invalid-email": "email 格式不正確。",
     })[err.code] || "操作失敗，請稍後再試。";
 
   // 登入 tab：成功即關閉
@@ -126,6 +131,21 @@ export default function LoginModal({ onClose, initialTab = "login" }) {
       setLoading(false);
     }
   };
+  const handleEmailSignup = async () => {
+    if (!email || !password) return setError("請填寫 email 與密碼");
+    if (password.length < 6) return setError("密碼至少 6 碼");
+    if (password !== confirmPassword) return setError("兩次密碼不一致");
+    setError("");
+    setLoading(true);
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+      // 不關 modal：登入後 user 狀態更新 → 註冊 tab 自動進「填理由」步驟
+    } catch (err) {
+      setError(mapAuthErr(err));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const submitApplication = async () => {
     if (!reason.trim()) return setError("請填寫申請理由");
@@ -155,12 +175,7 @@ export default function LoginModal({ onClose, initialTab = "login" }) {
   const devStatus = profile?.devStatus;
 
   return (
-    <div
-      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-sm"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
+    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-sm">
       <div className="bg-[var(--color-card-bg)] rounded-3xl shadow-2xl border border-[var(--color-card-border)] w-full max-w-sm mx-4 p-8 flex flex-col gap-5">
         {/* tab bar */}
         <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
@@ -293,6 +308,42 @@ export default function LoginModal({ onClose, initialTab = "login" }) {
                     🔐 用 Face ID / 指紋
                   </button>
                 )}
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 h-px bg-[var(--color-card-border)]" />
+                  <span className="text-xs font-bold text-[var(--color-text-mid)]">
+                    或用 email 註冊
+                  </span>
+                  <div className="flex-1 h-px bg-[var(--color-card-border)]" />
+                </div>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="your@simhope.com.tw"
+                  className="w-full px-4 py-2.5 rounded-xl border border-[var(--color-card-border)] bg-[var(--color-card-bg)] text-[var(--color-text-dark)] font-semibold text-sm outline-none focus:border-[var(--color-clay-purple)]"
+                />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="密碼（至少 6 碼）"
+                  className="w-full px-4 py-2.5 rounded-xl border border-[var(--color-card-border)] bg-[var(--color-card-bg)] text-[var(--color-text-dark)] font-semibold text-sm outline-none focus:border-[var(--color-clay-purple)]"
+                />
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="再次輸入密碼"
+                  className="w-full px-4 py-2.5 rounded-xl border border-[var(--color-card-border)] bg-[var(--color-card-bg)] text-[var(--color-text-dark)] font-semibold text-sm outline-none focus:border-[var(--color-clay-purple)]"
+                />
+                <button
+                  type="button"
+                  onClick={handleEmailSignup}
+                  disabled={loading}
+                  className="w-full py-3 rounded-xl bg-gradient-to-br from-[var(--color-clay-purple)] to-[var(--color-clay-blue)] text-white font-extrabold text-sm shadow-md disabled:opacity-60"
+                >
+                  {loading ? "建立中..." : "建立帳號並繼續"}
+                </button>
               </>
             ) : (
               <>
