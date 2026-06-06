@@ -15,6 +15,7 @@ import ArticleDesc from "@/components/ArticleDesc";
 import VersionEditor from "@/components/VersionEditor";
 import VersionHistory from "@/components/VersionHistory";
 import { latestVersionLabel } from "@/lib/versions";
+import AiAssist from "@/components/AiAssist";
 
 // ─── Block type definitions ────────────────────────────────────────────────
 const BLOCK_DEFS = {
@@ -205,7 +206,15 @@ function BlockView({ block }) {
 }
 
 // ─── Edit-mode block editor ────────────────────────────────────────────────
-function BlockEditor({ block, idx, total, onChange, onDelete, onMove }) {
+function BlockEditor({
+  block,
+  idx,
+  total,
+  onChange,
+  onDelete,
+  onMove,
+  context,
+}) {
   const def = BLOCK_DEFS[block.type] || BLOCK_DEFS.text;
   const vid = block.type === "video" ? getYouTubeId(block.content) : null;
 
@@ -451,6 +460,13 @@ function BlockEditor({ block, idx, total, onChange, onDelete, onMove }) {
             <p className="text-xs font-bold text-[var(--color-text-mid)]">
               支援 **粗體**、*斜體*、## 標題、- 清單、`程式碼`
             </p>
+          )}
+          {block.type === "text" && (
+            <AiAssist
+              value={block.content}
+              onAccept={(t) => onChange({ ...block, content: t })}
+              context={context}
+            />
           )}
           <textarea
             value={block.content || ""}
@@ -1094,6 +1110,11 @@ export default function ToolDetail({ params }) {
                     onChange={(updated) => updateBlock(idx, updated)}
                     onDelete={() => deleteBlock(idx)}
                     onMove={moveBlock}
+                    context={{
+                      title: tool.title,
+                      tagline: tool.tagline,
+                      type: tool.type,
+                    }}
                   />
                 ))}
                 <div className="flex flex-wrap gap-2 pt-2 border-t-2 border-dashed border-[var(--color-clay-purple)]/20">
