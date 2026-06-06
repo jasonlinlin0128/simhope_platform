@@ -68,12 +68,34 @@ export async function POST(request) {
   const currentText = String(body.currentText || "").slice(0, 6000);
   const instruction = String(body.instruction || "").slice(0, 6000);
   const sourceUrl = String(body.sourceUrl || "").trim();
-  const context = body.context || {};
+  const rawCtx = body.context || {};
+  const context = {
+    title: String(rawCtx.title || "").slice(0, 200),
+    tagline: String(rawCtx.tagline || "").slice(0, 200),
+    type: String(rawCtx.type || "").slice(0, 40),
+  };
+
+  // ── 空請求擋掉（省 Gemini 額度）──
+  if (mode === "polish" && !currentText) {
+    return NextResponse.json(
+      { error: "請先輸入要潤飾的內容" },
+      { status: 400 },
+    );
+  }
+  if (mode === "generate" && !instruction && !sourceUrl) {
+    return NextResponse.json(
+      { error: "請先輸入指示或來源連結" },
+      { status: 400 },
+    );
+  }
 
   // ── 來源抓取（generate + sourceUrl）：GitHub README 走白名單，其餘走 SSRF-guarded fetch ──
   let sourceText = "";
   if (mode === "generate" && sourceUrl) {
-    const gh = sourceUrl.match(/github\.com\/([^/]+)\/([^/?#]+)/);
+    // 錨定 host 為 github.com（擋 evil.com/github.com/... 之類誤判）
+    const gh = sourceUrl.match(
+      /^https?:\/\/(?:www\.)?github\.com\/([^/]+)\/([^/?#]+)/i,
+    );
     if (gh) {
       try {
         const r = await fetch(
