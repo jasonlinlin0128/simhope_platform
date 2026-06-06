@@ -62,9 +62,54 @@ async function it(name, fn) {
 }
 
 // ===== TESTS START =====
-console.log("smoke:");
-await it("smoke: 未登入讀 tools → ALLOW", async () => {
-  await assertSucceeds(getDoc(doc(anon, "tools", "t_pending")));
+console.log("tools:");
+await it("1. 作者改自己 pending 工具內容 → ALLOW", async () => {
+  await assertSucceeds(
+    updateDoc(doc(dev1, "tools", "t_pending"), { url: "https://x", type: "webapp" }),
+  );
+});
+await it("2. 作者把自己工具 status 改 live（P0） → DENY", async () => {
+  await assertFails(updateDoc(doc(dev1, "tools", "t_pending"), { status: "live" }));
+});
+await it("3. 作者改自己工具 authorUid → DENY", async () => {
+  await assertFails(updateDoc(doc(dev1, "tools", "t_pending"), { authorUid: "dev2" }));
+});
+await it("4. 作者改自己工具 createdAt → DENY", async () => {
+  await assertFails(updateDoc(doc(dev1, "tools", "t_pending"), { createdAt: 9999 }));
+});
+await it("5. admin 改任一工具 status → ALLOW", async () => {
+  await assertSucceeds(updateDoc(doc(admin, "tools", "t_pending"), { status: "beta" }));
+});
+await it("6. admin 改工具 authorUid（轉移） → ALLOW", async () => {
+  await assertSucceeds(updateDoc(doc(admin, "tools", "t_live"), { authorUid: "dev2" }));
+});
+await it("7. 非作者非 admin 改別人的工具 → DENY", async () => {
+  await assertFails(updateDoc(doc(dev2, "tools", "t_pending"), { url: "https://y" }));
+});
+await it("8. developer create status:'live' → DENY", async () => {
+  await assertFails(
+    setDoc(doc(dev1, "tools", "t_new_live"), {
+      authorUid: "dev1", status: "live", createdAt: 1,
+    }),
+  );
+});
+await it("9. developer create status:'pending'、authorUid 自己 → ALLOW", async () => {
+  await assertSucceeds(
+    setDoc(doc(dev1, "tools", "t_new_pending"), {
+      authorUid: "dev1", status: "pending", createdAt: 1,
+    }),
+  );
+});
+await it("10. 作者編輯缺 createdAt 的舊工具內容（不 brick） → ALLOW", async () => {
+  await assertSucceeds(
+    updateDoc(doc(dev1, "tools", "t_legacy_nocreated"), { url: "https://z" }),
+  );
+});
+await it("11. 作者刪自己工具 → ALLOW", async () => {
+  await assertSucceeds(deleteDoc(doc(dev1, "tools", "t_live")));
+});
+await it("12. 非作者刪別人工具 → DENY", async () => {
+  await assertFails(deleteDoc(doc(dev2, "tools", "t_pending")));
 });
 // ===== TESTS END =====
 
