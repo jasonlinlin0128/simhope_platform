@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback, use } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { db } from "@/lib/firebase";
@@ -12,9 +10,12 @@ import { getStatusLabel } from "@/components/ToolCard";
 import UploadButton from "@/components/UploadButton";
 import { TYPE_ACTION, getTabsForType, defaultTabForType } from "@/lib/taxonomy";
 import Accordion from "@/components/Accordion";
+import MarkdownContent from "@/components/MarkdownContent";
+import ArticleDesc from "@/components/ArticleDesc";
 import VersionEditor from "@/components/VersionEditor";
 import VersionHistory from "@/components/VersionHistory";
 import { latestVersionLabel } from "@/lib/versions";
+import AiAssist from "@/components/AiAssist";
 
 // ─── Block type definitions ────────────────────────────────────────────────
 const BLOCK_DEFS = {
@@ -68,71 +69,6 @@ const AUDIO_SOURCES = {
     cls: "bg-gray-100 text-gray-600 border-gray-200",
   },
 };
-
-// ─── Markdown 渲染 ──────────────────────────────────────────────────────────
-// 用 react-markdown + remark-gfm（GitHub Flavored Markdown）取代手寫 renderer
-// 支援 **粗體**、*斜體*、## 標題、- 清單、`code`、表格、連結 etc.
-const mdComponents = {
-  h2: (props) => (
-    <h2
-      className="text-xl font-black mt-6 mb-2 text-[var(--color-text-dark)]"
-      {...props}
-    />
-  ),
-  h3: (props) => (
-    <h3
-      className="text-lg font-extrabold mt-4 mb-1 text-[var(--color-text-dark)]"
-      {...props}
-    />
-  ),
-  ul: (props) => (
-    <ul className="list-disc ml-5 flex flex-col gap-1 my-2" {...props} />
-  ),
-  ol: (props) => (
-    <ol className="list-decimal ml-5 flex flex-col gap-1 my-2" {...props} />
-  ),
-  li: (props) => (
-    <li className="font-bold text-[var(--color-text-dark)]" {...props} />
-  ),
-  p: (props) => (
-    <p
-      className="font-bold text-[var(--color-text-dark)] leading-relaxed mb-2"
-      {...props}
-    />
-  ),
-  strong: (props) => (
-    <strong className="text-[var(--color-clay-purple)]" {...props} />
-  ),
-  code: ({ inline, ...props }) =>
-    inline ? (
-      <code
-        className="bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded text-[0.85em]"
-        {...props}
-      />
-    ) : (
-      <code
-        className="block bg-gray-900 text-gray-100 p-3 rounded-lg text-sm font-mono overflow-x-auto"
-        {...props}
-      />
-    ),
-  a: (props) => (
-    <a
-      className="text-[var(--color-clay-blue)] underline hover:opacity-80"
-      target="_blank"
-      rel="noopener noreferrer"
-      {...props}
-    />
-  ),
-};
-
-function MarkdownContent({ children }) {
-  if (!children) return null;
-  return (
-    <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
-      {children}
-    </ReactMarkdown>
-  );
-}
 
 // ─── YouTube ID extractor ──────────────────────────────────────────────────
 function getYouTubeId(url) {
@@ -270,7 +206,15 @@ function BlockView({ block }) {
 }
 
 // ─── Edit-mode block editor ────────────────────────────────────────────────
-function BlockEditor({ block, idx, total, onChange, onDelete, onMove }) {
+function BlockEditor({
+  block,
+  idx,
+  total,
+  onChange,
+  onDelete,
+  onMove,
+  context,
+}) {
   const def = BLOCK_DEFS[block.type] || BLOCK_DEFS.text;
   const vid = block.type === "video" ? getYouTubeId(block.content) : null;
 
@@ -516,6 +460,13 @@ function BlockEditor({ block, idx, total, onChange, onDelete, onMove }) {
             <p className="text-xs font-bold text-[var(--color-text-mid)]">
               支援 **粗體**、*斜體*、## 標題、- 清單、`程式碼`
             </p>
+          )}
+          {block.type === "text" && (
+            <AiAssist
+              value={block.content}
+              onAccept={(t) => onChange({ ...block, content: t })}
+              context={context}
+            />
           )}
           <textarea
             value={block.content || ""}
@@ -832,11 +783,7 @@ function AdvancedSetupTab({ tool, td, type }) {
 function DetailTab({ tool, blocks }) {
   return (
     <div className="flex flex-col gap-8">
-      {tool.desc && (
-        <div className="max-w-none">
-          <MarkdownContent>{tool.desc}</MarkdownContent>
-        </div>
-      )}
+      {tool.desc && <ArticleDesc desc={tool.desc} />}
       {blocks.length > 0 && (
         <div className="flex flex-col gap-6 border-t border-[var(--color-card-border)] pt-8">
           {blocks.map((block) => (
@@ -1163,6 +1110,11 @@ export default function ToolDetail({ params }) {
                     onChange={(updated) => updateBlock(idx, updated)}
                     onDelete={() => deleteBlock(idx)}
                     onMove={moveBlock}
+                    context={{
+                      title: tool.title,
+                      tagline: tool.tagline,
+                      type: tool.type,
+                    }}
                   />
                 ))}
                 <div className="flex flex-wrap gap-2 pt-2 border-t-2 border-dashed border-[var(--color-clay-purple)]/20">
