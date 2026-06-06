@@ -18,13 +18,20 @@ export const mdComponents = {
       {...props}
     />
   ),
-  ul: (props) => <ul className="flex flex-col gap-2 my-3" {...props} />,
+  // ✦ 記號掛在 ul 上（用 [&>li] 子選擇器），這樣只有無序清單有 ✦；
+  // ol 維持純數字編號，不會變「1. ✦」雙記號。
+  ul: (props) => (
+    <ul
+      className="flex flex-col gap-2 my-3 [&>li]:relative [&>li]:pl-5 [&>li]:before:content-['✦'] [&>li]:before:absolute [&>li]:before:left-0 [&>li]:before:top-0 [&>li]:before:text-[var(--color-clay-purple)] [&>li]:before:text-sm"
+      {...props}
+    />
+  ),
   ol: (props) => (
     <ol className="list-decimal ml-5 flex flex-col gap-2 my-3" {...props} />
   ),
   li: (props) => (
     <li
-      className="font-normal text-[var(--color-text-dark)] leading-[1.85] relative pl-5 before:content-['✦'] before:absolute before:left-0 before:top-0 before:text-[var(--color-clay-purple)] before:text-sm"
+      className="font-normal text-[var(--color-text-dark)] leading-[1.85]"
       {...props}
     />
   ),
