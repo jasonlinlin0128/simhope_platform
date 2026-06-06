@@ -111,6 +111,21 @@ await it("11. 作者刪自己工具 → ALLOW", async () => {
 await it("12. 非作者刪別人工具 → DENY", async () => {
   await assertFails(deleteDoc(doc(dev2, "tools", "t_pending")));
 });
+
+console.log("painCards:");
+await it("13. developer 改自己 painCard approval → DENY", async () => {
+  await assertFails(updateDoc(doc(dev1, "painCards", "pc_dev1"), { approval: "approved" }));
+});
+await it("14. admin 改 painCard approval → ALLOW", async () => {
+  await assertSucceeds(updateDoc(doc(admin, "painCards", "pc1"), { approval: "rejected" }));
+});
+await it("15. developer create painCard approval:'pending' → ALLOW", async () => {
+  await assertSucceeds(
+    setDoc(doc(dev1, "painCards", "pc_new"), {
+      authorUid: "dev1", approval: "pending", before: "b", after: "a",
+    }),
+  );
+});
 // ===== TESTS END =====
 
 await testEnv.cleanup();
