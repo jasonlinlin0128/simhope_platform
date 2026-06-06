@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import MarkdownContent from "@/components/MarkdownContent";
 
 function Section({ heading, items }) {
   return (
@@ -10,18 +9,9 @@ function Section({ heading, items }) {
       <p className="text-xs font-extrabold text-[var(--color-text-mid)] uppercase tracking-wider mb-1">
         {heading}
       </p>
-      <ul className="list-disc ml-5 flex flex-col gap-1 text-sm text-[var(--color-text-mid)] [&_a]:text-[var(--color-clay-blue)] [&_a]:underline [&_code]:bg-gray-100 dark:[&_code]:bg-gray-700 [&_code]:px-1 [&_code]:rounded">
-        {items.map((it, i) => (
-          <li key={i}>
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm]}
-              components={{ p: (p) => <span {...p} /> }}
-            >
-              {it}
-            </ReactMarkdown>
-          </li>
-        ))}
-      </ul>
+      <MarkdownContent>
+        {items.map((it) => `- ${it}`).join("\n")}
+      </MarkdownContent>
     </div>
   );
 }
@@ -33,7 +23,7 @@ function VersionCard({ v }) {
       {/* rail dot */}
       <span className="absolute left-0 top-1.5 w-3 h-3 rounded-full bg-[var(--color-clay-purple)] ring-4 ring-[var(--color-clay-purple)]/15" />
       <div className="flex items-baseline gap-3 flex-wrap mb-1">
-        <span className="font-black text-lg text-[var(--color-text-dark)]">
+        <span className="font-extrabold text-lg text-[var(--color-text-dark)]">
           v{v.version}
         </span>
         <span className="text-sm font-bold text-[var(--color-text-mid)]">
@@ -41,7 +31,7 @@ function VersionCard({ v }) {
         </span>
       </div>
       {v.summary && (
-        <p className="text-sm text-[var(--color-text-mid)] font-semibold leading-relaxed">
+        <p className="text-[var(--color-text-mid)] font-normal leading-relaxed">
           {v.summary}
         </p>
       )}
