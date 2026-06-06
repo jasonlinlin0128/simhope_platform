@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback, use } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { db } from "@/lib/firebase";
@@ -12,6 +10,7 @@ import { getStatusLabel } from "@/components/ToolCard";
 import UploadButton from "@/components/UploadButton";
 import { TYPE_ACTION, getTabsForType, defaultTabForType } from "@/lib/taxonomy";
 import Accordion from "@/components/Accordion";
+import MarkdownContent from "@/components/MarkdownContent";
 import VersionEditor from "@/components/VersionEditor";
 import VersionHistory from "@/components/VersionHistory";
 import { latestVersionLabel } from "@/lib/versions";
@@ -68,71 +67,6 @@ const AUDIO_SOURCES = {
     cls: "bg-gray-100 text-gray-600 border-gray-200",
   },
 };
-
-// ─── Markdown 渲染 ──────────────────────────────────────────────────────────
-// 用 react-markdown + remark-gfm（GitHub Flavored Markdown）取代手寫 renderer
-// 支援 **粗體**、*斜體*、## 標題、- 清單、`code`、表格、連結 etc.
-const mdComponents = {
-  h2: (props) => (
-    <h2
-      className="text-xl font-black mt-6 mb-2 text-[var(--color-text-dark)]"
-      {...props}
-    />
-  ),
-  h3: (props) => (
-    <h3
-      className="text-lg font-extrabold mt-4 mb-1 text-[var(--color-text-dark)]"
-      {...props}
-    />
-  ),
-  ul: (props) => (
-    <ul className="list-disc ml-5 flex flex-col gap-1 my-2" {...props} />
-  ),
-  ol: (props) => (
-    <ol className="list-decimal ml-5 flex flex-col gap-1 my-2" {...props} />
-  ),
-  li: (props) => (
-    <li className="font-bold text-[var(--color-text-dark)]" {...props} />
-  ),
-  p: (props) => (
-    <p
-      className="font-bold text-[var(--color-text-dark)] leading-relaxed mb-2"
-      {...props}
-    />
-  ),
-  strong: (props) => (
-    <strong className="text-[var(--color-clay-purple)]" {...props} />
-  ),
-  code: ({ inline, ...props }) =>
-    inline ? (
-      <code
-        className="bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded text-[0.85em]"
-        {...props}
-      />
-    ) : (
-      <code
-        className="block bg-gray-900 text-gray-100 p-3 rounded-lg text-sm font-mono overflow-x-auto"
-        {...props}
-      />
-    ),
-  a: (props) => (
-    <a
-      className="text-[var(--color-clay-blue)] underline hover:opacity-80"
-      target="_blank"
-      rel="noopener noreferrer"
-      {...props}
-    />
-  ),
-};
-
-function MarkdownContent({ children }) {
-  if (!children) return null;
-  return (
-    <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
-      {children}
-    </ReactMarkdown>
-  );
-}
 
 // ─── YouTube ID extractor ──────────────────────────────────────────────────
 function getYouTubeId(url) {
