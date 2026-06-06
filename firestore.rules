@@ -74,7 +74,8 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['developer', 'admin']
         && request.resource.data.authorUid == request.auth.uid
         && request.resource.data.approval == 'pending';
-      // 無 client 編輯流程；現存卡無 authorUid。update/delete 一律僅 admin。
+      // 無 client 端 painCard 編輯/刪除流程（前台只讀）；作者自核准 approval 屬越權。
+      // update/delete 一律僅 admin（不開作者分支，避免越權 + 不必要的攻擊面）。
       allow update, delete: if isAdmin();
     }
 
