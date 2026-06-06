@@ -113,8 +113,11 @@ export async function POST(request) {
       }
     } else if (isSafeHttpUrl(sourceUrl)) {
       try {
+        // redirect: manual → 3xx 變 opaqueredirect（r.ok=false）→ 不跟隨轉址，
+        // 擋掉「安全 host 30x 轉到內網」的 redirect-SSRF。
         const r = await fetch(sourceUrl, {
           headers: { "User-Agent": "simhope-platform" },
+          redirect: "manual",
         });
         if (r.ok) sourceText = (await r.text()).slice(0, 6000);
       } catch {
