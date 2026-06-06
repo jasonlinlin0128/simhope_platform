@@ -66,10 +66,10 @@ export default function DocsPage() {
 
       {/* ① 網頁工具 */}
       <section id="web" className="scroll-mt-32 mb-12">
-        <h2 className="text-2xl font-black text-[var(--color-text-dark)] mb-4">
+        <h2 className="text-xl font-extrabold text-[var(--color-text-dark)] mb-4">
           🌐 ① 我只想用工具（網頁，免安裝）
         </h2>
-        <ol className="flex flex-col gap-3 text-[var(--color-text-mid)] font-semibold">
+        <ol className="flex flex-col gap-3 text-[var(--color-text-mid)] font-normal leading-relaxed">
           <li>
             <strong>登入</strong>：用公司 Google 帳號一鍵登入，或用 Face ID /
             指紋（passkey）。
@@ -100,13 +100,13 @@ export default function DocsPage() {
 
       {/* ② MCP / Skill */}
       <section id="ai" className="scroll-mt-32 mb-12">
-        <h2 className="text-2xl font-black text-[var(--color-text-dark)] mb-4">
+        <h2 className="text-xl font-extrabold text-[var(--color-text-dark)] mb-4">
           🧩 ② 把工具裝進我的 AI（Claude Code / Cursor）
         </h2>
-        <p className="text-[var(--color-text-mid)] font-semibold mb-3">
+        <p className="text-[var(--color-text-mid)] font-normal mb-3">
           <strong>前置</strong>：先安裝 Claude Desktop 或 Claude Code / Cursor。
         </p>
-        <ol className="flex flex-col gap-3 text-[var(--color-text-mid)] font-semibold">
+        <ol className="flex flex-col gap-3 text-[var(--color-text-mid)] font-normal leading-relaxed">
           <li>到該工具的詳情頁（MCP / Skill 類別）。</li>
           <li>
             <strong>MCP</strong>：複製詳情頁「🚀 快速安裝」的設定（config
@@ -130,10 +130,10 @@ export default function DocsPage() {
 
       {/* ③ API（誠實占位） */}
       <section id="api" className="scroll-mt-32 mb-12">
-        <h2 className="text-2xl font-black text-[var(--color-text-dark)] mb-4">
+        <h2 className="text-xl font-extrabold text-[var(--color-text-dark)] mb-4">
           🔌 ③ 我要用程式串接（API）
         </h2>
-        <div className="bg-[var(--color-card-bg)] border border-[var(--color-card-border)] rounded-2xl p-5 text-[var(--color-text-mid)] font-semibold">
+        <div className="bg-[var(--color-card-bg)] border border-[var(--color-card-border)] rounded-2xl p-5 text-[var(--color-text-mid)] font-normal leading-relaxed">
           <p>
             目前 API 串接採<strong>個案處理</strong>
             （尚無公開金鑰申請流程）。需要程式串接？請從{" "}
