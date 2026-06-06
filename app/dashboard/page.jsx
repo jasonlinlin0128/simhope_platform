@@ -189,7 +189,7 @@ export default function Dashboard() {
 
   return (
     <div className="px-4 md:px-0 flex flex-col gap-10">
-      <div className="flex justify-between items-end border-b-2 border-gray-100 dark:border-gray-700 pb-4">
+      <div className="flex justify-between items-end border-b-2 border-[var(--color-card-border)] pb-4">
         <div>
           <h2 className="text-3xl font-black text-[var(--color-text-dark)]">
             你好, {user?.displayName} 👋

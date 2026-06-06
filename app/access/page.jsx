@@ -76,7 +76,7 @@ export default function AccessPage() {
           return (
             <div
               key={r.key}
-              className={`rounded-3xl p-6 border-2 ${isCurrent ? "border-[var(--color-clay-purple)] bg-[var(--color-clay-purple)]/5" : "border-[var(--color-card-border)] bg-[var(--color-card-bg)]"}`}
+              className={`rounded-2xl p-6 border-2 ${isCurrent ? "border-[var(--color-clay-purple)] bg-[var(--color-clay-purple)]/5" : "border-[var(--color-card-border)] bg-[var(--color-card-bg)]"}`}
             >
               <div className="flex items-center justify-between mb-3">
                 <div>

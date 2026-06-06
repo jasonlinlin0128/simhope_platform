@@ -150,14 +150,14 @@ export default function AdminDashboard() {
 
   return (
     <div className="flex gap-8 px-4 md:px-0">
-      <aside className="w-64 flex-shrink-0 border-r border-gray-200 pr-6 min-h-[500px]">
+      <aside className="w-64 flex-shrink-0 border-r border-[var(--color-card-border)] pr-6 min-h-[500px]">
         <h3 className="text-lg font-black text-[var(--color-clay-purple)] mb-6 flex items-center gap-2">
           <span className="text-2xl">🏭</span> Admin 後台
         </h3>
         <nav className="flex flex-col gap-2">
           <button
             onClick={() => setActiveTab("tools")}
-            className={`w-full text-left px-4 py-3 rounded-xl font-bold transition-all ${activeTab === "tools" ? "bg-[var(--color-clay-purple)] text-white shadow-md" : "text-gray-600 hover:bg-gray-100"}`}
+            className={`w-full text-left px-4 py-3 rounded-xl font-bold transition-all ${activeTab === "tools" ? "bg-[var(--color-clay-purple)] text-white shadow-md" : "text-[var(--color-text-mid)] hover:bg-gray-100"}`}
           >
             🧰 工具管理{" "}
             <span className="float-right bg-white/20 px-2 rounded-full text-xs py-0.5">
@@ -166,7 +166,7 @@ export default function AdminDashboard() {
           </button>
           <button
             onClick={() => setActiveTab("pains")}
-            className={`w-full text-left px-4 py-3 rounded-xl font-bold transition-all ${activeTab === "pains" ? "bg-[var(--color-clay-purple)] text-white shadow-md" : "text-gray-600 hover:bg-gray-100"}`}
+            className={`w-full text-left px-4 py-3 rounded-xl font-bold transition-all ${activeTab === "pains" ? "bg-[var(--color-clay-purple)] text-white shadow-md" : "text-[var(--color-text-mid)] hover:bg-gray-100"}`}
           >
             😤 痛點卡片管理{" "}
             <span className="float-right bg-white/20 px-2 rounded-full text-xs py-0.5">
@@ -175,7 +175,7 @@ export default function AdminDashboard() {
           </button>
           <button
             onClick={() => setActiveTab("users")}
-            className={`w-full text-left px-4 py-3 rounded-xl font-bold transition-all ${activeTab === "users" ? "bg-[var(--color-clay-purple)] text-white shadow-md" : "text-gray-600 hover:bg-gray-100"}`}
+            className={`w-full text-left px-4 py-3 rounded-xl font-bold transition-all ${activeTab === "users" ? "bg-[var(--color-clay-purple)] text-white shadow-md" : "text-[var(--color-text-mid)] hover:bg-gray-100"}`}
           >
             👥 帳號管理{" "}
             <span className="float-right bg-white/20 px-2 rounded-full text-xs py-0.5">
@@ -184,13 +184,13 @@ export default function AdminDashboard() {
           </button>
           <button
             onClick={() => setActiveTab("faqs")}
-            className={`w-full text-left px-4 py-3 rounded-xl font-bold transition-all ${activeTab === "faqs" ? "bg-[var(--color-clay-purple)] text-white shadow-md" : "text-gray-600 hover:bg-gray-100"}`}
+            className={`w-full text-left px-4 py-3 rounded-xl font-bold transition-all ${activeTab === "faqs" ? "bg-[var(--color-clay-purple)] text-white shadow-md" : "text-[var(--color-text-mid)] hover:bg-gray-100"}`}
           >
             ❓ FAQ
           </button>
           <button
             onClick={() => setActiveTab("inbox")}
-            className={`w-full text-left px-4 py-3 rounded-xl font-bold transition-all ${activeTab === "inbox" ? "bg-[var(--color-clay-purple)] text-white shadow-md" : "text-gray-600 hover:bg-gray-100"}`}
+            className={`w-full text-left px-4 py-3 rounded-xl font-bold transition-all ${activeTab === "inbox" ? "bg-[var(--color-clay-purple)] text-white shadow-md" : "text-[var(--color-text-mid)] hover:bg-gray-100"}`}
           >
             📥 申請 / 需求
           </button>
@@ -276,7 +276,7 @@ export default function AdminDashboard() {
 
                 {/* === 已上架的工具區塊 === */}
                 <div className="bg-[var(--color-card-bg)] rounded-[24px] shadow-sm border border-[var(--color-card-border)] p-8">
-                  <h2 className="text-2xl font-black mb-6">
+                  <h2 className="text-2xl font-black mb-6 text-[var(--color-text-dark)]">
                     🧰 已上架工具 ({otherTools.length})
                   </h2>
                   <div className="flex flex-col gap-3">
@@ -345,7 +345,9 @@ export default function AdminDashboard() {
 
         {activeTab === "pains" && (
           <div className="bg-[var(--color-card-bg)] rounded-[24px] shadow-sm border border-[var(--color-card-border)] p-8">
-            <h2 className="text-2xl font-black mb-6">😤 痛點卡片管理</h2>
+            <h2 className="text-2xl font-black mb-6 text-[var(--color-text-dark)]">
+              😤 痛點卡片管理
+            </h2>
 
             <div className="flex flex-col gap-4">
               {painCards.map((card) => (
@@ -377,7 +379,9 @@ export default function AdminDashboard() {
           <div className="flex flex-col gap-6">
             {/* Create developer account */}
             <div className="bg-[var(--color-card-bg)] rounded-[24px] shadow-sm border border-[var(--color-card-border)] p-8">
-              <h2 className="text-2xl font-black mb-6">➕ 新增開發者帳號</h2>
+              <h2 className="text-2xl font-black mb-6 text-[var(--color-text-dark)]">
+                ➕ 新增開發者帳號
+              </h2>
               <form
                 onSubmit={handleCreateDeveloper}
                 className="flex flex-col gap-4 max-w-md"
@@ -443,7 +447,9 @@ export default function AdminDashboard() {
 
             {/* User list */}
             <div className="bg-[var(--color-card-bg)] rounded-[24px] shadow-sm border border-[var(--color-card-border)] p-8">
-              <h2 className="text-2xl font-black mb-6">👥 所有帳號</h2>
+              <h2 className="text-2xl font-black mb-6 text-[var(--color-text-dark)]">
+                👥 所有帳號
+              </h2>
               <div className="flex flex-col gap-3">
                 {users.map((u) => (
                   <div
