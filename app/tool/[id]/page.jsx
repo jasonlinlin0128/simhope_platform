@@ -11,6 +11,7 @@ import UploadButton from "@/components/UploadButton";
 import { TYPE_ACTION, getTabsForType, defaultTabForType } from "@/lib/taxonomy";
 import Accordion from "@/components/Accordion";
 import MarkdownContent from "@/components/MarkdownContent";
+import ArticleDesc from "@/components/ArticleDesc";
 import VersionEditor from "@/components/VersionEditor";
 import VersionHistory from "@/components/VersionHistory";
 import { latestVersionLabel } from "@/lib/versions";
@@ -766,11 +767,7 @@ function AdvancedSetupTab({ tool, td, type }) {
 function DetailTab({ tool, blocks }) {
   return (
     <div className="flex flex-col gap-8">
-      {tool.desc && (
-        <div className="max-w-none">
-          <MarkdownContent>{tool.desc}</MarkdownContent>
-        </div>
-      )}
+      {tool.desc && <ArticleDesc desc={tool.desc} />}
       {blocks.length > 0 && (
         <div className="flex flex-col gap-6 border-t border-[var(--color-card-border)] pt-8">
           {blocks.map((block) => (
