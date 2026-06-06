@@ -11,7 +11,7 @@ import RequestButton from "@/components/RequestButton";
 
 const TESTIMONIALS = [
   {
-    color: "#A78BFA",
+    color: "var(--color-clay-purple)",
     stars: 5,
     quote:
       "以前跟泰籍同事講射料頭、鵝頸這些術語，翻譯軟體都翻不準，現在手機開連結直接用，師傅自己就操作，溝通順太多。",
@@ -20,7 +20,7 @@ const TESTIMONIALS = [
     tool: "現場即時翻譯",
   },
   {
-    color: "#34D399",
+    color: "var(--color-clay-blue)",
     stars: 5,
     quote:
       "以前每天填報要 15 分鐘、月底還要人工彙整 Excel，現在 10 分鐘填完、月報自動產，我每天可以準時下班。",
@@ -29,7 +29,7 @@ const TESTIMONIALS = [
     tool: "加工部日報表",
   },
   {
-    color: "#FFD166",
+    color: "var(--color-clay-orange)",
     stars: 4,
     quote:
       "新進來查檢驗標準不用一直問老師傅了，手機直接看 SOP，主管審核後的版本一定準，照著做就對了。",
@@ -38,7 +38,7 @@ const TESTIMONIALS = [
     tool: "SOP-Interface APP",
   },
   {
-    color: "#FF6B6B",
+    color: "var(--color-clay-coral)",
     stars: 5,
     quote:
       "PDF 合併拆分、Excel 清洗、QR Code 產生、檔案重命名⋯⋯以前要裝七八個工具，現在一個 app 全搞定，桌面乾淨多了。",

@@ -1,7 +1,6 @@
 "use client";
 
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import MarkdownContent from "@/components/MarkdownContent";
 
 /**
  * 版本歷史顯示（新→舊）。詳情頁「🕒 版本」tab 用。
@@ -46,13 +45,7 @@ export default function VersionHistory({ versions = [] }) {
               </span>
             )}
           </div>
-          {v.notes && (
-            <div className="text-sm text-[var(--color-text-dark)] font-medium [&_p]:mb-1 [&_ul]:list-disc [&_ul]:ml-5 [&_a]:text-[var(--color-clay-blue)] [&_a]:underline">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {v.notes}
-              </ReactMarkdown>
-            </div>
-          )}
+          {v.notes && <MarkdownContent>{v.notes}</MarkdownContent>}
           {v.fileUrl && (
             <a
               href={v.fileUrl}

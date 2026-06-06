@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import MarkdownContent from "@/components/MarkdownContent";
 
 /**
  * 共用 accordion — /faq 頁與工具詳情頁的 faq block 都用這顆。
@@ -33,10 +32,8 @@ export default function Accordion({ items = [] }) {
               </span>
             </button>
             {open && (
-              <div className="px-5 pb-5 pt-1 text-sm text-[var(--color-text-mid)] leading-relaxed border-t border-[var(--color-card-border)] [&_a]:text-[var(--color-clay-blue)] [&_a]:underline [&_ul]:list-disc [&_ul]:ml-5 [&_ol]:list-decimal [&_ol]:ml-5 [&_code]:bg-gray-100 dark:[&_code]:bg-gray-700 [&_code]:px-1 [&_code]:rounded">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {item.a || ""}
-                </ReactMarkdown>
+              <div className="px-5 pb-4 pt-1 border-t border-[var(--color-card-border)]">
+                <MarkdownContent>{item.a || ""}</MarkdownContent>
               </div>
             )}
           </div>

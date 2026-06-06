@@ -78,7 +78,7 @@ function HubInner() {
           onChange={(e) => setSearchQuery(e.target.value)}
           aria-label="搜尋資源"
           placeholder="🔍 搜尋名稱、描述、關鍵字..."
-          className="w-full pl-5 pr-12 py-3.5 rounded-2xl bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 text-base font-medium focus:border-[var(--color-clay-purple)] focus:outline-none focus:ring-4 focus:ring-[var(--color-clay-purple)]/10 transition-all shadow-sm"
+          className="w-full pl-5 pr-12 py-3.5 rounded-2xl bg-white dark:bg-gray-800 border-2 border-[var(--color-card-border)] text-base font-medium focus:border-[var(--color-clay-purple)] focus:outline-none focus:ring-4 focus:ring-[var(--color-clay-purple)]/10 transition-all shadow-sm"
         />
         {searchQuery && (
           <button
@@ -105,7 +105,7 @@ function HubInner() {
             <ToolCard key={t.id} tool={t} />
           ))}
           {filtered.length === 0 && (
-            <div className="col-span-full py-20 text-center text-gray-500 font-bold bg-white dark:bg-gray-800 rounded-[24px] border border-dashed border-gray-300 dark:border-gray-600">
+            <div className="col-span-full py-20 text-center text-[var(--color-text-mid)] font-bold bg-white dark:bg-gray-800 rounded-[24px] border border-dashed border-gray-300 dark:border-gray-600">
               這個分類目前沒有項目
             </div>
           )}
