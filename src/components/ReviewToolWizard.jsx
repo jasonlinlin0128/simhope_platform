@@ -6,7 +6,7 @@ import Link from "next/link";
 import { db, auth } from "@/lib/firebase";
 import { DEPTS } from "@/lib/db";
 import { CATEGORIES, CATEGORY_ORDER, TYPES } from "@/lib/taxonomy";
-import UploadButton from "@/components/UploadButton";
+import VersionEditor from "@/components/VersionEditor";
 
 const COLOR_OPTIONS = [
   {
@@ -68,8 +68,11 @@ export default function ReviewToolWizard({ tool, onClose, onSaved }) {
     blogSummary: tool.blog?.summary || "",
     // typeData 動態欄位
     typeData: { ...(tool.typeData || {}) },
+    versions: Array.isArray(tool.versions) ? tool.versions : [],
     status: tool.status || "pending",
   });
+
+  const todayYMD = new Date().toISOString().slice(0, 10);
 
   const update = (patch) => setForm((prev) => ({ ...prev, ...patch }));
   const updateTd = (patch) =>
@@ -112,7 +115,11 @@ export default function ReviewToolWizard({ tool, onClose, onSaved }) {
           Array.isArray(r.tags) && r.tags.length
             ? r.tags.join(", ")
             : prev.tags,
-        typeData: { ...prev.typeData, ...(r.typeData || {}) },
+        typeData: (() => {
+          // version/fileUrl/skillZipUrl 已移轉到 versions[]，AI 預填不再寫回
+          const { version, fileUrl, skillZipUrl, ...rest } = r.typeData || {};
+          return { ...prev.typeData, ...rest };
+        })(),
       }));
       alert(
         r._readmeFound
@@ -151,6 +158,7 @@ export default function ReviewToolWizard({ tool, onClose, onSaved }) {
           .filter(Boolean),
         desc: form.desc,
         typeData: form.typeData,
+        versions: form.versions,
         blog: { ...(tool.blog || {}), summary: form.blogSummary },
         updatedAt: serverTimestamp(),
       };
@@ -357,6 +365,16 @@ export default function ReviewToolWizard({ tool, onClose, onSaved }) {
               type={form.type}
               td={form.typeData}
               updateTd={updateTd}
+            />
+          </div>
+
+          {/* 版本歷史（單一真相 versions[]，與詳情頁同一編輯器） */}
+          <div className="bg-[var(--color-card-bg)]/50 border border-dashed border-[var(--color-clay-purple)]/30 rounded-2xl p-4">
+            <VersionEditor
+              versions={form.versions}
+              type={form.type}
+              onChange={(next) => update({ versions: next })}
+              todayYMD={todayYMD}
             />
           </div>
 
@@ -611,19 +629,6 @@ function TypeDataEditor({ type, td, updateTd }) {
   if (type === "download") {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <FormField label="fileUrl（檔案實際下載連結）">
-          <div className="flex gap-2">
-            <input
-              value={td.fileUrl || ""}
-              onChange={(e) => updateTd({ fileUrl: e.target.value })}
-              className="flex-1 bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm font-mono"
-            />
-            <UploadButton
-              pathPrefix="downloads"
-              onUploaded={(url) => updateTd({ fileUrl: url })}
-            />
-          </div>
-        </FormField>
         <FormField label="platform">
           <select
             value={td.platform || ""}
@@ -636,14 +641,6 @@ function TypeDataEditor({ type, td, updateTd }) {
             <option value="linux">Linux</option>
             <option value="crossplatform">Cross-platform</option>
           </select>
-        </FormField>
-        <FormField label="version">
-          <input
-            value={td.version || ""}
-            onChange={(e) => updateTd({ version: e.target.value })}
-            placeholder="v1.2.0"
-            className="w-full bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm"
-          />
         </FormField>
         <FormField label="fileName">
           <input
@@ -660,19 +657,6 @@ function TypeDataEditor({ type, td, updateTd }) {
   if (type === "doc") {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <FormField label="fileUrl">
-          <div className="flex gap-2">
-            <input
-              value={td.fileUrl || ""}
-              onChange={(e) => updateTd({ fileUrl: e.target.value })}
-              className="flex-1 bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm font-mono"
-            />
-            <UploadButton
-              pathPrefix="docs"
-              onUploaded={(url) => updateTd({ fileUrl: url })}
-            />
-          </div>
-        </FormField>
         <FormField label="fileType">
           <select
             value={td.fileType || ""}
@@ -686,14 +670,6 @@ function TypeDataEditor({ type, td, updateTd }) {
             <option value="zip">ZIP</option>
             <option value="other">其他</option>
           </select>
-        </FormField>
-        <FormField label="version">
-          <input
-            value={td.version || ""}
-            onChange={(e) => updateTd({ version: e.target.value })}
-            placeholder="v2026.05"
-            className="w-full bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm"
-          />
         </FormField>
         <FormField label="fileName">
           <input
@@ -813,29 +789,6 @@ function TypeDataEditor({ type, td, updateTd }) {
   if (type === "skill") {
     return (
       <div className="flex flex-col gap-3">
-        <FormField label="skillZipUrl（.zip 下載連結）">
-          <div className="flex gap-2">
-            <input
-              value={td.skillZipUrl || ""}
-              onChange={(e) => updateTd({ skillZipUrl: e.target.value })}
-              placeholder="https://.../my-skill.zip"
-              className="flex-1 bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm font-mono"
-            />
-            <UploadButton
-              pathPrefix="skills"
-              accept=".zip,application/zip"
-              onUploaded={(url) => updateTd({ skillZipUrl: url })}
-            />
-          </div>
-        </FormField>
-        <FormField label="version">
-          <input
-            value={td.version || ""}
-            onChange={(e) => updateTd({ version: e.target.value })}
-            placeholder="v1.0.0"
-            className="w-full bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm"
-          />
-        </FormField>
         <FormField label="installPath">
           <input
             value={td.installPath || ""}
