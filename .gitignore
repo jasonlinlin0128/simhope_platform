@@ -52,3 +52,8 @@ serviceAccountKey.json
 # Claude Code / tooling run artifacts — never commit
 .claude/bash-log.txt
 .playwright-mcp/
+
+# Firebase emulator run artifacts (rules tests) — never commit
+*-debug.log
+/.firebase/
+firebase-export-*/
