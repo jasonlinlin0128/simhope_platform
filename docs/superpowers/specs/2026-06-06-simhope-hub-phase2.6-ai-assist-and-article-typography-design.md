@@ -37,19 +37,27 @@
 
 ### A.3 元件
 
-- 新 `src/components/AiAssist.jsx`（受控）：props `{ value, onAccept(text), context? }`。
+- 新 `src/components/AiAssist.jsx`（受控）：props `{ value, onAccept(text), context }`。
   - 自管 open / instruction / sourceUrl / loading / preview / error 本地 state。
-  - `onAccept(text)` 由 BlockEditor 傳入 → 設該 block 的 `content`。
-- `BlockEditor` 的 `text` 分支：在 textarea 區塊加 `<AiAssist value={block.content} onAccept={(t)=>onChange({...block, content:t})} />`。
+  - `onAccept(text)` 由 BlockEditor 傳入 → 設該 block 的 `content`（**整段覆寫**，預覽再採用，保護原文；append 之後再說 = YAGNI）。
+  - `context` = `{ title, tagline, type }`（工具基本資料，餵進 prompt 讓生成更貼合；非選填，由 BlockEditor 取自 tool）。
+- `BlockEditor` 的 `text` 分支：在 hint `<p>` 後、textarea 前加 `<AiAssist .../>`。
+  - ⚠️ **BlockEditor 目前無 auth context**（只收 `{block,idx,total,onChange,onDelete,onMove}`）。`AiAssist` 內自己 `useAuth()` 取 `user` → `await user.getIdToken()` 當 Bearer（client component，context 可用；不 prop-drill）。
+  - `context` 由詳情頁主元件下傳到 BlockEditor 再到 AiAssist（tool 的 title/tagline/type）。
 
 ### A.4 後端 `POST /api/ai/assist-block`
 
 沿用 `app/api/admin/enrich-tool/route.js` 的結構（Bearer idToken → Identity Toolkit lookup → Firestore users/{uid}.role）。差異：
 
-- **Gating**：`role in ['developer','admin']`（作者也能用；非僅 admin）。未登入 401、角色不符 403。
-- **Body**：`{ mode: 'polish' | 'generate', currentText?, instruction?, sourceUrl? }`。
-- **來源連結抓取**（generate 且有 sourceUrl 時）：複用 enrich 的 GitHub README 抓法；非 GitHub 則 `fetch(sourceUrl)` 取純文字、`.slice(0, 6000)`。抓不到就略過（靠 instruction 生成）。
-- **Gemini**：`gemini-2.5-flash:generateContent`，**純文字回應**（不是 JSON；要的是 markdown 散文）。`temperature` 約 0.7。
+- **Gating**：`role in ['developer','admin']`（enrich 的 `=== 'admin'` 改成 `role==='admin' || role==='developer'`）。未登入 401、角色不符 403。
+- **Rate limit**（review 要求）：複用 `src/lib/rateLimit.js`（同 `/api/refine-request` 用法）——`rateLimit("assist-block:" + clientIp(request), { limit: 10, windowMs: 60000 })`，超過回 429。developer 可用、要擋 Gemini 額度濫用。
+- **Body**：`{ mode: 'polish' | 'generate', currentText?, instruction?, sourceUrl? }`。`currentText`/`instruction` 各 `.slice(0, 6000)`。
+- **🔴 SSRF 防護（review 要求，in-scope）**：`sourceUrl` 是「伺服器去 fetch 任意 URL」——enrich 只打 `api.github.com`，這是新攻擊面。抓取前必須：
+  - 只允許 `http:` / `https:` scheme（其餘直接拒）。
+  - **擋內網 / private host**：解析 hostname，拒 `localhost`、`127.*`、`0.0.0.0`、`10.*`、`172.16–31.*`、`192.168.*`、`169.254.*`、`::1`、`*.local`、無點的純主機名。
+  - GitHub repo URL 走既有 `api.github.com/repos/.../readme`（白名單路徑、最安全）；非 GitHub 才走受限 `fetch(sourceUrl)`。
+- **來源連結抓取**：GitHub → README；其餘 → 受限 `fetch` 取文字、`.slice(0, 6000)`。抓不到就略過（靠 instruction 生成）。
+- **Gemini**：`gemini-2.5-flash:generateContent`，**純文字回應**（不設 `responseMimeType`，要 markdown 散文）。`temperature` 約 0.7、**`maxOutputTokens` 約 1500**（review 要求，防爆量灌進 block/Firestore）。
 - **System prompt（語氣是重點）**：
   > 你是 SimHope 內部 AI 工具平台的內容撰寫助理。用**親切、像在跟一般同仁解釋**的部落格口吻寫——娓娓道來的內文，
   > 寫給**非技術的一般讀者**。**避免**：條列式技術 changelog 腔、整段粗體、堆砌 markdown 標記。
@@ -88,8 +96,12 @@
 - `lead` = 第一個 `## ` 標題前的內容（trim）。
 - `sections` = 每個 `## 標題` 到下一個 `##` 之間，拆成 `{ heading, body }`。
 - 無任何 `## ` → `{ lead: md, sections: [] }`（短文案不強切）。
-- 邊界：標題前後空白、空段落、CRLF 容錯。
-- 斷言：`scripts/__verify-article.mjs`。
+- **邊界（review 要求，全部寫進斷言）**：
+  - **精確錨定 `^## `**（兩個井號 + 空白，行首）：`# H1`、`### H3`、`#### H4`、行中 `##` **都不切段**。
+  - **code fence 內的 `##` 宣告 YAGNI 不處理**（desc 罕見含 code；naive 逐行掃即可）——spec 明記此限制。
+  - **空 body 段落**（`## 標題` 後無內容）：仍輸出該 section，`body: ""`；`ArticleDesc` 渲染時只出標題、不出空 body。
+  - 標題前後空白、空段落、CRLF（`\r\n`）容錯。
+- 斷言：`scripts/__verify-article.mjs`（涵蓋上述每個邊界 + Pattern C 無 `##` 的 fallback）。
 
 ### B.3 新元件 `src/components/ArticleDesc.jsx`
 
@@ -128,12 +140,18 @@ props `{ desc }`，用 `splitMarkdownSections`：
 
 ## 風險與迴歸面
 
-1. **`mdComponents` 全域字重改變**（最大視覺位移）：desc + 所有 `text` block 從「整片粗體」變「正常字重」——
-   要 preview 實際內容確認可讀、不破版、既有內容不依賴粗體呈現。
-2. **`ArticleDesc` 切段**：含 `##` 的長 desc 變多段細線分隔；無 `##` 的 Pattern C 短文案維持單段（lead）——兩條路都要測。
-3. **AI endpoint**：Gemini 額度/延遲；gating 要擋非 developer/admin（401/403）；失敗不可卡死編輯（面板紅字、textarea 照常可手改）。
-4. **AI 語氣**：靠 system prompt + 預覽再採用把關；不直接覆寫作者原文。
-5. **firestore.rules**：不需改（不新增 collection；AI endpoint 不寫 DB，只回文字）。
+1. **`mdComponents` 全域字重改變**（最大視覺位移）：desc + `text` block 從「整片粗體」變「正常字重」——
+   要 preview 確認可讀、不破版、既有內容不依賴粗體呈現。**已驗證範圍**：`mdComponents` 只在 page.jsx 內被
+   `MarkdownContent` 用於 desc(:837) 與 `text` block view(:267)；`VersionHistory`/`Accordion`/`ChangelogTimeline`/
+   `/faq`/`/docs` 各自獨立 ReactMarkdown，**不受影響**。tip/warning view 用自己的 div、也不受影響。
+2. **`ArticleDesc` 兩條路**：含 `##` 的長 desc → 多段細線分隔；**現有 desc 全是 Pattern C（無 `##`）→ 全走單段 lead**。
+   ⚠️ 所以編號分段 UI 上線時對現有資料是 dormant；**驗收要特意造一個含 `##` 的 desc** 才看得到分段路徑。
+3. **Pattern C 在乾淨加粗下掉色彩線索**：`**Before**`/`**After**` 原本靠紫色凸顯，改乾淨加粗後變一般粗體 inline label——
+   **驗收要實際看一個 Pattern C 舊 desc** 確認 Before/After 仍讀得出結構（必要時 lead 內給這兩個標記特別處理）。
+4. **AI endpoint 安全**：① SSRF（任意 `sourceUrl` fetch）→ scheme + private-host 擋（見 A.4）；② `maxOutputTokens` 防爆量；
+   ③ rate limit 防額度濫用；④ gating 擋非 developer/admin（401/403/429）；⑤ 失敗不卡死編輯（面板紅字、textarea 照常可改）。
+5. **AI 語氣 drift**：LLM 可能仍吐重 markdown——靠 system prompt + **預覽再採用**（人把關）兜底，不直接覆寫原文。
+6. **firestore.rules**：不需改（不新增 collection；AI endpoint 不寫 DB，只回文字；users/{uid} read 已允許登入者讀自己）。
 
 ## 不做（YAGNI）
 
@@ -144,11 +162,13 @@ props `{ desc }`，用 `splitMarkdownSections`：
 
 ## 驗收標準
 
-- [ ] `text` block 有「✨ AI」鈕；潤飾與生成皆可用；結果先預覽、按「採用」才填入、「取消」丟棄；輸出讀起來是部落格口吻。
-- [ ] `/api/ai/assist-block`：未登入 401、非 developer/admin 403；GitHub README / 純文字 URL 抓取可用；錯誤回 4xx/5xx 且前端不卡死。
-- [ ] `desc` 文章式呈現：lead 導言 + 細線分隔的編號段落；強調為乾淨加粗（不換色）；無 `##` 的 desc 渲染為單段文章 body。
+- [ ] `text` block 有「✨ AI」鈕；潤飾與生成皆可用；結果先預覽、按「採用」才整段填入、「取消」丟棄；輸出讀起來是部落格口吻。
+- [ ] `/api/ai/assist-block`：未登入 401、非 developer/admin 403、超量 429；GitHub README / 純文字 URL 抓取可用；
+      **SSRF 擋掉**（`file:`/內網 host 被拒）；`maxOutputTokens` 生效；錯誤回 4xx/5xx 且前端不卡死。
+- [ ] `desc` 文章式呈現：**用一個含 `##` 的 desc** 驗 lead 導言 + 細線分隔編號段落；**用一個 Pattern C 舊 desc** 驗單段 + Before/After 仍好讀；強調為乾淨加粗（不換色）。
 - [ ] `text` block 吃到新 typography（正常字重內文、乾淨加粗）；tip/warning/steps/faq/image/video 無迴歸。
-- [ ] `node scripts/__verify-article.mjs` 通過；`npm run build` + `npm run lint`（touched 檔無新增錯誤）；preview 目視 desc + text block 體感符合 mock v2。
+- [ ] `node scripts/__verify-article.mjs` 通過（含 `^## ` 精確錨定 / `#`·`###` 不切 / 空 body / Pattern C fallback 邊界）；
+      `npm run build` + `npm run lint`（新檔全清、既有檔無新增錯誤）；preview 目視 desc + text block 體感符合 mock v2。
 
 ## 實作引擎
 
