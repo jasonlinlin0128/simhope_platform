@@ -19,6 +19,15 @@ assert.equal(isSafeHttpUrl("http://169.254.169.254/latest/meta-data"), false); /
 assert.equal(isSafeHttpUrl("http://[::1]/x"), false);
 assert.equal(isSafeHttpUrl("http://intranet/x"), false); // 純主機名
 assert.equal(isSafeHttpUrl("http://printer.local/x"), false);
+// 尾點 / 大小寫繞過
+assert.equal(isSafeHttpUrl("http://localhost./admin"), false);
+assert.equal(isSafeHttpUrl("http://127.0.0.1./x"), false);
+assert.equal(isSafeHttpUrl("http://printer.local./x"), false);
+assert.equal(isSafeHttpUrl("http://LOCALHOST/x"), false);
+// IPv6 loopback / IPv4-mapped / ULA / link-local
+assert.equal(isSafeHttpUrl("http://[::ffff:127.0.0.1]/x"), false);
+assert.equal(isSafeHttpUrl("http://[fd00::1]/x"), false);
+assert.equal(isSafeHttpUrl("http://[fe80::1]/x"), false);
 // 垃圾輸入
 assert.equal(isSafeHttpUrl(""), false);
 assert.equal(isSafeHttpUrl("not a url"), false);
