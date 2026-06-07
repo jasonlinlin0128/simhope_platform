@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireRole } from "@/lib/apiAuth.mjs";
 import { callGemini } from "@/lib/gemini.mjs";
 import { HttpError, handleApiError } from "@/lib/apiError.mjs";
-import { rateLimit, clientIp } from "@/lib/rateLimit";
+import { rateLimit, clientIp } from "@/lib/rateLimit.mjs";
 
 const SYSTEM_PROMPT = `你是一個非常厲害的行銷企劃與產品經理。你要幫內部的開發者撰寫「工具上架文案」。
 使用者會用一句話描述他的小工具，請生出吸引人、白話文的文案，並固定輸出為純 JSON 格式。

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireRole } from "@/lib/apiAuth.mjs";
 import { callGemini } from "@/lib/gemini.mjs";
 import { HttpError, handleApiError } from "@/lib/apiError.mjs";
-import { rateLimit, clientIp } from "@/lib/rateLimit";
+import { rateLimit, clientIp } from "@/lib/rateLimit.mjs";
 
 /**
  * POST /api/admin/enrich-tool

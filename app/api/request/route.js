@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { FieldValue } from "firebase-admin/firestore";
 import { getAdmin } from "@/lib/firebaseAdmin";
 import { notify } from "@/lib/notify";
-import { rateLimit, clientIp } from "@/lib/rateLimit";
+import { rateLimit, clientIp } from "@/lib/rateLimit.mjs";
 
 /**
  * POST /api/request
