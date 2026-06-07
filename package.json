@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:rules": "firebase emulators:exec --only firestore --project demo-simhope-rules \"node firestore.rules.test.mjs\""
   },
   "dependencies": {
     "@simplewebauthn/browser": "^13.3.0",
@@ -22,9 +23,16 @@
     "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^4.0.1",
     "@tailwindcss/postcss": "^4",
     "eslint": "^9",
     "eslint-config-next": "16.2.2",
+    "firebase-tools": "^14.27.0",
     "tailwindcss": "^4"
+  },
+  "overrides": {
+    "@firebase/rules-unit-testing": {
+      "firebase": "$firebase"
+    }
   }
 }

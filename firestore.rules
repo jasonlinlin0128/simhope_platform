@@ -16,6 +16,20 @@ service cloud.firestore {
       return !('role' in data.keys()) || data.role == 'viewer';
     }
 
+    // 欄位不變式：非 admin 編輯自己文件時必須成立。
+    // status / authorUid 用 plain equality（fail-closed：現值缺欄位→error→作者分支false→只有admin能改）。
+    // createdAt 用 guarded（不敏感、舊文件可能缺，避免誤擋內容編輯）。
+    function statusUnchanged() {
+      return request.resource.data.status == resource.data.status;
+    }
+    function authorUidUnchanged() {
+      return request.resource.data.authorUid == resource.data.authorUid;
+    }
+    function createdAtUnchanged() {
+      return !('createdAt' in resource.data.keys())
+        || request.resource.data.createdAt == resource.data.createdAt;
+    }
+
     // Users:
     //   讀：登入即可（admin 後台需列使用者）
     //   建：本人只能建「無 role / viewer」文件（首次 Google 登入自動建）；admin 可建任意 role
@@ -41,7 +55,14 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['developer', 'admin']
         && request.resource.data.authorUid == request.auth.uid
         && request.resource.data.status == 'pending';
-      allow update, delete: if isSignedIn() && (
+      allow update: if isSignedIn() && (
+        ( resource.data.authorUid == request.auth.uid
+          && authorUidUnchanged()
+          && statusUnchanged()
+          && createdAtUnchanged() )
+        || isAdmin()
+      );
+      allow delete: if isSignedIn() && (
         resource.data.authorUid == request.auth.uid || isAdmin()
       );
     }
@@ -53,9 +74,9 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['developer', 'admin']
         && request.resource.data.authorUid == request.auth.uid
         && request.resource.data.approval == 'pending';
-      allow update, delete: if isSignedIn() && (
-        resource.data.authorUid == request.auth.uid || isAdmin()
-      );
+      // 無 client 端 painCard 編輯/刪除流程（前台只讀）；作者自核准 approval 屬越權。
+      // update/delete 一律僅 admin（不開作者分支，避免越權 + 不必要的攻擊面）。
+      allow update, delete: if isAdmin();
     }
 
     // FAQ：公開可讀；僅 admin 可寫（前端後台 CRUD）
