@@ -1,7 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { doc, updateDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
+import { useState, useEffect } from "react";
+import {
+  doc,
+  getDoc,
+  updateDoc,
+  deleteDoc,
+  serverTimestamp,
+} from "firebase/firestore";
 import Link from "next/link";
 import { db, auth } from "@/lib/firebase";
 import { DEPTS } from "@/lib/db";
@@ -50,6 +56,30 @@ const COLOR_OPTIONS = [
 export default function ReviewToolWizard({ tool, onClose, onSaved }) {
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
+
+  // 把作者 uid 解析成「名字（email）」顯示（原本直接印 uid 像亂碼）。
+  const [authorLabel, setAuthorLabel] = useState(tool.authorUid || "(無)");
+  useEffect(() => {
+    const uid = tool.authorUid;
+    if (!uid) return;
+    let active = true;
+    getDoc(doc(db, "users", uid))
+      .then((snap) => {
+        if (!active) return;
+        const u = snap.data() || {};
+        const name = u.name || u.displayName || "";
+        const email = u.email || "";
+        setAuthorLabel(
+          name && email ? `${name}（${email}）` : name || email || uid,
+        );
+      })
+      .catch(() => {
+        /* 讀不到就保留 uid */
+      });
+    return () => {
+      active = false;
+    };
+  }, [tool.authorUid]);
 
   // form state — 初始化從 tool 既有資料
   const [form, setForm] = useState({
@@ -198,8 +228,15 @@ export default function ReviewToolWizard({ tool, onClose, onSaved }) {
             </span>
           </h3>
           <p className="text-sm text-[var(--color-text-mid)] mt-1">
-            Tool ID: <code className="text-xs">{tool.id}</code> · 狀態：
-            {tool.status} · 作者：{tool.authorUid || "(無)"}
+            作者：
+            <b className="text-[var(--color-text-dark)]">{authorLabel}</b> ·
+            狀態：{tool.status}
+          </p>
+          <p
+            className="text-[10px] text-[var(--color-text-mid)]/50 mt-0.5 font-mono"
+            title="工具文件 ID（除錯/支援用）"
+          >
+            ID: {tool.id}
           </p>
         </div>
         <button
