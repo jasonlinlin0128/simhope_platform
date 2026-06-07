@@ -1,34 +1,83 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { db } from "@/lib/firebase";
-import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  doc,
+  updateDoc,
+  query,
+  orderBy,
+  limit,
+  startAfter,
+} from "firebase/firestore";
+
+const PAGE_SIZE = 50;
 
 export default function RequestInbox() {
   const [reqs, setReqs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [cursor, setCursor] = useState(null); // 最後一筆 doc snapshot（分頁游標）
+  const [hasMore, setHasMore] = useState(false);
   const [filter, setFilter] = useState("pending"); // pending | all
 
-  const load = async () => {
+  // 取一頁：orderBy(createdAt desc) + limit；after 給定時用 startAfter 往後翻。
+  const fetchPage = useCallback(async (after) => {
+    const coll = collection(db, "requests");
+    const q = after
+      ? query(
+          coll,
+          orderBy("createdAt", "desc"),
+          startAfter(after),
+          limit(PAGE_SIZE),
+        )
+      : query(coll, orderBy("createdAt", "desc"), limit(PAGE_SIZE));
+    const snap = await getDocs(q);
+    return {
+      rows: snap.docs.map((d) => ({ id: d.id, ...d.data() })),
+      last: snap.docs[snap.docs.length - 1] || null,
+      full: snap.docs.length === PAGE_SIZE, // 滿頁才可能有下一頁
+    };
+  }, []);
+
+  const load = useCallback(async () => {
     setLoading(true);
     try {
-      const snap = await getDocs(collection(db, "requests"));
-      setReqs(
-        snap.docs
-          .map((d) => ({ id: d.id, ...d.data() }))
-          .sort(
-            (a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0),
-          ),
-      );
+      const { rows, last, full } = await fetchPage(null);
+      setReqs(rows);
+      setCursor(last);
+      setHasMore(full);
     } catch (e) {
       console.error("載入 requests 失敗（rules 是否已發布？）:", e);
     } finally {
       setLoading(false);
     }
+  }, [fetchPage]);
+
+  const loadMore = async () => {
+    if (!cursor || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const { rows, last, full } = await fetchPage(cursor);
+      setReqs((prev) => [...prev, ...rows]);
+      setCursor(last);
+      setHasMore(full);
+    } catch (e) {
+      console.error("載入更多 requests 失敗:", e);
+    } finally {
+      setLoadingMore(false);
+    }
   };
+
   useEffect(() => {
     load();
-  }, []);
+  }, [load]);
+
+  // 本地更新單筆狀態（毋需重抓整頁、保留已載入頁、即時反應）。
+  const setStatus = (id, status) =>
+    setReqs((rs) => rs.map((x) => (x.id === id ? { ...x, status } : x)));
 
   const approve = async (r) => {
     if (!r.uid) return;
@@ -38,7 +87,7 @@ export default function RequestInbox() {
         devStatus: "approved",
       });
       await updateDoc(doc(db, "requests", r.id), { status: "approved" });
-      await load();
+      setStatus(r.id, "approved");
     } catch (e) {
       alert("核准失敗：" + (e.code || e.message));
     }
@@ -48,7 +97,7 @@ export default function RequestInbox() {
       if (r.uid)
         await updateDoc(doc(db, "users", r.uid), { devStatus: "rejected" });
       await updateDoc(doc(db, "requests", r.id), { status: "rejected" });
-      await load();
+      setStatus(r.id, "rejected");
     } catch (e) {
       alert("操作失敗：" + (e.code || e.message));
     }
@@ -56,7 +105,7 @@ export default function RequestInbox() {
   const markHandled = async (r) => {
     try {
       await updateDoc(doc(db, "requests", r.id), { status: "handled" });
-      await load();
+      setStatus(r.id, "handled");
     } catch (e) {
       alert("操作失敗：" + (e.code || e.message));
     }
@@ -80,7 +129,8 @@ export default function RequestInbox() {
     <div className="flex flex-col gap-5">
       <div className="flex justify-between items-center">
         <h3 className="font-extrabold text-lg text-[var(--color-text-dark)]">
-          申請 / 需求（{shown.length}）
+          申請 / 需求（{shown.length}
+          {hasMore ? "+" : ""}）
         </h3>
         <select
           value={filter}
@@ -179,6 +229,16 @@ export default function RequestInbox() {
               )}
             </div>
           </div>
+
+          {hasMore && (
+            <button
+              onClick={loadMore}
+              disabled={loadingMore}
+              className="self-center mt-1 px-4 py-1.5 rounded-full border border-[var(--color-card-border)] text-sm text-[var(--color-text-mid)] hover:bg-[var(--color-card-bg)] disabled:opacity-50"
+            >
+              {loadingMore ? "載入中…" : "載入更多（較舊）"}
+            </button>
+          )}
         </>
       )}
     </div>
