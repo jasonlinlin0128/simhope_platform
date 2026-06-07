@@ -188,7 +188,7 @@ export function getCTA(tool) {
     return {
       label: "👀 看詳情 →",
       href: `/tool/${id}`,
-      cls: "bg-gray-300 text-gray-700 hover:bg-gray-400",
+      cls: "bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-400 dark:hover:bg-gray-500",
       disabled: false,
     };
   }

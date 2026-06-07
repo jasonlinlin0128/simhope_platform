@@ -178,7 +178,7 @@ export default function RequestInbox() {
                       </button>
                       <button
                         onClick={() => reject(r)}
-                        className="px-3 py-1 rounded-full bg-red-100 text-red-600 text-xs font-bold"
+                        className="px-3 py-1 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-xs font-bold"
                       >
                         ✕ 拒絕
                       </button>

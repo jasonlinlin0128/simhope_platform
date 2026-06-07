@@ -141,7 +141,7 @@ export default function FaqManager() {
             </button>
             <button
               onClick={() => setEditing(null)}
-              className="px-4 py-2 rounded-full border border-gray-300 font-bold text-sm"
+              className="px-4 py-2 rounded-full border border-gray-300 dark:border-gray-600 font-bold text-sm"
             >
               取消
             </button>

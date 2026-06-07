@@ -1072,7 +1072,7 @@ export default function ToolDetail({ params }) {
               if (tool.type === "embedded") {
                 return (
                   <div className="mt-6 pt-6 border-t border-[var(--color-card-border)] flex justify-center">
-                    <div className="w-full text-center px-6 py-4 rounded-xl font-extrabold bg-indigo-50 text-indigo-600 border border-indigo-200">
+                    <div className="w-full text-center px-6 py-4 rounded-xl font-extrabold bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
                       📍 場域工具，請看右側部署資訊
                     </div>
                   </div>

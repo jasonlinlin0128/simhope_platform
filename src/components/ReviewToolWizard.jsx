@@ -528,7 +528,7 @@ export default function ReviewToolWizard({ tool, onClose, onSaved }) {
           <div className="bg-[var(--color-card-bg)] rounded-2xl border border-[var(--color-card-border)] p-5 max-w-sm shadow">
             <div className="flex items-center gap-3 mb-2">
               <div
-                className={`w-12 h-12 rounded-2xl ${COLOR_OPTIONS.find((c) => c.key === form.color)?.cls || "bg-gray-100"} flex items-center justify-center text-2xl`}
+                className={`w-12 h-12 rounded-2xl ${COLOR_OPTIONS.find((c) => c.key === form.color)?.cls || "bg-gray-100 dark:bg-gray-700"} flex items-center justify-center text-2xl`}
               >
                 {form.icon}
               </div>
@@ -549,7 +549,7 @@ export default function ReviewToolWizard({ tool, onClose, onSaved }) {
           <Link
             href={`/tool/${tool.id}`}
             target="_blank"
-            className="inline-block w-fit px-5 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-[var(--color-text-mid)] font-bold text-sm border border-gray-300 dark:border-gray-600 hover:bg-gray-200"
+            className="inline-block w-fit px-5 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-[var(--color-text-mid)] font-bold text-sm border border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600"
           >
             👀 在新分頁開詳情頁
           </Link>
@@ -561,28 +561,28 @@ export default function ReviewToolWizard({ tool, onClose, onSaved }) {
                 {
                   val: "live",
                   label: "🟢 使用中",
-                  cls: "bg-green-50 text-green-700 border-green-300",
+                  cls: "bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-300 dark:border-green-700",
                 },
                 {
                   val: "beta",
                   label: "🟠 測試中",
-                  cls: "bg-orange-50 text-orange-700 border-orange-300",
+                  cls: "bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 border-orange-300 dark:border-orange-700",
                 },
                 {
                   val: "new",
                   label: "🌟 新上線",
-                  cls: "bg-blue-50 text-blue-700 border-blue-300",
+                  cls: "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700",
                 },
                 {
                   val: "dev",
                   label: "🔨 開發中",
-                  cls: "bg-gray-100 text-gray-700 border-gray-300",
+                  cls: "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600",
                 },
               ].map((s) => (
                 <button
                   key={s.val}
                   onClick={() => update({ status: s.val })}
-                  className={`px-3 py-2 rounded-lg border-2 font-bold text-sm transition ${form.status === s.val ? s.cls + " ring-2 ring-[var(--color-clay-purple)]" : "bg-white dark:bg-gray-800 text-gray-400 border-gray-200"}`}
+                  className={`px-3 py-2 rounded-lg border-2 font-bold text-sm transition ${form.status === s.val ? s.cls + " ring-2 ring-[var(--color-clay-purple)]" : "bg-white dark:bg-gray-800 text-gray-400 border-gray-200 dark:border-gray-600"}`}
                 >
                   {s.label}
                 </button>
@@ -608,7 +608,7 @@ export default function ReviewToolWizard({ tool, onClose, onSaved }) {
               <button
                 onClick={() => handleSaveOnly("pending")}
                 disabled={saving}
-                className="px-5 py-2.5 rounded-xl bg-yellow-50 text-yellow-700 font-bold border-2 border-yellow-300 disabled:opacity-50"
+                className="px-5 py-2.5 rounded-xl bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 font-bold border-2 border-yellow-300 dark:border-yellow-700 disabled:opacity-50"
               >
                 💾 先存草稿 (pending)
               </button>
