@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { callGemini } from "@/lib/gemini.mjs";
 import { HttpError, handleApiError } from "@/lib/apiError.mjs";
-import { rateLimit, clientIp } from "@/lib/rateLimit";
+import { rateLimit, clientIp } from "@/lib/rateLimit.mjs";
 
 const SYSTEM_PROMPT = `你是公司內部「需求收件」助理。使用者會用口語描述他工作上的痛點或想要的工具。
 請做兩件事，並固定輸出純 JSON：
