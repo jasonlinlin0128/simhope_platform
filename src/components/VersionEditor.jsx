@@ -2,6 +2,7 @@
 
 import UploadButton from "@/components/UploadButton";
 import { blankVersionRow } from "@/lib/versions";
+import { DANGER_ICON_BTN, MUTED_ICON_BTN } from "@/lib/uiClasses";
 
 // 哪些 type 的版本要綁下載檔（顯示上傳欄）→ Storage pathPrefix
 const FILE_TYPES = { download: "downloads", doc: "docs", skill: "skills" };
@@ -75,7 +76,7 @@ export default function VersionEditor({
                 type="button"
                 onClick={() => moveRow(idx, -1)}
                 disabled={idx === 0}
-                className="w-7 h-7 rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 disabled:opacity-25 text-sm"
+                className={`${MUTED_ICON_BTN} w-7 h-7 rounded-lg disabled:opacity-25 text-sm`}
                 title="上移"
                 aria-label="上移此版"
               >
@@ -85,7 +86,7 @@ export default function VersionEditor({
                 type="button"
                 onClick={() => moveRow(idx, 1)}
                 disabled={idx === versions.length - 1}
-                className="w-7 h-7 rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 disabled:opacity-25 text-sm"
+                className={`${MUTED_ICON_BTN} w-7 h-7 rounded-lg disabled:opacity-25 text-sm`}
                 title="下移"
                 aria-label="下移此版"
               >
@@ -94,7 +95,7 @@ export default function VersionEditor({
               <button
                 type="button"
                 onClick={() => delRow(idx)}
-                className="w-7 h-7 rounded-lg bg-red-50 text-red-400 hover:bg-red-100 text-sm"
+                className={`${DANGER_ICON_BTN} w-7 h-7 rounded-lg text-sm`}
                 title="刪除此版"
                 aria-label="刪除此版"
               >

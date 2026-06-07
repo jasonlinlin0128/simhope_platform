@@ -9,6 +9,7 @@ import AIPanel from "@/components/AIPanel";
 import { getStatusLabel } from "@/components/ToolCard";
 import UploadButton from "@/components/UploadButton";
 import { TYPE_ACTION, getTabsForType, defaultTabForType } from "@/lib/taxonomy";
+import { DANGER_ICON_BTN, MUTED_ICON_BTN } from "@/lib/uiClasses";
 import Accordion from "@/components/Accordion";
 import MarkdownContent from "@/components/MarkdownContent";
 import ArticleDesc from "@/components/ArticleDesc";
@@ -238,7 +239,7 @@ function BlockEditor({
           <button
             onClick={() => onMove(idx, -1)}
             disabled={idx === 0}
-            className="w-7 h-7 rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 disabled:opacity-25 text-sm transition-all"
+            className={`${MUTED_ICON_BTN} w-7 h-7 rounded-lg disabled:opacity-25 text-sm transition-all`}
             title="上移"
           >
             ↑
@@ -246,14 +247,14 @@ function BlockEditor({
           <button
             onClick={() => onMove(idx, 1)}
             disabled={idx === total - 1}
-            className="w-7 h-7 rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 disabled:opacity-25 text-sm transition-all"
+            className={`${MUTED_ICON_BTN} w-7 h-7 rounded-lg disabled:opacity-25 text-sm transition-all`}
             title="下移"
           >
             ↓
           </button>
           <button
             onClick={onDelete}
-            className="w-7 h-7 rounded-lg bg-red-50 text-red-400 hover:bg-red-100 text-sm transition-all"
+            className={`${DANGER_ICON_BTN} w-7 h-7 rounded-lg text-sm transition-all`}
             title="刪除此 block"
           >
             ✕
@@ -419,7 +420,7 @@ function BlockEditor({
                     );
                     onChange({ ...block, items });
                   }}
-                  className="w-9 rounded-lg bg-red-50 text-red-400 hover:bg-red-100 text-sm"
+                  className={`${DANGER_ICON_BTN} w-9 rounded-lg text-sm`}
                   title="刪除此問答"
                 >
                   ✕

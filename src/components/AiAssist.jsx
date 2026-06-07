@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { MUTED_BTN } from "@/lib/uiClasses";
 
 /**
  * text block 的 AI 撰寫面板（受控）。潤飾現有 / 依指示生成 → 預覽 → 採用才覆寫。
@@ -178,7 +179,7 @@ export default function AiAssist({ value, onAccept, context = {} }) {
             <button
               type="button"
               onClick={() => setPreview(null)}
-              className="text-xs font-bold rounded-full px-3 py-1.5 bg-gray-200 text-gray-700 hover:bg-gray-300"
+              className={`${MUTED_BTN} text-xs font-bold rounded-full px-3 py-1.5`}
             >
               重來
             </button>

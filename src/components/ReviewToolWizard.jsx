@@ -13,6 +13,7 @@ import { db, auth } from "@/lib/firebase";
 import { DEPTS } from "@/lib/db";
 import { CATEGORIES, CATEGORY_ORDER, TYPES } from "@/lib/taxonomy";
 import VersionEditor from "@/components/VersionEditor";
+import { DANGER_BTN } from "@/lib/uiClasses";
 
 const COLOR_OPTIONS = [
   {
@@ -241,7 +242,7 @@ export default function ReviewToolWizard({ tool, onClose, onSaved }) {
         </div>
         <button
           onClick={onClose}
-          className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 font-bold text-sm hover:bg-gray-200"
+          className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 font-bold text-sm hover:bg-gray-200 dark:hover:bg-gray-600"
         >
           ✕ 關閉
         </button>
@@ -260,7 +261,7 @@ export default function ReviewToolWizard({ tool, onClose, onSaved }) {
             className={`flex-1 py-2 rounded-xl font-extrabold text-sm transition ${
               step === s.n
                 ? "bg-[var(--color-clay-purple)] text-white shadow"
-                : "bg-gray-100 dark:bg-gray-700 text-gray-500 hover:bg-gray-200"
+                : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
             }`}
           >
             Step {s.n} — {s.label}
@@ -600,7 +601,7 @@ export default function ReviewToolWizard({ tool, onClose, onSaved }) {
               <button
                 onClick={handleReject}
                 disabled={saving}
-                className="px-5 py-2.5 rounded-xl bg-red-50 text-red-600 font-bold border-2 border-red-300 disabled:opacity-50"
+                className={`${DANGER_BTN} px-5 py-2.5 rounded-xl font-bold disabled:opacity-50`}
               >
                 🗑️ 退回（刪除）
               </button>

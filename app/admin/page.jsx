@@ -328,7 +328,7 @@ export default function AdminDashboard() {
                           </a>
                           <button
                             onClick={() => handleDeleteTool(tool.id)}
-                            className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg font-bold text-xs border border-red-200"
+                            className={`${DANGER_BTN} px-3 py-1.5 rounded-lg font-bold text-xs`}
                           >
                             🗑️
                           </button>
