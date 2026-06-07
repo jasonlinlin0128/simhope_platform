@@ -647,7 +647,7 @@ function QuickInstallTab({ tool, td, type }) {
     const mcpbUrl = td.mcpbUrl;
     return (
       <div className="flex flex-col gap-6">
-        <div className="bg-gradient-to-br from-emerald-50 to-white border-2 border-emerald-200 rounded-2xl p-6">
+        <div className="bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-900/10 dark:to-transparent border-2 border-emerald-200 dark:border-emerald-800/40 rounded-2xl p-6">
           <h3 className="font-extrabold text-lg mb-2">⭐ 推薦給大多數人</h3>
           <p className="text-sm text-[var(--color-text-mid)] mb-4">
             用 Claude Desktop 的同仁適用 — 下載一個檔案、雙擊、Claude
@@ -982,7 +982,7 @@ export default function ToolDetail({ params }) {
         {/* ── SIDEBAR ── */}
         <aside className="lg:w-80 flex-shrink-0 bg-[var(--color-card-bg)] rounded-[32px] p-8 shadow-sm border border-[var(--color-card-border)] h-fit sticky top-24">
           <div className="text-center mb-6">
-            <div className="w-20 h-20 mx-auto rounded-[24px] bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-4xl shadow-inner mb-4">
+            <div className="w-20 h-20 mx-auto rounded-[24px] bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/40 dark:to-blue-800/30 flex items-center justify-center text-4xl shadow-inner mb-4">
               {tool.icon || "📦"}
             </div>
             <h1 className="text-2xl font-black text-[var(--color-text-dark)]">

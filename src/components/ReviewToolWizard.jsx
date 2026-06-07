@@ -18,32 +18,32 @@ import { DANGER_BTN } from "@/lib/uiClasses";
 const COLOR_OPTIONS = [
   {
     key: "c1",
-    cls: "bg-gradient-to-br from-blue-100 to-blue-200",
+    cls: "bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/40 dark:to-blue-800/30",
     textCls: "text-blue-700",
   },
   {
     key: "c2",
-    cls: "bg-gradient-to-br from-red-100 to-red-200",
+    cls: "bg-gradient-to-br from-red-100 to-red-200 dark:from-red-900/40 dark:to-red-800/30",
     textCls: "text-red-700",
   },
   {
     key: "c3",
-    cls: "bg-gradient-to-br from-purple-100 to-purple-200",
+    cls: "bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-900/40 dark:to-purple-800/30",
     textCls: "text-purple-700",
   },
   {
     key: "c4",
-    cls: "bg-gradient-to-br from-amber-100 to-amber-200",
+    cls: "bg-gradient-to-br from-amber-100 to-amber-200 dark:from-amber-900/40 dark:to-amber-800/30",
     textCls: "text-amber-700",
   },
   {
     key: "c5",
-    cls: "bg-gradient-to-br from-emerald-100 to-emerald-200",
+    cls: "bg-gradient-to-br from-emerald-100 to-emerald-200 dark:from-emerald-900/40 dark:to-emerald-800/30",
     textCls: "text-emerald-700",
   },
   {
     key: "c6",
-    cls: "bg-gradient-to-br from-pink-100 to-pink-200",
+    cls: "bg-gradient-to-br from-pink-100 to-pink-200 dark:from-pink-900/40 dark:to-pink-800/30",
     textCls: "text-pink-700",
   },
 ];

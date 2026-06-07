@@ -3,12 +3,12 @@ import { typeBadge, getCTA } from "@/lib/taxonomy";
 
 // Helper color map for the icon background
 const colorMap = {
-  c1: "bg-gradient-to-br from-blue-100 to-blue-200 text-blue-600",
-  c2: "bg-gradient-to-br from-red-100 to-red-200 text-red-600",
-  c3: "bg-gradient-to-br from-purple-100 to-purple-200 text-purple-600",
-  c4: "bg-gradient-to-br from-amber-100 to-amber-200 text-amber-600",
-  c5: "bg-gradient-to-br from-emerald-100 to-emerald-200 text-emerald-600",
-  c6: "bg-gradient-to-br from-pink-100 to-pink-200 text-pink-600",
+  c1: "bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/40 dark:to-blue-800/30 text-blue-600 dark:text-blue-300",
+  c2: "bg-gradient-to-br from-red-100 to-red-200 dark:from-red-900/40 dark:to-red-800/30 text-red-600 dark:text-red-300",
+  c3: "bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-900/40 dark:to-purple-800/30 text-purple-600 dark:text-purple-300",
+  c4: "bg-gradient-to-br from-amber-100 to-amber-200 dark:from-amber-900/40 dark:to-amber-800/30 text-amber-600 dark:text-amber-300",
+  c5: "bg-gradient-to-br from-emerald-100 to-emerald-200 dark:from-emerald-900/40 dark:to-emerald-800/30 text-emerald-600 dark:text-emerald-300",
+  c6: "bg-gradient-to-br from-pink-100 to-pink-200 dark:from-pink-900/40 dark:to-pink-800/30 text-pink-600 dark:text-pink-300",
 };
 
 /**

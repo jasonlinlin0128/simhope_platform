@@ -245,7 +245,7 @@ export default function AdminDashboard() {
                           className="flex flex-col md:flex-row justify-between items-center bg-white dark:bg-gray-800 p-5 rounded-2xl border border-yellow-200 dark:border-yellow-700 gap-4 shadow"
                         >
                           <div className="flex items-center gap-4 flex-1 w-full">
-                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-100 to-yellow-200 flex items-center justify-center text-2xl">
+                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-100 to-yellow-200 dark:from-yellow-900/40 dark:to-yellow-800/30 flex items-center justify-center text-2xl">
                               {tool.icon || "📦"}
                             </div>
                             <div className="flex-1 min-w-0">
@@ -287,7 +287,7 @@ export default function AdminDashboard() {
                         className="flex flex-col md:flex-row justify-between items-center bg-[var(--color-card-bg)]/60 p-4 rounded-2xl border border-[var(--color-card-border)] gap-3"
                       >
                         <div className="flex items-center gap-3 flex-1 w-full">
-                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-xl">
+                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/40 dark:to-blue-800/30 flex items-center justify-center text-xl">
                             {tool.icon || "📦"}
                           </div>
                           <div className="flex-1 min-w-0">
