@@ -17,6 +17,7 @@ import { createDeveloperAccount } from "@/lib/adminAuth";
 import ReviewToolWizard from "@/components/ReviewToolWizard";
 import FaqManager from "@/components/FaqManager";
 import RequestInbox from "@/components/RequestInbox";
+import { BEFORE_BOX, AFTER_BOX, DANGER_BTN } from "@/lib/uiClasses";
 
 export default function AdminDashboard() {
   const { user, isAdmin, loading: authLoading } = useAuth();
@@ -355,10 +356,12 @@ export default function AdminDashboard() {
                   key={card.id}
                   className="bg-[var(--color-card-bg)]/60 p-5 rounded-2xl border border-[var(--color-card-border)] flex flex-col gap-2"
                 >
-                  <div className="text-sm font-bold text-red-600 bg-red-50 p-2 rounded relative border border-red-100">
+                  <div
+                    className={`${BEFORE_BOX} text-sm font-bold p-2 rounded relative`}
+                  >
                     😓 {card.before}
                   </div>
-                  <div className="text-sm font-bold text-green-600 bg-green-50 p-2 rounded border border-green-100">
+                  <div className={`${AFTER_BOX} text-sm font-bold p-2 rounded`}>
                     ✅ {card.after}
                   </div>
                   <div className="flex justify-between items-center mt-2">
