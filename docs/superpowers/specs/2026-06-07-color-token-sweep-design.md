@@ -30,6 +30,7 @@ color 系統現況（`app/globals.css`）：Tailwind v4 `@theme inline` + `:root
 - 不新增整套語意 CSS 變數 token 詞彙（被否決的策略③）。
 - 不重新設計配色 / 品牌識別——只把現有色彩變 dark-safe + 去重。
 - 不重構大檔非色彩邏輯（tool/[id] 1109 行、wizard 768 行的拆分＝audit #22，另案）。
+- **本 PR 不做 FORM_INPUT input 去重**（37 處 input 已 dark-safe、純 DRY、bg 與 border 非連續需逐一手改、風險高）——留後續獨立 DRY PR（或不做）。本案聚焦 dark-mode 正確性。
 - 不動 `firestore.rules`、無資料 migration。
 
 ## 3. 策略（已定案：策略②「正確性 + 抽共用常數」）
@@ -39,7 +40,7 @@ color 系統現況（`app/globals.css`）：Tailwind v4 `@theme inline` + `:root
 | 類  | 情況                                                                         | 處理                                                             |
 | --- | ---------------------------------------------------------------------------- | ---------------------------------------------------------------- |
 | (a) | 已有 `dark:` 變體                                                            | **不碰**                                                         |
-| (b) | 重複叢集（input / before-after / danger 鈕 / 灰 ghost 鈕）                   | 抽 `uiClasses.js` 共用常數                                       |
+| (b) | 重複叢集（before-after / danger 鈕 / 灰 ghost 鈕 / 漸層 icon 磚）            | 抽 `uiClasses.js` 共用常數                                       |
 | (c) | 一次性淺色漏 `dark:`                                                         | 就地補 `dark:` 變體                                              |
 | (d) | 裸 hex                                                                       | 換 Tailwind utility（值相同）+ `dark:`；品牌 accent 用既有 token |
 | (e) | 本就 dark-safe（白字在飽和彩色鈕、`<option>`、`bg-X/opacity` over token 面） | **不碰**（spec 註明）                                            |
@@ -66,10 +67,6 @@ export const AFTER_BOX =
 export const STEP_ARROW =
   "bg-white dark:bg-gray-800 text-gray-400 dark:text-gray-500 border-2 border-green-100 dark:border-green-900/50";
 
-// 灰底輸入框 chrome（色彩/邊框核心；padding/rounded/text-size/focus 各站接）
-export const FORM_INPUT =
-  "bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600";
-
 // 紅色 danger 鈕（有框；對齊 admin:492 既有 dark 寫法）
 export const DANGER_BTN =
   "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/40";
@@ -85,8 +82,8 @@ export const MUTED_ICON_BTN =
   "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600";
 ```
 
-> 命名 + 拆分原則：常數＝「語意角色」（before/after/danger/muted/input），不是「顏色」；
-> 各站點 `` `${FORM_INPUT} w-full p-2 rounded-lg text-sm outline-none focus:border-[var(--color-clay-purple)]` `` 這樣組。
+> 命名 + 拆分原則：常數＝「語意角色」（before/after/danger/muted），不是「顏色」；
+> 各站點 `` `${DANGER_BTN} px-3 py-1.5 rounded-lg text-xs font-bold` `` 這樣組（常數含色彩+邊框+dark:、版面各站接）。
 
 ### 4.2 就地修（單一真相檔 / 一次性）
 
@@ -119,7 +116,9 @@ export const MUTED_ICON_BTN =
 - `src/components/PainCard.jsx:76,81,86`（before / ↓圈 / after）
 - `app/admin/page.jsx:358,361`（痛點卡預覽 before/after；統一成 PainCard 看相，見 §6）
 
-### 5.2 FORM_INPUT 去重（→ `FORM_INPUT`；**已 dark-safe，純 DRY**）
+### 5.2 FORM_INPUT 去重 — ⏸️ **本 PR 不做，留後續 DRY PR**
+
+下列 input 已 dark-safe（皆含 `dark:`），去重屬純 DRY 且 bg/border 非連續需逐一手改、風險高 → **本 PR 不動這些檔的 input**。清單保留供後續：
 
 - `app/dashboard/page.jsx:232,247,273`
 - `src/components/ReviewToolWizard.jsx`：329,336,344,351,364,380,391,424,438,447,455,483,673,687,701,716,731,739,747,771,779,787,802,811,819,834（約 26 處）
@@ -224,12 +223,12 @@ icon 磚 `from-X-100 to-X-200` 在 dark 下成亮塊。treatment＝**只補 dark
 
 - 單一 feature branch `feature-color-token-sweep` → PR → **獨立 reviewer subagent** → CI/Vercel 綠 → **等 Jason 喊才 merge**（比照 #16–22）。
 - **無 migration、不動 rules** → 可乾淨 `git revert`。
-- commit 分層：(1) `uiClasses.js` 新增；(2) before/after（PainCard+admin）；(3) FORM_INPUT 去重；(4) danger/muted 鈕；(5) taxonomy + tool[id] + admin 就地補；(6) AIPanel；(7) 零星。便於 reviewer 逐層核。
-- 最大 churn＝5.2 FORM_INPUT（~36 處）；因原字串**已含 dark:**，替換為「抽相同核心」故行為等價，reviewer 逐處核 old→new 即可。
+- commit 分層：(1) `uiClasses.js` 新增；(2) before/after（PainCard+admin）；(3) danger/muted 鈕；(4) taxonomy + tool[id] + admin 就地補；(5) AIPanel；(6) 漸層 icon 磚（§5.12）；(7) 零星。便於 reviewer 逐層核。
+- 最大 churn＝§5.12 漸層 icon 磚（ToolCard 首頁卡 + wizard 色票）；淺色逐字不動、只加 `dark:`，reviewer 逐處核「淺色 class 未變 + 新增 dark:」即可。
 
 ## 10. 完成定義（DoD）
 
-- §5 工作集全處理；§8 三組 grep 重跑後僅剩 (a)/(e) 例外。
+- §5 工作集全處理（§5.2 FORM_INPUT deferred 除外）；§8 grep 重跑後僅剩 (a)/(e)/(已 dark-safe input) 例外。
 - build 綠、lint 無新增、test:unit 26 綠。
 - 公開頁 light/dark 自驗截圖無割裂。
 - PR 描述列出 §6 三項刻意變動 + 自驗範圍 + 待 Jason live 驗清單。
