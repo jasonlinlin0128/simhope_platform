@@ -22,32 +22,43 @@ import AiAssist from "@/components/AiAssist";
 const BLOCK_DEFS = {
   text: {
     label: "📝 文字段落",
-    badge: "bg-gray-100 text-gray-600 border-gray-200",
+    badge:
+      "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600",
   },
   steps: {
     label: "📋 步驟清單",
-    badge: "bg-purple-50 text-purple-700 border-purple-200",
+    badge:
+      "bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-700",
   },
   image: {
     label: "🖼️ 圖片",
-    badge: "bg-blue-50 text-blue-600 border-blue-200",
+    badge:
+      "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 border-blue-200 dark:border-blue-700",
   },
-  video: { label: "▶️ 影片", badge: "bg-red-50 text-red-600 border-red-200" },
+  video: {
+    label: "▶️ 影片",
+    badge:
+      "bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-300 border-red-200 dark:border-red-700",
+  },
   audio: {
     label: "🔊 語音",
-    badge: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    badge:
+      "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-700",
   },
   tip: {
     label: "💡 提示框",
-    badge: "bg-yellow-50 text-yellow-700 border-yellow-200",
+    badge:
+      "bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 border-yellow-200 dark:border-yellow-700",
   },
   warning: {
     label: "⚠️ 注意事項",
-    badge: "bg-orange-50 text-orange-700 border-orange-200",
+    badge:
+      "bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-700",
   },
   faq: {
     label: "❓ 常見問題",
-    badge: "bg-sky-50 text-sky-700 border-sky-200",
+    badge:
+      "bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-700",
   },
 };
 
@@ -55,19 +66,19 @@ const BLOCK_DEFS = {
 const AUDIO_SOURCES = {
   notebooklm: {
     label: "NotebookLM",
-    cls: "bg-blue-100 text-blue-700 border-blue-200",
+    cls: "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-700",
   },
   soundcloud: {
     label: "SoundCloud",
-    cls: "bg-orange-100 text-orange-700 border-orange-200",
+    cls: "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-700",
   },
   upload: {
     label: "直接上傳",
-    cls: "bg-emerald-100 text-emerald-700 border-emerald-200",
+    cls: "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-700",
   },
   other: {
     label: "其他來源",
-    cls: "bg-gray-100 text-gray-600 border-gray-200",
+    cls: "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600",
   },
 };
 
@@ -1042,7 +1053,7 @@ export default function ToolDetail({ params }) {
               if (isDisabled) {
                 return (
                   <div className="mt-6 pt-6 border-t border-[var(--color-card-border)] flex justify-center">
-                    <div className="w-full text-center px-6 py-4 rounded-xl font-extrabold bg-gray-200 text-gray-500 cursor-not-allowed">
+                    <div className="w-full text-center px-6 py-4 rounded-xl font-extrabold bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed">
                       🚧 開發中，敬請期待
                     </div>
                   </div>
@@ -1051,7 +1062,7 @@ export default function ToolDetail({ params }) {
               if (tool.status === "terminated") {
                 return (
                   <div className="mt-6 pt-6 border-t border-[var(--color-card-border)] flex justify-center">
-                    <div className="w-full text-center px-6 py-4 rounded-xl font-extrabold bg-red-100 text-red-600 cursor-not-allowed">
+                    <div className="w-full text-center px-6 py-4 rounded-xl font-extrabold bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 cursor-not-allowed">
                       ⛔ 已終止維護
                     </div>
                   </div>

@@ -289,7 +289,7 @@ export default function Dashboard() {
                     return (
                       <label
                         key={opt.key}
-                        className={`flex gap-3 items-start cursor-pointer rounded-xl p-3 border-2 transition ${isActive ? "border-[var(--color-clay-purple)] bg-[var(--color-clay-purple)]/5" : "border-gray-200 hover:border-[var(--color-clay-purple)]/40"}`}
+                        className={`flex gap-3 items-start cursor-pointer rounded-xl p-3 border-2 transition ${isActive ? "border-[var(--color-clay-purple)] bg-[var(--color-clay-purple)]/5" : "border-gray-200 dark:border-gray-600 hover:border-[var(--color-clay-purple)]/40"}`}
                       >
                         <input
                           type="radio"

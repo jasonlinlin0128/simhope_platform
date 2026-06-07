@@ -158,7 +158,7 @@ export default function AdminDashboard() {
         <nav className="flex flex-col gap-2">
           <button
             onClick={() => setActiveTab("tools")}
-            className={`w-full text-left px-4 py-3 rounded-xl font-bold transition-all ${activeTab === "tools" ? "bg-[var(--color-clay-purple)] text-white shadow-md" : "text-[var(--color-text-mid)] hover:bg-gray-100"}`}
+            className={`w-full text-left px-4 py-3 rounded-xl font-bold transition-all ${activeTab === "tools" ? "bg-[var(--color-clay-purple)] text-white shadow-md" : "text-[var(--color-text-mid)] hover:bg-gray-100 dark:hover:bg-gray-700"}`}
           >
             🧰 工具管理{" "}
             <span className="float-right bg-white/20 px-2 rounded-full text-xs py-0.5">
@@ -167,7 +167,7 @@ export default function AdminDashboard() {
           </button>
           <button
             onClick={() => setActiveTab("pains")}
-            className={`w-full text-left px-4 py-3 rounded-xl font-bold transition-all ${activeTab === "pains" ? "bg-[var(--color-clay-purple)] text-white shadow-md" : "text-[var(--color-text-mid)] hover:bg-gray-100"}`}
+            className={`w-full text-left px-4 py-3 rounded-xl font-bold transition-all ${activeTab === "pains" ? "bg-[var(--color-clay-purple)] text-white shadow-md" : "text-[var(--color-text-mid)] hover:bg-gray-100 dark:hover:bg-gray-700"}`}
           >
             😤 痛點卡片管理{" "}
             <span className="float-right bg-white/20 px-2 rounded-full text-xs py-0.5">
@@ -176,7 +176,7 @@ export default function AdminDashboard() {
           </button>
           <button
             onClick={() => setActiveTab("users")}
-            className={`w-full text-left px-4 py-3 rounded-xl font-bold transition-all ${activeTab === "users" ? "bg-[var(--color-clay-purple)] text-white shadow-md" : "text-[var(--color-text-mid)] hover:bg-gray-100"}`}
+            className={`w-full text-left px-4 py-3 rounded-xl font-bold transition-all ${activeTab === "users" ? "bg-[var(--color-clay-purple)] text-white shadow-md" : "text-[var(--color-text-mid)] hover:bg-gray-100 dark:hover:bg-gray-700"}`}
           >
             👥 帳號管理{" "}
             <span className="float-right bg-white/20 px-2 rounded-full text-xs py-0.5">
@@ -185,13 +185,13 @@ export default function AdminDashboard() {
           </button>
           <button
             onClick={() => setActiveTab("faqs")}
-            className={`w-full text-left px-4 py-3 rounded-xl font-bold transition-all ${activeTab === "faqs" ? "bg-[var(--color-clay-purple)] text-white shadow-md" : "text-[var(--color-text-mid)] hover:bg-gray-100"}`}
+            className={`w-full text-left px-4 py-3 rounded-xl font-bold transition-all ${activeTab === "faqs" ? "bg-[var(--color-clay-purple)] text-white shadow-md" : "text-[var(--color-text-mid)] hover:bg-gray-100 dark:hover:bg-gray-700"}`}
           >
             ❓ FAQ
           </button>
           <button
             onClick={() => setActiveTab("inbox")}
-            className={`w-full text-left px-4 py-3 rounded-xl font-bold transition-all ${activeTab === "inbox" ? "bg-[var(--color-clay-purple)] text-white shadow-md" : "text-[var(--color-text-mid)] hover:bg-gray-100"}`}
+            className={`w-full text-left px-4 py-3 rounded-xl font-bold transition-all ${activeTab === "inbox" ? "bg-[var(--color-clay-purple)] text-white shadow-md" : "text-[var(--color-text-mid)] hover:bg-gray-100 dark:hover:bg-gray-700"}`}
           >
             📥 申請 / 需求
           </button>
@@ -316,13 +316,13 @@ export default function AdminDashboard() {
                           </select>
                           <button
                             onClick={() => setWizardToolId(tool.id)}
-                            className="px-3 py-1.5 bg-purple-50 text-purple-600 hover:bg-purple-100 rounded-lg font-bold text-xs border border-purple-200"
+                            className="px-3 py-1.5 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/40 rounded-lg font-bold text-xs border border-purple-200 dark:border-purple-800"
                           >
                             🔍 wizard
                           </button>
                           <a
                             href={`/tool/${tool.id}`}
-                            className="px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg font-bold text-xs border border-blue-200"
+                            className="px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded-lg font-bold text-xs border border-blue-200 dark:border-blue-800"
                           >
                             ✏️ 編輯
                           </a>
@@ -365,7 +365,7 @@ export default function AdminDashboard() {
                     ✅ {card.after}
                   </div>
                   <div className="flex justify-between items-center mt-2">
-                    <div className="text-xs font-bold text-gray-500 bg-gray-200/50 px-2 py-1 rounded">
+                    <div className="text-xs font-bold text-gray-500 dark:text-gray-400 bg-gray-200/50 dark:bg-gray-700/50 px-2 py-1 rounded">
                       狀態:{" "}
                       {card.approval === "approved" ? "🟢 已核准" : "🟡 待審核"}
                     </div>
