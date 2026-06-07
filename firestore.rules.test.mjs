@@ -21,6 +21,7 @@ const anon = testEnv.unauthenticatedContext().firestore();
 const dev1 = testEnv.authenticatedContext("dev1").firestore();
 const dev2 = testEnv.authenticatedContext("dev2").firestore();
 const admin = testEnv.authenticatedContext("admin1").firestore();
+const viewer1 = testEnv.authenticatedContext("viewer1").firestore();
 
 // 每條測試前清空並重新種子 → 測試彼此獨立。
 async function seed() {
@@ -39,6 +40,12 @@ async function seed() {
     });
     await setDoc(doc(db, "tools", "t_legacy_nocreated"), {
       authorUid: "dev1", status: "pending", title: "NoCreated", // 缺 createdAt
+    });
+    await setDoc(doc(db, "tools", "t_no_author"), {
+      status: "live", createdAt: 1000, title: "NoAuthor", // 缺 authorUid（fail-closed fixture）
+    });
+    await setDoc(doc(db, "tools", "t_no_status"), {
+      authorUid: "dev1", createdAt: 1000, title: "NoStatus", // 缺 status（fail-closed fixture）
     });
     await setDoc(doc(db, "painCards", "pc1"), {
       approval: "approved", before: "b", after: "a", // 正式資料：無 authorUid
@@ -123,6 +130,62 @@ await it("15. developer create painCard approval:'pending' → ALLOW", async () 
   await assertSucceeds(
     setDoc(doc(dev1, "painCards", "pc_new"), {
       authorUid: "dev1", approval: "pending", before: "b", after: "a",
+    }),
+  );
+});
+
+console.log("fail-closed（缺安全欄位 → 作者 DENY / admin ALLOW）:");
+await it("16. 作者編輯缺 authorUid 的工具內容（fail-closed） → DENY", async () => {
+  await assertFails(updateDoc(doc(dev1, "tools", "t_no_author"), { url: "https://a" }));
+});
+await it("17. admin 編輯缺 authorUid 的工具內容 → ALLOW", async () => {
+  await assertSucceeds(updateDoc(doc(admin, "tools", "t_no_author"), { url: "https://a" }));
+});
+await it("18. 作者編輯缺 status 的工具內容（fail-closed） → DENY", async () => {
+  await assertFails(updateDoc(doc(dev1, "tools", "t_no_status"), { url: "https://s" }));
+});
+await it("19. admin 編輯缺 status 的工具內容 → ALLOW", async () => {
+  await assertSucceeds(updateDoc(doc(admin, "tools", "t_no_status"), { url: "https://s" }));
+});
+
+console.log("提權主體（anon / viewer 無 role）:");
+await it("20. 未登入建立工具 → DENY", async () => {
+  await assertFails(
+    setDoc(doc(anon, "tools", "t_anon"), { authorUid: "x", status: "pending", createdAt: 1 }),
+  );
+});
+await it("21. viewer（無 role）建立工具 → DENY", async () => {
+  await assertFails(
+    setDoc(doc(viewer1, "tools", "t_v"), { authorUid: "viewer1", status: "pending", createdAt: 1 }),
+  );
+});
+await it("22. viewer（無 role）建立 painCard → DENY", async () => {
+  await assertFails(
+    setDoc(doc(viewer1, "painCards", "pc_v"), {
+      authorUid: "viewer1", approval: "pending", before: "b", after: "a",
+    }),
+  );
+});
+await it("23. viewer 改別人既有工具 → DENY", async () => {
+  await assertFails(updateDoc(doc(viewer1, "tools", "t_pending"), { url: "https://v" }));
+});
+
+console.log("邊界 / 組合攻擊:");
+await it("24. 作者同時改 status+authorUid（P0 組合攻擊） → DENY", async () => {
+  await assertFails(
+    updateDoc(doc(dev1, "tools", "t_pending"), { status: "live", authorUid: "dev2" }),
+  );
+});
+await it("25. 作者刪自己 painCard（僅 admin 可刪） → DENY", async () => {
+  await assertFails(deleteDoc(doc(dev1, "painCards", "pc_dev1")));
+});
+await it("26. admin 刪 painCard → ALLOW", async () => {
+  await assertSucceeds(deleteDoc(doc(admin, "painCards", "pc1")));
+});
+await it("27. 作者 setDoc 覆寫既有工具改 status=live（走 update 評估） → DENY", async () => {
+  await assertFails(
+    setDoc(doc(dev1, "tools", "t_pending"), {
+      authorUid: "dev1", status: "live", createdAt: 1000, title: "P",
     }),
   );
 });
