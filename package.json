@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:rules": "firebase emulators:exec --only firestore --project demo-simhope-rules \"node firestore.rules.test.mjs\""
+    "test:rules": "firebase emulators:exec --only firestore --project demo-simhope-rules \"node firestore.rules.test.mjs\"",
+    "test:unit": "node --test \"src/lib/**/*.test.mjs\""
   },
   "dependencies": {
     "@simplewebauthn/browser": "^13.3.0",
