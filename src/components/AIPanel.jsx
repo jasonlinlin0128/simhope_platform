@@ -4,19 +4,35 @@ import { useState } from "react";
 
 /**
  * Collapsible panel for generating tool listing copy via `/api/generate`.
+ * 結構化引導：把單一「一句話」拆成幾個提示欄，組成更明確的 prompt，避免 AI 方向錯誤。
  * @param {{ onGenerate: (prompt: string) => void, isGenerating: boolean }} props
  */
 export default function AIPanel({ onGenerate, isGenerating }) {
-  const [prompt, setPrompt] = useState("");
+  const [what, setWhat] = useState(""); // ① 做什麼（必填）
+  const [who, setWho] = useState(""); // ② 給誰用 / 情境
+  const [pain, setPain] = useState(""); // ③ 痛點 / 改變
+  const [features, setFeatures] = useState(""); // ④ 關鍵功能
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleSumbit = () => {
-    if (!prompt.trim()) {
-      alert("請先輸入一句話描述你的工具");
+  // 把填寫的欄位組成給 /api/generate 的 prompt（空欄略過）。
+  const buildPrompt = () => {
+    const parts = [`這個工具：${what.trim()}`];
+    if (who.trim()) parts.push(`給誰用 / 使用情境：${who.trim()}`);
+    if (pain.trim()) parts.push(`解決的痛點 / 帶來的改變：${pain.trim()}`);
+    if (features.trim()) parts.push(`關鍵功能 / 亮點：${features.trim()}`);
+    return parts.join("\n");
+  };
+
+  const handleSubmit = () => {
+    if (!what.trim()) {
+      alert("請先填①「這工具做什麼」，AI 才有方向");
       return;
     }
-    onGenerate(prompt);
+    onGenerate(buildPrompt());
   };
+
+  const fieldCls =
+    "w-full bg-white/60 p-3 rounded-xl border border-purple-100 placeholder-purple-300 text-sm focus:border-purple-300 focus:ring-2 focus:ring-purple-200 outline-none transition-all resize-none";
 
   return (
     <div className="mb-6">
@@ -37,21 +53,56 @@ export default function AIPanel({ onGenerate, isGenerating }) {
                 魔術自動生成器
               </h4>
               <p className="text-xs text-purple-600/80 font-bold">
-                一句話描述你的工具，AI 幫你寫超吸睛文案！
+                填得越具體，AI 生成的文案越準（只有①必填）
               </p>
             </div>
           </div>
 
-          <textarea
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder="例如：這是一個可以即時把泰文翻譯成中文語音的手機小工具..."
-            className="w-full bg-white/60 p-4 rounded-xl border border-purple-100 placeholder-purple-300 text-sm focus:border-purple-300 focus:ring-2 focus:ring-purple-200 outline-none transition-all resize-none !h-[80px]"
-          ></textarea>
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-bold text-[#7E22CE]">
+              ① 這工具做什麼？<span className="text-red-400">*</span>
+            </label>
+            <textarea
+              value={what}
+              onChange={(e) => setWhat(e.target.value)}
+              placeholder="例如：把泰文即時翻成中文語音的手機小工具"
+              className={`${fieldCls} !h-[56px]`}
+            />
+
+            <label className="text-xs font-bold text-[#7E22CE] mt-1">
+              ② 給誰用 / 什麼情境？
+            </label>
+            <input
+              value={who}
+              onChange={(e) => setWho(e.target.value)}
+              placeholder="例如：產線外籍移工跟線長溝通時"
+              className={fieldCls}
+            />
+
+            <label className="text-xs font-bold text-[#7E22CE] mt-1">
+              ③ 解決什麼痛點 / 帶來什麼改變？
+            </label>
+            <input
+              value={pain}
+              onChange={(e) => setPain(e.target.value)}
+              placeholder="例如：原本要打字翻譯，現在直接講就好"
+              className={fieldCls}
+            />
+
+            <label className="text-xs font-bold text-[#7E22CE] mt-1">
+              ④ 關鍵功能 / 亮點（選填）
+            </label>
+            <input
+              value={features}
+              onChange={(e) => setFeatures(e.target.value)}
+              placeholder="例如：離線可用、支援台語"
+              className={fieldCls}
+            />
+          </div>
 
           <button
             type="button"
-            onClick={handleSumbit}
+            onClick={handleSubmit}
             disabled={isGenerating}
             className="mt-3 w-full py-3 rounded-xl bg-gradient-to-r from-[#9333EA] to-[#6366f1] text-white font-extrabold text-sm shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all relative overflow-hidden"
           >
