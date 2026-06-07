@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { verifyAuthenticationResponse } from "@simplewebauthn/server";
 import { isoBase64URL } from "@simplewebauthn/server/helpers";
 import { getAdmin } from "@/lib/firebaseAdmin";
-import { getRpInfo, consumeChallenge, HttpError } from "@/lib/passkeyServer";
+import { getRpInfo, consumeChallenge } from "@/lib/passkeyServer";
+import { HttpError } from "@/lib/httpError.mjs";
 
 /**
  * POST /api/auth/passkey/login/verify

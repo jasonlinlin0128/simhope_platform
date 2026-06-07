@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAdmin } from "@/lib/firebaseAdmin";
-import { requireUser, HttpError } from "@/lib/passkeyServer";
+import { requireUser } from "@/lib/passkeyServer";
+import { HttpError } from "@/lib/httpError.mjs";
 
 /**
  * POST /api/auth/passkey/delete

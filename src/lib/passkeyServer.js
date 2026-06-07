@@ -1,5 +1,6 @@
 import { randomUUID } from "crypto";
 import { getAdmin } from "./firebaseAdmin";
+import { HttpError } from "./httpError.mjs";
 
 /**
  * passkey API route 共用伺服器端 helper。
@@ -58,12 +59,4 @@ export async function consumeChallenge(challengeId, expectedType) {
     throw new HttpError(400, "challenge 已過期，請重試");
   }
   return { challenge: data.challenge, uid: data.uid };
-}
-
-/** 簡單的 HTTP 錯誤型別，route 可 catch 後轉成對應 status。 */
-export class HttpError extends Error {
-  constructor(status, message) {
-    super(message);
-    this.status = status;
-  }
 }
