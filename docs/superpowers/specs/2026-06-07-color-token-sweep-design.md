@@ -192,13 +192,15 @@ icon 磚 `from-X-100 to-X-200` 在 dark 下成亮塊。treatment＝**只補 dark
 
 ## 6. 淺色保真 & 刻意可見變動
 
-共用常數的淺色 class **逐字沿用現狀**；唯三刻意可見變動，PR 描述點名、請 Jason live 看：
+共用常數的淺色 class **逐字沿用現狀**；唯二刻意可見變動，PR 描述點名、請 Jason live 看：
 
-1. **admin 痛點卡預覽** before/after（`358/361`）統一成 PainCard 版：文字 `text-red-600`/`text-green-600`→`text-red-900`/`text-green-900`、邊框 `border-red-100`→`border-red-100/60`（套 `BEFORE_BOX`/`AFTER_BOX`）→ admin 內部頁、低風險。
-2. **ReviewToolWizard:603** 拒絕鈕 `border-2 border-red-300` 統一成 `DANGER_BTN`（`border-red-200`）→ 邊框色階微調。
-3. **AiAssist:181** `bg-gray-200` 統一成 `MUTED_BTN`（`bg-gray-100`）→ 底色微淺一階。
+1. **admin 痛點卡預覽** before/after（`358/361`）統一成 PainCard 版（套 `BEFORE_BOX`/`AFTER_BOX`）：文字 `text-red-600`/`text-green-600`→`text-red-900`/`text-green-900`、before 邊框 `border-red-100`→`border-red-100/60`、after 邊框 `border-green-100`→`border-green-200/50` → admin 內部頁、低風險。
+2. **AiAssist:181** 次要鈕統一成 `MUTED_BTN`：`bg-gray-200`/`text-gray-700`/`hover:bg-gray-300` 一致各淺一階成 `bg-gray-100`/`text-gray-600`/`hover:bg-gray-200`。
 
-（AIPanel 去 hex 因 hex＝Tailwind 值，視為**無**可見變動。）
+備註（review 後）：
+
+- AIPanel 去 hex：`#7E22CE/#9333EA/#6366f1` = Tailwind `purple-700/600`、`indigo-500` **精確相等**；`#FAEDFF`→`purple-50` 略偏粉、near-zero（reviewer 確認），視為無可見變動。
+- **ReviewToolWizard:603 退回鈕**經 review 改回 inline、保留 `border-2 border-red-300` + 補 dark（不套 DANGER_BTN，避免與旁「先存草稿」鈕邊框寬度 1px vs 2px 不對稱）→ 淺色不變，故**不列**刻意變動。
 
 ## 7. 測試 / 驗證
 
