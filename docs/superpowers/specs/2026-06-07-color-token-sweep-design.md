@@ -176,13 +176,26 @@ export const MUTED_ICON_BTN =
 - 飽和彩色實心鈕 + 白字：`taxonomy.js` getCTA/TYPE_ACTION 的 `bg-*-500 text-white`、`AiAssist:174` `bg-green-500 text-white`、embedded `bg-indigo-500` 等 → 兩模式皆可讀。
 - `<code>` chip `bg-gray-100 dark:bg-gray-700`（MarkdownContent/changelog/docs/tool[id]:604）→ 已 dark-safe。
 - `app/tool/[id]/page.jsx:232` `<option className="text-gray-800 bg-white">` → 原生 select option，dark 樣式瀏覽器掌控、無法可靠覆寫，留。
+- modal 背景遮罩 `bg-black/40`（`LoginModal:178` / `PasskeyPrompt:66` / `RequestCard:69`）→ 黑遮罩兩模式皆可，留。
+- 飽和漸層 + 白字/emoji（`from-X-400/500`）：`Footer:11`、`Navbar:28,116`、`admin:460`（avatar）、`ChatbotWidget:61,89,120,132`、`taxonomy:161`、`ReviewToolWizard:317`、`AIPanel:42`(toggle 另見 §4.3) → dark 下飽和色 + 白字可讀，留。
 - `page.jsx:153,339` / `Navbar.jsx:31,79` 的 `[#1e1b4b]` → 已配 dark: 變體（`#1e1b4b`＝品牌 `--text-dark`，可選 tidy 成 `var(--color-text-dark)`，非必要、不影響 dark）。
+
+### 5.12 漸層 pastel 磚 / 面板（review 補漏；保色相加深、淺色不動）
+
+icon 磚 `from-X-100 to-X-200` 在 dark 下成亮塊。treatment＝**只補 dark:**（比照本庫 chip 慣例
+`dark:from-X-900/40 dark:to-X-800/30`、文字 `dark:text-X-300`），淺色 class 逐字不動。
+
+- 🔴 **`src/components/ToolCard.jsx:6-11` `ICON_GRADIENTS`（c1–c6）** — **首頁每張工具卡 icon 底色磚，能見度最高**；就地補 dark:（它已是常數物件）。
+- `src/components/ReviewToolWizard.jsx:20-45` `COLOR_OPTIONS` — 工具色票 swatch（`530` 預覽）+ 任何 `tool.color` consumer；就地補 dark:（實作時 trace consumer，若公開頁有渲染需一併確認）。
+- `app/admin/page.jsx:247`（`from-yellow-100 to-yellow-200`）、`289`（`from-blue-100 to-blue-200`）icon 磚 → 就地補 dark:。
+- `app/tool/[id]/page.jsx:973`（`from-blue-100 to-blue-200` 大 icon 磚）→ 就地補 dark:。
+- `app/tool/[id]/page.jsx:638`（`from-emerald-50 to-white` 面板，無 dark）→ 補 `dark:from-emerald-900/10 dark:to-transparent`（對照 `:600` fuchsia 面板既有寫法）。
 
 ## 6. 淺色保真 & 刻意可見變動
 
 共用常數的淺色 class **逐字沿用現狀**；唯三刻意可見變動，PR 描述點名、請 Jason live 看：
 
-1. **admin 痛點卡預覽** before/after（`358/361` `text-red-600`/`text-green-600`）統一成 PainCard 版（`text-red-900`/`text-green-900`）→ admin 內部頁、低風險。
+1. **admin 痛點卡預覽** before/after（`358/361`）統一成 PainCard 版：文字 `text-red-600`/`text-green-600`→`text-red-900`/`text-green-900`、邊框 `border-red-100`→`border-red-100/60`（套 `BEFORE_BOX`/`AFTER_BOX`）→ admin 內部頁、低風險。
 2. **ReviewToolWizard:603** 拒絕鈕 `border-2 border-red-300` 統一成 `DANGER_BTN`（`border-red-200`）→ 邊框色階微調。
 3. **AiAssist:181** `bg-gray-200` 統一成 `MUTED_BTN`（`bg-gray-100`）→ 底色微淺一階。
 
@@ -202,7 +215,9 @@ export const MUTED_ICON_BTN =
 實作每類後重跑，確認無漏（人工判 (a)/(e) 例外）：
 
 - `bg-(red|green|blue|purple|orange|amber|emerald|teal|indigo|fuchsia|pink|gray|yellow|violet)-(50|100|200|300)\b` → 檢查是否各配 `dark:`
+- `(from|via|to)-\w+-(50|100|200|300)\b` → 漸層 pastel 磚，檢查是否各配 `dark:`（飽和 400/500+白字屬 (e) 例外）
 - `border-gray-(200|300)\b`、`text-gray-(700|800|900)\b`
+- `ring-\w+-(100|200|300|400|500)\b`、`placeholder-\w+-(300|400|500)\b` → 應只在已修的 AIPanel
 - `\[#[0-9A-Fa-f]{3,8}\]` → 應只剩 `[#1e1b4b]`（已 dark-paired）或全清
 
 ## 9. 交付 / 風險
