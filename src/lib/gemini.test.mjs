@@ -140,3 +140,27 @@ test("真實 timeout：setTimeout abort signal → HttpError 504", async () => {
     (e) => e instanceof HttpError && e.status === 504,
   );
 });
+
+test("非 ok：上游細節進 log 但遮罩 key，且不洩漏給 client", async () => {
+  const rawKey = "AIza" + "x".repeat(35); // 39 字、符合遮罩 regex
+  const fetchImpl = makeFetch({ ok: false, status: 500, text: `boom key=${rawKey}` });
+  const logs = [];
+  const orig = console.error;
+  console.error = (...args) => logs.push(args.join(" "));
+  let thrown;
+  try {
+    await callGemini({ prompt: "p", json: true, fetchImpl, apiKey: KEY });
+  } catch (e) {
+    thrown = e;
+  } finally {
+    console.error = orig;
+  }
+  // 對外：generic 502，不含上游 body 或 key
+  assert.ok(thrown instanceof HttpError && thrown.status === 502);
+  assert.ok(!thrown.message.includes(rawKey));
+  assert.ok(!thrown.message.includes("boom"));
+  // server log：有記上游細節，但 key 已遮罩
+  const logged = logs.join("\n");
+  assert.ok(logged.includes("AIza***"));
+  assert.ok(!logged.includes(rawKey));
+});
