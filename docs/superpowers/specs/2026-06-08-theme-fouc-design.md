@@ -36,7 +36,10 @@ useEffect(() => {
 
 ## 4. 架構（Design B，4 檔）
 
-**4.1 `app/layout.js` — pre-paint inline script（防 FOUC）**
+**4.1 `app/layout.js` — pre-paint inline script（防 FOUC）+ `<html suppressHydrationWarning>`**
+
+`<html>` 加 `suppressHydrationWarning`：inline script 在 hydration 前替 `<html>` 加 `dark` class，但 server render 的 `<html>` 無此 class → React hydration 會偵測 `<html>` className mismatch 並報 error。`suppressHydrationWarning` 只抑制 `<html>` **自身屬性**的警告（單層，正對應我們只改 `<html>` className），其餘 tree 仍正常檢查。此為 next-themes 同款標準作法。（**MCP 驗證時實測到此 error → 補上後歸零**。）
+
 `<body>` 第一個子節點（在 `<ThemeProvider>` 前）加：
 
 ```jsx

@@ -31,7 +31,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="zh-TW" className="scroll-smooth">
+    <html lang="zh-TW" className="scroll-smooth" suppressHydrationWarning>
       <body
         className={`${nunito.variable} ${notoSansTC.variable} antialiased bg-[var(--color-bg)] text-[var(--color-text-dark)] min-h-screen flex flex-col`}
       >
