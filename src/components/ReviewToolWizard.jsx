@@ -14,6 +14,8 @@ import { DEPTS } from "@/lib/db";
 import { CATEGORIES, CATEGORY_ORDER, TYPES } from "@/lib/taxonomy";
 import VersionEditor from "@/components/VersionEditor";
 import { DANGER_BTN } from "@/lib/uiClasses";
+import { useToast } from "@/components/Toast";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 const COLOR_OPTIONS = [
   {
@@ -57,6 +59,8 @@ const COLOR_OPTIONS = [
 export default function ReviewToolWizard({ tool, onClose, onSaved }) {
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
+  const toast = useToast();
+  const confirm = useConfirm();
 
   // 把作者 uid 解析成「名字（email）」顯示（原本直接印 uid 像亂碼）。
   const [authorLabel, setAuthorLabel] = useState(tool.authorUid || "(無)");
@@ -152,14 +156,14 @@ export default function ReviewToolWizard({ tool, onClose, onSaved }) {
           return { ...prev.typeData, ...rest };
         })(),
       }));
-      alert(
+      toast.success(
         r._readmeFound
           ? "✨ AI 已讀取 GitHub README 並填入建議內容，請確認後再調整。"
           : "✨ AI 已依名稱與介紹生成建議（沒抓到 README），請確認後再調整。",
       );
     } catch (err) {
       console.error(err);
-      alert("AI 預填失敗：" + err.message);
+      toast.error("AI 預填失敗：" + err.message);
     } finally {
       setEnriching(false);
     }
@@ -200,20 +204,26 @@ export default function ReviewToolWizard({ tool, onClose, onSaved }) {
       onSaved?.();
     } catch (err) {
       console.error(err);
-      alert("儲存失敗：" + err.message);
+      toast.error("儲存失敗：" + err.message);
     } finally {
       setSaving(false);
     }
   };
 
   const handleReject = async () => {
-    if (!confirm("確定打回票？工具會被刪除，作者要重新提交。")) return;
+    if (
+      !(await confirm({
+        message: "確定打回票？工具會被刪除，作者要重新提交。",
+        danger: true,
+      }))
+    )
+      return;
     try {
       await deleteDoc(doc(db, "tools", tool.id));
       onSaved?.();
     } catch (err) {
       console.error(err);
-      alert("刪除失敗：" + err.message);
+      toast.error("刪除失敗：" + err.message);
     }
   };
 

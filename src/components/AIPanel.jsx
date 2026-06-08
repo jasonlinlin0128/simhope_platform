@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useToast } from "@/components/Toast";
 
 /**
  * Collapsible panel for generating tool listing copy via `/api/generate`.
@@ -13,6 +14,7 @@ export default function AIPanel({ onGenerate, isGenerating }) {
   const [pain, setPain] = useState(""); // ③ 痛點 / 改變
   const [features, setFeatures] = useState(""); // ④ 關鍵功能
   const [isOpen, setIsOpen] = useState(false);
+  const toast = useToast();
 
   // 把填寫的欄位組成給 /api/generate 的 prompt（空欄略過）。
   const buildPrompt = () => {
@@ -25,7 +27,7 @@ export default function AIPanel({ onGenerate, isGenerating }) {
 
   const handleSubmit = () => {
     if (!what.trim()) {
-      alert("請先填①「這工具做什麼」，AI 才有方向");
+      toast.error("請先填①「這工具做什麼」，AI 才有方向");
       return;
     }
     onGenerate(buildPrompt());

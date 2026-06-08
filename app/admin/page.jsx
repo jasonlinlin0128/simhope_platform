@@ -18,10 +18,14 @@ import ReviewToolWizard from "@/components/ReviewToolWizard";
 import FaqManager from "@/components/FaqManager";
 import RequestInbox from "@/components/RequestInbox";
 import { BEFORE_BOX, AFTER_BOX, DANGER_BTN } from "@/lib/uiClasses";
+import { useToast } from "@/components/Toast";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 export default function AdminDashboard() {
   const { user, isAdmin, loading: authLoading } = useAuth();
   const router = useRouter();
+  const toast = useToast();
+  const confirm = useConfirm();
 
   const [tools, setTools] = useState([]);
   const [painCards, setPainCards] = useState([]);
@@ -98,23 +102,24 @@ export default function AdminDashboard() {
       fetchAdminData();
     } catch (err) {
       console.error(err);
-      alert("更新失敗，請重新整理後再試");
+      toast.error("更新失敗，請重新整理後再試");
     }
   };
 
   const handleRemoveUser = async (u) => {
     if (u.id === user.uid) return; // 不能移除自己
     if (
-      !confirm(
-        `確定移除 ${u.displayName || u.email || u.id} 的權限？\n該帳號會降回一般同仁（viewer），仍可瀏覽/使用工具。`,
-      )
+      !(await confirm({
+        message: `確定移除 ${u.displayName || u.email || u.id} 的權限？\n該帳號會降回一般同仁（viewer），仍可瀏覽/使用工具。`,
+        danger: true,
+      }))
     )
       return;
     try {
       await deleteDoc(doc(db, "users", u.id));
       setUsers((prev) => prev.filter((x) => x.id !== u.id));
     } catch (e) {
-      alert("移除失敗：" + (e.code || e.message));
+      toast.error("移除失敗：" + (e.code || e.message));
     }
   };
 
@@ -124,18 +129,18 @@ export default function AdminDashboard() {
       fetchAdminData();
     } catch (error) {
       console.error(error);
-      alert("更新失敗，請重新整理後再試");
+      toast.error("更新失敗，請重新整理後再試");
     }
   };
 
   const handleDeleteTool = async (id) => {
-    if (!confirm("確定刪除此工具？")) return;
+    if (!(await confirm({ message: "確定刪除此工具？", danger: true }))) return;
     try {
       await deleteDoc(doc(db, "tools", id));
       fetchAdminData();
     } catch (error) {
       console.error(error);
-      alert("刪除失敗，請重新整理後再試");
+      toast.error("刪除失敗，請重新整理後再試");
     }
   };
 
