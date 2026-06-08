@@ -1,4 +1,4 @@
-import { db, auth } from "./firebase";
+import { db } from "./firebase";
 import {
   collection,
   getDocs,
@@ -163,14 +163,9 @@ export async function getAllTools() {
  * Pending tools are only visible to author/admin.
  *
  * 註：原本還會 fallback 查 legacy `approval === 'approved'` 欄位，2026-05-29 cleanup 後砍掉。
+ * @param {boolean} [isAdmin=false] 由呼叫端（AuthContext 已持有）傳入；true=回全部，false=只回公開狀態。
  */
-export async function getApprovedTools() {
-  let isAdmin = false;
-  if (auth.currentUser) {
-    const profile = await getUserProfile(auth.currentUser.uid);
-    isAdmin = profile?.role === "admin";
-  }
-
+export async function getApprovedTools(isAdmin = false) {
   if (isAdmin) {
     return await getAllTools();
   }
@@ -197,11 +192,11 @@ export async function getFaqs() {
 
 /**
  * 取目錄（catalog）— 重用 getApprovedTools 的可見性，再依 category 過濾。
- * @param {{category?: string}} opts  category 省略或 'all' = 全部
+ * @param {{category?: string, isAdmin?: boolean}} opts  category 省略或 'all' = 全部；isAdmin 透傳給 getApprovedTools
  * @returns {Promise<object[]>}
  */
-export async function getCatalog({ category } = {}) {
-  const tools = await getApprovedTools();
+export async function getCatalog({ category, isAdmin } = {}) {
+  const tools = await getApprovedTools(isAdmin);
   if (!category || category === "all") return tools;
   // 無 category 欄位的舊資料視為 'tool'（與 categoryCounts 一致）
   return tools.filter((t) => (t.category || "tool") === category);
@@ -211,13 +206,7 @@ export async function getCatalog({ category } = {}) {
  * Returns approved pain cards, falling back to DEFAULT_SITE.painCards
  * when the Firestore collection is empty (e.g. fresh deploy).
  */
-export async function getApprovedPainCards() {
-  let isAdmin = false;
-  if (auth.currentUser) {
-    const profile = await getUserProfile(auth.currentUser.uid);
-    isAdmin = profile?.role === "admin";
-  }
-
+export async function getApprovedPainCards(isAdmin = false) {
   let snap;
   if (isAdmin) {
     snap = await getDocs(collection(db, "painCards"));
