@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { STORAGE_ENABLED, uploadToolFile } from "@/lib/storage";
+import { useToast } from "@/components/Toast";
 
 /**
  * 上傳按鈕 — 受 STORAGE_ENABLED feature flag 控制。
@@ -18,6 +19,7 @@ export default function UploadButton({
 }) {
   const inputRef = useRef(null);
   const [busy, setBusy] = useState(false);
+  const toast = useToast();
 
   if (!STORAGE_ENABLED) return null;
 
@@ -30,7 +32,7 @@ export default function UploadButton({
       onUploaded(url);
     } catch (err) {
       console.error(err);
-      alert("上傳失敗：" + err.message);
+      toast.error("上傳失敗：" + err.message);
     } finally {
       setBusy(false);
       if (inputRef.current) inputRef.current.value = "";

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { passkeySupported, registerPasskey, listPasskeys } from "@/lib/passkey";
 import Modal from "@/components/Modal";
+import { useToast } from "@/components/Toast";
 
 const DISMISS_KEY = "passkeyPromptDismissed";
 
@@ -16,6 +17,7 @@ export default function PasskeyPrompt() {
   const [show, setShow] = useState(false);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
+  const toast = useToast();
 
   useEffect(() => {
     if (loading || !user) return;
@@ -53,7 +55,7 @@ export default function PasskeyPrompt() {
       setTimeout(() => setShow(false), 1500);
     } catch (e) {
       // 失敗就讓使用者關掉，不強迫
-      alert(
+      toast.error(
         "設定失敗：" +
           (e?.name === "NotAllowedError"
             ? "已取消或逾時"

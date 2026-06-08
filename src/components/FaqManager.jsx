@@ -11,6 +11,8 @@ import {
   doc,
 } from "firebase/firestore";
 import { FAQ_CATEGORIES } from "@/lib/faq";
+import { useToast } from "@/components/Toast";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 const BLANK = {
   question: "",
@@ -24,6 +26,8 @@ export default function FaqManager() {
   const [faqs, setFaqs] = useState([]);
   const [editing, setEditing] = useState(null); // {id?, ...fields}
   const [loading, setLoading] = useState(true);
+  const toast = useToast();
+  const confirm = useConfirm();
 
   const load = async () => {
     try {
@@ -45,7 +49,7 @@ export default function FaqManager() {
   }, []);
 
   const save = async () => {
-    if (!editing.question?.trim()) return alert("請填問題");
+    if (!editing.question?.trim()) return toast.error("請填問題");
     const payload = {
       question: editing.question.trim(),
       answer: editing.answer || "",
@@ -59,12 +63,12 @@ export default function FaqManager() {
       setEditing(null);
       await load();
     } catch (e) {
-      alert("儲存失敗：" + (e.code || e.message));
+      toast.error("儲存失敗：" + (e.code || e.message));
     }
   };
 
   const remove = async (id) => {
-    if (!confirm("確定刪除這題？")) return;
+    if (!(await confirm({ message: "確定刪除這題？", danger: true }))) return;
     await deleteDoc(doc(db, "faqs", id));
     await load();
   };

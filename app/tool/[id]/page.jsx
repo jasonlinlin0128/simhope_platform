@@ -17,6 +17,7 @@ import VersionEditor from "@/components/VersionEditor";
 import VersionHistory from "@/components/VersionHistory";
 import { latestVersionLabel } from "@/lib/versions";
 import AiAssist from "@/components/AiAssist";
+import { useToast } from "@/components/Toast";
 
 // ─── Block type definitions ────────────────────────────────────────────────
 const BLOCK_DEFS = {
@@ -816,6 +817,7 @@ function DetailTab({ tool, blocks }) {
 export default function ToolDetail({ params }) {
   const { id } = use(params);
   const { user, isAdmin, loading: authLoading } = useAuth();
+  const toast = useToast();
   const router = useRouter();
 
   const [tool, setTool] = useState(null);
@@ -903,12 +905,12 @@ export default function ToolDetail({ params }) {
         versions: localVersions,
         updatedAt: new Date(),
       });
-      alert("儲存成功！");
+      toast.success("儲存成功！");
       setIsEditMode(false);
       fetchTool();
     } catch (error) {
       console.error(error);
-      alert(
+      toast.error(
         error.code === "permission-denied"
           ? "儲存失敗：你沒有編輯此工具的權限"
           : "儲存失敗，請稍後再試",

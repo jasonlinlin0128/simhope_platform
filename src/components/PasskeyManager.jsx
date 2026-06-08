@@ -8,6 +8,7 @@ import {
   deletePasskey,
 } from "@/lib/passkey";
 import { DANGER_BTN } from "@/lib/uiClasses";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 /**
  * passkey 管理區（dashboard「安全設定」用）：
@@ -18,6 +19,7 @@ export default function PasskeyManager() {
   const [passkeys, setPasskeys] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const confirm = useConfirm();
   const [msg, setMsg] = useState("");
 
   const refresh = useCallback(async () => {
@@ -63,9 +65,11 @@ export default function PasskeyManager() {
 
   const handleDelete = async (id) => {
     if (
-      !window.confirm(
-        "確定移除這個 passkey？移除後該裝置不能再用 Face ID / 指紋登入。",
-      )
+      !(await confirm({
+        message:
+          "確定移除這個 passkey？移除後該裝置不能再用 Face ID / 指紋登入。",
+        danger: true,
+      }))
     )
       return;
     setBusy(true);

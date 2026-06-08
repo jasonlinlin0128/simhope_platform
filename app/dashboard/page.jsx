@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import AIPanel from "@/components/AIPanel";
 import ToolCard from "@/components/ToolCard";
 import PasskeyManager from "@/components/PasskeyManager";
+import { useToast } from "@/components/Toast";
 import { db, auth } from "@/lib/firebase";
 import { CATEGORIES } from "@/lib/taxonomy";
 import {
@@ -61,6 +62,7 @@ const CATEGORY_OPTIONS = [
 export default function Dashboard() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
+  const toast = useToast();
 
   const [myTools, setMyTools] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -120,12 +122,12 @@ export default function Dashboard() {
         title: result.title || prev.title,
         tagline: result.tagline || prev.tagline,
       }));
-      alert(
+      toast.success(
         "✨ 文案生成完成！其他欄位請手動填，送出後經企室審核時會補完細節。",
       );
     } catch (err) {
       console.error(err);
-      alert("AI 生成失敗，請稍後再試");
+      toast.error("AI 生成失敗，請稍後再試");
     } finally {
       setIsGenerating(false);
     }
@@ -160,14 +162,14 @@ export default function Dashboard() {
       };
 
       await setDoc(doc(db, "tools", id), toolData);
-      alert(
+      toast.success(
         "已送出！經企室審核後會跟你討論細節（截圖、使用步驟、適用部門、進階安裝方式等），通過後上架。",
       );
       setFormData({ title: "", tagline: "", url: "", category: "tool" });
       fetchMyTools();
     } catch (error) {
       console.error(error);
-      alert(
+      toast.error(
         error.code === "permission-denied"
           ? "儲存失敗：你不是開發者帳號，無法提交工具。請聯絡管理員開通。"
           : "儲存失敗，請稍後再試",

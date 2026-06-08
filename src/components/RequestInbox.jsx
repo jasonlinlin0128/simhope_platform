@@ -12,6 +12,7 @@ import {
   limit,
   startAfter,
 } from "firebase/firestore";
+import { useToast } from "@/components/Toast";
 
 const PAGE_SIZE = 50;
 
@@ -20,6 +21,7 @@ export default function RequestInbox() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [cursor, setCursor] = useState(null); // 最後一筆 doc snapshot（分頁游標）
+  const toast = useToast();
   const [hasMore, setHasMore] = useState(false);
   const [filter, setFilter] = useState("pending"); // pending | all
 
@@ -89,7 +91,7 @@ export default function RequestInbox() {
       await updateDoc(doc(db, "requests", r.id), { status: "approved" });
       setStatus(r.id, "approved");
     } catch (e) {
-      alert("核准失敗：" + (e.code || e.message));
+      toast.error("核准失敗：" + (e.code || e.message));
     }
   };
   const reject = async (r) => {
@@ -99,7 +101,7 @@ export default function RequestInbox() {
       await updateDoc(doc(db, "requests", r.id), { status: "rejected" });
       setStatus(r.id, "rejected");
     } catch (e) {
-      alert("操作失敗：" + (e.code || e.message));
+      toast.error("操作失敗：" + (e.code || e.message));
     }
   };
   const markHandled = async (r) => {
@@ -107,7 +109,7 @@ export default function RequestInbox() {
       await updateDoc(doc(db, "requests", r.id), { status: "handled" });
       setStatus(r.id, "handled");
     } catch (e) {
-      alert("操作失敗：" + (e.code || e.message));
+      toast.error("操作失敗：" + (e.code || e.message));
     }
   };
 
