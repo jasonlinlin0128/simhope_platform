@@ -10,6 +10,7 @@ import {
 } from "firebase/auth";
 import { loginWithPasskey, passkeySupported } from "@/lib/passkey";
 import { useAuth } from "@/context/AuthContext";
+import Modal from "@/components/Modal";
 
 function GoogleIcon() {
   return (
@@ -175,84 +176,140 @@ export default function LoginModal({ onClose, initialTab = "login" }) {
   const devStatus = profile?.devStatus;
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="relative bg-[var(--color-card-bg)] rounded-3xl shadow-2xl border border-[var(--color-card-border)] w-full max-w-sm mx-4 p-8 flex flex-col gap-5">
-        {/* 右上角凸出的圓角小卡片：關閉 */}
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="關閉"
-          className="absolute -right-3 -top-3 flex h-9 w-9 items-center justify-center rounded-2xl border border-[var(--color-card-border)] bg-[var(--color-card-bg)] text-[var(--color-text-mid)] shadow-lg transition hover:text-[var(--color-text-dark)] hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-clay-purple)]/40"
-        >
-          <svg
-            viewBox="0 0 24 24"
-            width="16"
-            height="16"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            aria-hidden="true"
+    <Modal
+      onClose={onClose}
+      label="登入或開發者註冊"
+      className="max-w-sm p-8 flex flex-col gap-5 shadow-2xl border border-[var(--color-card-border)]"
+    >
+      {/* tab bar */}
+      <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
+        {[
+          ["login", "登入"],
+          ["register", "開發者註冊"],
+        ].map(([k, lbl]) => (
+          <button
+            key={k}
+            onClick={() => {
+              setTab(k);
+              setError("");
+            }}
+            className={`flex-1 py-2 rounded-lg text-sm font-extrabold transition ${tab === k ? "bg-[var(--color-card-bg)] text-[var(--color-clay-purple)] shadow-sm" : "text-[var(--color-text-mid)]"}`}
           >
-            <path d="M6 6l12 12M18 6L6 18" />
-          </svg>
-        </button>
-        {/* tab bar */}
-        <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
-          {[
-            ["login", "登入"],
-            ["register", "開發者註冊"],
-          ].map(([k, lbl]) => (
-            <button
-              key={k}
-              onClick={() => {
-                setTab(k);
-                setError("");
-              }}
-              className={`flex-1 py-2 rounded-lg text-sm font-extrabold transition ${tab === k ? "bg-[var(--color-card-bg)] text-[var(--color-clay-purple)] shadow-sm" : "text-[var(--color-text-mid)]"}`}
-            >
-              {lbl}
-            </button>
-          ))}
+            {lbl}
+          </button>
+        ))}
+      </div>
+
+      {error && (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl px-4 py-2.5 text-sm font-bold text-red-600 dark:text-red-400">
+          {error}
         </div>
+      )}
 
-        {error && (
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl px-4 py-2.5 text-sm font-bold text-red-600 dark:text-red-400">
-            {error}
-          </div>
-        )}
-
-        {tab === "login" ? (
-          <>
+      {tab === "login" ? (
+        <>
+          <button
+            type="button"
+            onClick={() => handleGoogle(true)}
+            disabled={loading}
+            className="w-full py-3 rounded-xl bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 text-[var(--color-text-dark)] font-extrabold text-sm shadow-sm hover:border-gray-300 dark:hover:border-gray-500 transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+          >
+            <GoogleIcon />用 Google 登入
+          </button>
+          {showPasskey && (
             <button
               type="button"
-              onClick={() => handleGoogle(true)}
+              onClick={handlePasskeyLogin}
               disabled={loading}
-              className="w-full py-3 rounded-xl bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 text-[var(--color-text-dark)] font-extrabold text-sm shadow-sm hover:border-gray-300 dark:hover:border-gray-500 transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+              className="w-full py-3 rounded-xl bg-[var(--color-clay-purple)]/10 border-2 border-[var(--color-clay-purple)]/30 text-[var(--color-clay-purple)] font-extrabold text-sm hover:bg-[var(--color-clay-purple)]/20 transition-all disabled:opacity-60"
             >
-              <GoogleIcon />用 Google 登入
+              🔐 用 Face ID / 指紋登入
             </button>
-            {showPasskey && (
+          )}
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-px bg-[var(--color-card-border)]" />
+            <span className="text-xs font-bold text-[var(--color-text-mid)]">
+              或用帳號密碼
+            </span>
+            <div className="flex-1 h-px bg-[var(--color-card-border)]" />
+          </div>
+          <form onSubmit={handlePasswordLogin} className="flex flex-col gap-3">
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="your@simhope.com.tw"
+              className="w-full px-4 py-2.5 rounded-xl border border-[var(--color-card-border)] bg-[var(--color-card-bg)] text-[var(--color-text-dark)] font-semibold text-sm outline-none focus:border-[var(--color-clay-purple)]"
+            />
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              className="w-full px-4 py-2.5 rounded-xl border border-[var(--color-card-border)] bg-[var(--color-card-bg)] text-[var(--color-text-dark)] font-semibold text-sm outline-none focus:border-[var(--color-clay-purple)]"
+            />
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 rounded-xl bg-gradient-to-br from-[var(--color-clay-purple)] to-[var(--color-clay-blue)] text-white font-extrabold text-sm shadow-md hover:-translate-y-0.5 transition-all disabled:opacity-60"
+            >
+              {loading ? "登入中..." : "登入"}
+            </button>
+          </form>
+          <p className="text-center text-xs text-[var(--color-text-mid)]">
+            想上架工具？切到「開發者註冊」申請開發權限。
+          </p>
+        </>
+      ) : (
+        // ── 開發者註冊 tab ──
+        <div className="flex flex-col gap-4">
+          {isAdmin || isDeveloper ? (
+            <p className="text-center text-sm font-bold text-[var(--color-text-dark)] py-6">
+              你已經是開發者了 ✅<br />
+              <span className="font-semibold text-[var(--color-text-mid)]">
+                可直接到「我的工具 / 管理後台」上架。
+              </span>
+            </p>
+          ) : applied || devStatus === "pending" ? (
+            <div className="text-center py-6">
+              <p className="text-2xl mb-2">🕓</p>
+              <p className="font-bold text-[var(--color-text-dark)]">
+                申請審核中
+              </p>
+              <p className="text-sm text-[var(--color-text-mid)] font-semibold mt-1">
+                已送出，請等管理員核准。核准後重新整理即可上架。
+              </p>
+            </div>
+          ) : !user ? (
+            <>
+              <p className="text-sm text-[var(--color-text-mid)] font-semibold">
+                先用公司帳號登入，再填申請理由：
+              </p>
               <button
                 type="button"
-                onClick={handlePasskeyLogin}
+                onClick={() => handleGoogle(false)}
                 disabled={loading}
-                className="w-full py-3 rounded-xl bg-[var(--color-clay-purple)]/10 border-2 border-[var(--color-clay-purple)]/30 text-[var(--color-clay-purple)] font-extrabold text-sm hover:bg-[var(--color-clay-purple)]/20 transition-all disabled:opacity-60"
+                className="w-full py-3 rounded-xl bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 text-[var(--color-text-dark)] font-extrabold text-sm shadow-sm hover:border-gray-300 dark:hover:border-gray-500 disabled:opacity-60 flex items-center justify-center gap-2"
               >
-                🔐 用 Face ID / 指紋登入
+                <GoogleIcon />用 Google 註冊
               </button>
-            )}
-            <div className="flex items-center gap-3">
-              <div className="flex-1 h-px bg-[var(--color-card-border)]" />
-              <span className="text-xs font-bold text-[var(--color-text-mid)]">
-                或用帳號密碼
-              </span>
-              <div className="flex-1 h-px bg-[var(--color-card-border)]" />
-            </div>
-            <form
-              onSubmit={handlePasswordLogin}
-              className="flex flex-col gap-3"
-            >
+              {showPasskey && (
+                <button
+                  type="button"
+                  onClick={handlePasskeyForRegister}
+                  disabled={loading}
+                  className="w-full py-3 rounded-xl bg-[var(--color-clay-purple)]/10 border-2 border-[var(--color-clay-purple)]/30 text-[var(--color-clay-purple)] font-extrabold text-sm disabled:opacity-60"
+                >
+                  🔐 用 Face ID / 指紋
+                </button>
+              )}
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-px bg-[var(--color-card-border)]" />
+                <span className="text-xs font-bold text-[var(--color-text-mid)]">
+                  或用 email 註冊
+                </span>
+                <div className="flex-1 h-px bg-[var(--color-card-border)]" />
+              </div>
               <input
                 type="email"
                 value={email}
@@ -264,128 +321,50 @@ export default function LoginModal({ onClose, initialTab = "login" }) {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
+                placeholder="密碼（至少 6 碼）"
+                className="w-full px-4 py-2.5 rounded-xl border border-[var(--color-card-border)] bg-[var(--color-card-bg)] text-[var(--color-text-dark)] font-semibold text-sm outline-none focus:border-[var(--color-clay-purple)]"
+              />
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="再次輸入密碼"
                 className="w-full px-4 py-2.5 rounded-xl border border-[var(--color-card-border)] bg-[var(--color-card-bg)] text-[var(--color-text-dark)] font-semibold text-sm outline-none focus:border-[var(--color-clay-purple)]"
               />
               <button
-                type="submit"
+                type="button"
+                onClick={handleEmailSignup}
                 disabled={loading}
-                className="w-full py-3 rounded-xl bg-gradient-to-br from-[var(--color-clay-purple)] to-[var(--color-clay-blue)] text-white font-extrabold text-sm shadow-md hover:-translate-y-0.5 transition-all disabled:opacity-60"
+                className="w-full py-3 rounded-xl bg-gradient-to-br from-[var(--color-clay-purple)] to-[var(--color-clay-blue)] text-white font-extrabold text-sm shadow-md disabled:opacity-60"
               >
-                {loading ? "登入中..." : "登入"}
+                {loading ? "建立中..." : "建立帳號並繼續"}
               </button>
-            </form>
-            <p className="text-center text-xs text-[var(--color-text-mid)]">
-              想上架工具？切到「開發者註冊」申請開發權限。
-            </p>
-          </>
-        ) : (
-          // ── 開發者註冊 tab ──
-          <div className="flex flex-col gap-4">
-            {isAdmin || isDeveloper ? (
-              <p className="text-center text-sm font-bold text-[var(--color-text-dark)] py-6">
-                你已經是開發者了 ✅<br />
-                <span className="font-semibold text-[var(--color-text-mid)]">
-                  可直接到「我的工具 / 管理後台」上架。
-                </span>
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-[var(--color-text-mid)] font-semibold">
+                以 <strong>{user.email || profile?.displayName}</strong> 申請。
               </p>
-            ) : applied || devStatus === "pending" ? (
-              <div className="text-center py-6">
-                <p className="text-2xl mb-2">🕓</p>
-                <p className="font-bold text-[var(--color-text-dark)]">
-                  申請審核中
-                </p>
-                <p className="text-sm text-[var(--color-text-mid)] font-semibold mt-1">
-                  已送出，請等管理員核准。核准後重新整理即可上架。
-                </p>
-              </div>
-            ) : !user ? (
-              <>
-                <p className="text-sm text-[var(--color-text-mid)] font-semibold">
-                  先用公司帳號登入，再填申請理由：
-                </p>
-                <button
-                  type="button"
-                  onClick={() => handleGoogle(false)}
-                  disabled={loading}
-                  className="w-full py-3 rounded-xl bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 text-[var(--color-text-dark)] font-extrabold text-sm shadow-sm hover:border-gray-300 dark:hover:border-gray-500 disabled:opacity-60 flex items-center justify-center gap-2"
-                >
-                  <GoogleIcon />用 Google 註冊
-                </button>
-                {showPasskey && (
-                  <button
-                    type="button"
-                    onClick={handlePasskeyForRegister}
-                    disabled={loading}
-                    className="w-full py-3 rounded-xl bg-[var(--color-clay-purple)]/10 border-2 border-[var(--color-clay-purple)]/30 text-[var(--color-clay-purple)] font-extrabold text-sm disabled:opacity-60"
-                  >
-                    🔐 用 Face ID / 指紋
-                  </button>
-                )}
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 h-px bg-[var(--color-card-border)]" />
-                  <span className="text-xs font-bold text-[var(--color-text-mid)]">
-                    或用 email 註冊
-                  </span>
-                  <div className="flex-1 h-px bg-[var(--color-card-border)]" />
-                </div>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your@simhope.com.tw"
-                  className="w-full px-4 py-2.5 rounded-xl border border-[var(--color-card-border)] bg-[var(--color-card-bg)] text-[var(--color-text-dark)] font-semibold text-sm outline-none focus:border-[var(--color-clay-purple)]"
-                />
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="密碼（至少 6 碼）"
-                  className="w-full px-4 py-2.5 rounded-xl border border-[var(--color-card-border)] bg-[var(--color-card-bg)] text-[var(--color-text-dark)] font-semibold text-sm outline-none focus:border-[var(--color-clay-purple)]"
-                />
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="再次輸入密碼"
-                  className="w-full px-4 py-2.5 rounded-xl border border-[var(--color-card-border)] bg-[var(--color-card-bg)] text-[var(--color-text-dark)] font-semibold text-sm outline-none focus:border-[var(--color-clay-purple)]"
-                />
-                <button
-                  type="button"
-                  onClick={handleEmailSignup}
-                  disabled={loading}
-                  className="w-full py-3 rounded-xl bg-gradient-to-br from-[var(--color-clay-purple)] to-[var(--color-clay-blue)] text-white font-extrabold text-sm shadow-md disabled:opacity-60"
-                >
-                  {loading ? "建立中..." : "建立帳號並繼續"}
-                </button>
-              </>
-            ) : (
-              <>
-                <p className="text-sm text-[var(--color-text-mid)] font-semibold">
-                  以 <strong>{user.email || profile?.displayName}</strong>{" "}
-                  申請。
-                </p>
-                <textarea
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                  placeholder="你想開發 / 上架什麼？（讓管理員了解你的用途）"
-                  rows={4}
-                  maxLength={1000}
-                  className="w-full px-4 py-2.5 rounded-xl border border-[var(--color-card-border)] bg-[var(--color-card-bg)] text-[var(--color-text-dark)] font-semibold text-sm outline-none focus:border-[var(--color-clay-purple)]"
-                />
-                <button
-                  type="button"
-                  onClick={submitApplication}
-                  disabled={loading}
-                  className="w-full py-3 rounded-xl bg-gradient-to-br from-[var(--color-clay-purple)] to-[var(--color-clay-blue)] text-white font-extrabold text-sm shadow-md disabled:opacity-60"
-                >
-                  {loading ? "送出中..." : "📩 送出申請"}
-                </button>
-              </>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
+              <textarea
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                placeholder="你想開發 / 上架什麼？（讓管理員了解你的用途）"
+                rows={4}
+                maxLength={1000}
+                className="w-full px-4 py-2.5 rounded-xl border border-[var(--color-card-border)] bg-[var(--color-card-bg)] text-[var(--color-text-dark)] font-semibold text-sm outline-none focus:border-[var(--color-clay-purple)]"
+              />
+              <button
+                type="button"
+                onClick={submitApplication}
+                disabled={loading}
+                className="w-full py-3 rounded-xl bg-gradient-to-br from-[var(--color-clay-purple)] to-[var(--color-clay-blue)] text-white font-extrabold text-sm shadow-md disabled:opacity-60"
+              >
+                {loading ? "送出中..." : "📩 送出申請"}
+              </button>
+            </>
+          )}
+        </div>
+      )}
+    </Modal>
   );
 }
