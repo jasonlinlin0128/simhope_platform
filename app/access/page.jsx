@@ -148,7 +148,9 @@ export default function AccessPage() {
                         ✓
                       </span>
                     ) : (
-                      <span className="text-gray-300">—</span>
+                      <span className="text-gray-300 dark:text-gray-600">
+                        —
+                      </span>
                     )}
                   </td>
                 ))}

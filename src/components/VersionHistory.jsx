@@ -40,7 +40,7 @@ export default function VersionHistory({ versions = [] }) {
               </span>
             )}
             {i === 0 && (
-              <span className="text-xs font-bold text-green-600 bg-green-50 dark:bg-green-900/20 rounded-full px-2 py-0.5">
+              <span className="text-xs font-bold text-green-600 dark:text-green-300 bg-green-50 dark:bg-green-900/20 rounded-full px-2 py-0.5">
                 最新
               </span>
             )}

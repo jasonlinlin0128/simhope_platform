@@ -13,36 +13,37 @@ import { db, auth } from "@/lib/firebase";
 import { DEPTS } from "@/lib/db";
 import { CATEGORIES, CATEGORY_ORDER, TYPES } from "@/lib/taxonomy";
 import VersionEditor from "@/components/VersionEditor";
+import { DANGER_BTN } from "@/lib/uiClasses";
 
 const COLOR_OPTIONS = [
   {
     key: "c1",
-    cls: "bg-gradient-to-br from-blue-100 to-blue-200",
+    cls: "bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/40 dark:to-blue-800/30",
     textCls: "text-blue-700",
   },
   {
     key: "c2",
-    cls: "bg-gradient-to-br from-red-100 to-red-200",
+    cls: "bg-gradient-to-br from-red-100 to-red-200 dark:from-red-900/40 dark:to-red-800/30",
     textCls: "text-red-700",
   },
   {
     key: "c3",
-    cls: "bg-gradient-to-br from-purple-100 to-purple-200",
+    cls: "bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-900/40 dark:to-purple-800/30",
     textCls: "text-purple-700",
   },
   {
     key: "c4",
-    cls: "bg-gradient-to-br from-amber-100 to-amber-200",
+    cls: "bg-gradient-to-br from-amber-100 to-amber-200 dark:from-amber-900/40 dark:to-amber-800/30",
     textCls: "text-amber-700",
   },
   {
     key: "c5",
-    cls: "bg-gradient-to-br from-emerald-100 to-emerald-200",
+    cls: "bg-gradient-to-br from-emerald-100 to-emerald-200 dark:from-emerald-900/40 dark:to-emerald-800/30",
     textCls: "text-emerald-700",
   },
   {
     key: "c6",
-    cls: "bg-gradient-to-br from-pink-100 to-pink-200",
+    cls: "bg-gradient-to-br from-pink-100 to-pink-200 dark:from-pink-900/40 dark:to-pink-800/30",
     textCls: "text-pink-700",
   },
 ];
@@ -241,7 +242,7 @@ export default function ReviewToolWizard({ tool, onClose, onSaved }) {
         </div>
         <button
           onClick={onClose}
-          className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 font-bold text-sm hover:bg-gray-200"
+          className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 font-bold text-sm hover:bg-gray-200 dark:hover:bg-gray-600"
         >
           ✕ 關閉
         </button>
@@ -260,7 +261,7 @@ export default function ReviewToolWizard({ tool, onClose, onSaved }) {
             className={`flex-1 py-2 rounded-xl font-extrabold text-sm transition ${
               step === s.n
                 ? "bg-[var(--color-clay-purple)] text-white shadow"
-                : "bg-gray-100 dark:bg-gray-700 text-gray-500 hover:bg-gray-200"
+                : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
             }`}
           >
             Step {s.n} — {s.label}
@@ -527,7 +528,7 @@ export default function ReviewToolWizard({ tool, onClose, onSaved }) {
           <div className="bg-[var(--color-card-bg)] rounded-2xl border border-[var(--color-card-border)] p-5 max-w-sm shadow">
             <div className="flex items-center gap-3 mb-2">
               <div
-                className={`w-12 h-12 rounded-2xl ${COLOR_OPTIONS.find((c) => c.key === form.color)?.cls || "bg-gray-100"} flex items-center justify-center text-2xl`}
+                className={`w-12 h-12 rounded-2xl ${COLOR_OPTIONS.find((c) => c.key === form.color)?.cls || "bg-gray-100 dark:bg-gray-700"} flex items-center justify-center text-2xl`}
               >
                 {form.icon}
               </div>
@@ -548,7 +549,7 @@ export default function ReviewToolWizard({ tool, onClose, onSaved }) {
           <Link
             href={`/tool/${tool.id}`}
             target="_blank"
-            className="inline-block w-fit px-5 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-[var(--color-text-mid)] font-bold text-sm border border-gray-300 dark:border-gray-600 hover:bg-gray-200"
+            className="inline-block w-fit px-5 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-[var(--color-text-mid)] font-bold text-sm border border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600"
           >
             👀 在新分頁開詳情頁
           </Link>
@@ -560,28 +561,28 @@ export default function ReviewToolWizard({ tool, onClose, onSaved }) {
                 {
                   val: "live",
                   label: "🟢 使用中",
-                  cls: "bg-green-50 text-green-700 border-green-300",
+                  cls: "bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-300 dark:border-green-700",
                 },
                 {
                   val: "beta",
                   label: "🟠 測試中",
-                  cls: "bg-orange-50 text-orange-700 border-orange-300",
+                  cls: "bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 border-orange-300 dark:border-orange-700",
                 },
                 {
                   val: "new",
                   label: "🌟 新上線",
-                  cls: "bg-blue-50 text-blue-700 border-blue-300",
+                  cls: "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700",
                 },
                 {
                   val: "dev",
                   label: "🔨 開發中",
-                  cls: "bg-gray-100 text-gray-700 border-gray-300",
+                  cls: "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600",
                 },
               ].map((s) => (
                 <button
                   key={s.val}
                   onClick={() => update({ status: s.val })}
-                  className={`px-3 py-2 rounded-lg border-2 font-bold text-sm transition ${form.status === s.val ? s.cls + " ring-2 ring-[var(--color-clay-purple)]" : "bg-white dark:bg-gray-800 text-gray-400 border-gray-200"}`}
+                  className={`px-3 py-2 rounded-lg border-2 font-bold text-sm transition ${form.status === s.val ? s.cls + " ring-2 ring-[var(--color-clay-purple)]" : "bg-white dark:bg-gray-800 text-gray-400 border-gray-200 dark:border-gray-600"}`}
                 >
                   {s.label}
                 </button>
@@ -600,14 +601,14 @@ export default function ReviewToolWizard({ tool, onClose, onSaved }) {
               <button
                 onClick={handleReject}
                 disabled={saving}
-                className="px-5 py-2.5 rounded-xl bg-red-50 text-red-600 font-bold border-2 border-red-300 disabled:opacity-50"
+                className="px-5 py-2.5 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold border-2 border-red-300 dark:border-red-700 hover:bg-red-100 dark:hover:bg-red-900/40 disabled:opacity-50"
               >
                 🗑️ 退回（刪除）
               </button>
               <button
                 onClick={() => handleSaveOnly("pending")}
                 disabled={saving}
-                className="px-5 py-2.5 rounded-xl bg-yellow-50 text-yellow-700 font-bold border-2 border-yellow-300 disabled:opacity-50"
+                className="px-5 py-2.5 rounded-xl bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 font-bold border-2 border-yellow-300 dark:border-yellow-700 disabled:opacity-50"
               >
                 💾 先存草稿 (pending)
               </button>

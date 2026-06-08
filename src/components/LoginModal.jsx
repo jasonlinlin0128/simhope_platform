@@ -228,7 +228,7 @@ export default function LoginModal({ onClose, initialTab = "login" }) {
               type="button"
               onClick={() => handleGoogle(true)}
               disabled={loading}
-              className="w-full py-3 rounded-xl bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 text-[var(--color-text-dark)] font-extrabold text-sm shadow-sm hover:border-gray-300 transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+              className="w-full py-3 rounded-xl bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 text-[var(--color-text-dark)] font-extrabold text-sm shadow-sm hover:border-gray-300 dark:hover:border-gray-500 transition-all disabled:opacity-60 flex items-center justify-center gap-2"
             >
               <GoogleIcon />用 Google 登入
             </button>
@@ -308,7 +308,7 @@ export default function LoginModal({ onClose, initialTab = "login" }) {
                   type="button"
                   onClick={() => handleGoogle(false)}
                   disabled={loading}
-                  className="w-full py-3 rounded-xl bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 text-[var(--color-text-dark)] font-extrabold text-sm shadow-sm hover:border-gray-300 disabled:opacity-60 flex items-center justify-center gap-2"
+                  className="w-full py-3 rounded-xl bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 text-[var(--color-text-dark)] font-extrabold text-sm shadow-sm hover:border-gray-300 dark:hover:border-gray-500 disabled:opacity-60 flex items-center justify-center gap-2"
                 >
                   <GoogleIcon />用 Google 註冊
                 </button>

@@ -17,6 +17,7 @@ import { createDeveloperAccount } from "@/lib/adminAuth";
 import ReviewToolWizard from "@/components/ReviewToolWizard";
 import FaqManager from "@/components/FaqManager";
 import RequestInbox from "@/components/RequestInbox";
+import { BEFORE_BOX, AFTER_BOX, DANGER_BTN } from "@/lib/uiClasses";
 
 export default function AdminDashboard() {
   const { user, isAdmin, loading: authLoading } = useAuth();
@@ -157,7 +158,7 @@ export default function AdminDashboard() {
         <nav className="flex flex-col gap-2">
           <button
             onClick={() => setActiveTab("tools")}
-            className={`w-full text-left px-4 py-3 rounded-xl font-bold transition-all ${activeTab === "tools" ? "bg-[var(--color-clay-purple)] text-white shadow-md" : "text-[var(--color-text-mid)] hover:bg-gray-100"}`}
+            className={`w-full text-left px-4 py-3 rounded-xl font-bold transition-all ${activeTab === "tools" ? "bg-[var(--color-clay-purple)] text-white shadow-md" : "text-[var(--color-text-mid)] hover:bg-gray-100 dark:hover:bg-gray-700"}`}
           >
             🧰 工具管理{" "}
             <span className="float-right bg-white/20 px-2 rounded-full text-xs py-0.5">
@@ -166,7 +167,7 @@ export default function AdminDashboard() {
           </button>
           <button
             onClick={() => setActiveTab("pains")}
-            className={`w-full text-left px-4 py-3 rounded-xl font-bold transition-all ${activeTab === "pains" ? "bg-[var(--color-clay-purple)] text-white shadow-md" : "text-[var(--color-text-mid)] hover:bg-gray-100"}`}
+            className={`w-full text-left px-4 py-3 rounded-xl font-bold transition-all ${activeTab === "pains" ? "bg-[var(--color-clay-purple)] text-white shadow-md" : "text-[var(--color-text-mid)] hover:bg-gray-100 dark:hover:bg-gray-700"}`}
           >
             😤 痛點卡片管理{" "}
             <span className="float-right bg-white/20 px-2 rounded-full text-xs py-0.5">
@@ -175,7 +176,7 @@ export default function AdminDashboard() {
           </button>
           <button
             onClick={() => setActiveTab("users")}
-            className={`w-full text-left px-4 py-3 rounded-xl font-bold transition-all ${activeTab === "users" ? "bg-[var(--color-clay-purple)] text-white shadow-md" : "text-[var(--color-text-mid)] hover:bg-gray-100"}`}
+            className={`w-full text-left px-4 py-3 rounded-xl font-bold transition-all ${activeTab === "users" ? "bg-[var(--color-clay-purple)] text-white shadow-md" : "text-[var(--color-text-mid)] hover:bg-gray-100 dark:hover:bg-gray-700"}`}
           >
             👥 帳號管理{" "}
             <span className="float-right bg-white/20 px-2 rounded-full text-xs py-0.5">
@@ -184,13 +185,13 @@ export default function AdminDashboard() {
           </button>
           <button
             onClick={() => setActiveTab("faqs")}
-            className={`w-full text-left px-4 py-3 rounded-xl font-bold transition-all ${activeTab === "faqs" ? "bg-[var(--color-clay-purple)] text-white shadow-md" : "text-[var(--color-text-mid)] hover:bg-gray-100"}`}
+            className={`w-full text-left px-4 py-3 rounded-xl font-bold transition-all ${activeTab === "faqs" ? "bg-[var(--color-clay-purple)] text-white shadow-md" : "text-[var(--color-text-mid)] hover:bg-gray-100 dark:hover:bg-gray-700"}`}
           >
             ❓ FAQ
           </button>
           <button
             onClick={() => setActiveTab("inbox")}
-            className={`w-full text-left px-4 py-3 rounded-xl font-bold transition-all ${activeTab === "inbox" ? "bg-[var(--color-clay-purple)] text-white shadow-md" : "text-[var(--color-text-mid)] hover:bg-gray-100"}`}
+            className={`w-full text-left px-4 py-3 rounded-xl font-bold transition-all ${activeTab === "inbox" ? "bg-[var(--color-clay-purple)] text-white shadow-md" : "text-[var(--color-text-mid)] hover:bg-gray-100 dark:hover:bg-gray-700"}`}
           >
             📥 申請 / 需求
           </button>
@@ -244,7 +245,7 @@ export default function AdminDashboard() {
                           className="flex flex-col md:flex-row justify-between items-center bg-white dark:bg-gray-800 p-5 rounded-2xl border border-yellow-200 dark:border-yellow-700 gap-4 shadow"
                         >
                           <div className="flex items-center gap-4 flex-1 w-full">
-                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-100 to-yellow-200 flex items-center justify-center text-2xl">
+                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-100 to-yellow-200 dark:from-yellow-900/40 dark:to-yellow-800/30 flex items-center justify-center text-2xl">
                               {tool.icon || "📦"}
                             </div>
                             <div className="flex-1 min-w-0">
@@ -286,7 +287,7 @@ export default function AdminDashboard() {
                         className="flex flex-col md:flex-row justify-between items-center bg-[var(--color-card-bg)]/60 p-4 rounded-2xl border border-[var(--color-card-border)] gap-3"
                       >
                         <div className="flex items-center gap-3 flex-1 w-full">
-                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-xl">
+                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/40 dark:to-blue-800/30 flex items-center justify-center text-xl">
                             {tool.icon || "📦"}
                           </div>
                           <div className="flex-1 min-w-0">
@@ -315,19 +316,19 @@ export default function AdminDashboard() {
                           </select>
                           <button
                             onClick={() => setWizardToolId(tool.id)}
-                            className="px-3 py-1.5 bg-purple-50 text-purple-600 hover:bg-purple-100 rounded-lg font-bold text-xs border border-purple-200"
+                            className="px-3 py-1.5 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/40 rounded-lg font-bold text-xs border border-purple-200 dark:border-purple-800"
                           >
                             🔍 wizard
                           </button>
                           <a
                             href={`/tool/${tool.id}`}
-                            className="px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg font-bold text-xs border border-blue-200"
+                            className="px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded-lg font-bold text-xs border border-blue-200 dark:border-blue-800"
                           >
                             ✏️ 編輯
                           </a>
                           <button
                             onClick={() => handleDeleteTool(tool.id)}
-                            className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg font-bold text-xs border border-red-200"
+                            className={`${DANGER_BTN} px-3 py-1.5 rounded-lg font-bold text-xs`}
                           >
                             🗑️
                           </button>
@@ -355,14 +356,16 @@ export default function AdminDashboard() {
                   key={card.id}
                   className="bg-[var(--color-card-bg)]/60 p-5 rounded-2xl border border-[var(--color-card-border)] flex flex-col gap-2"
                 >
-                  <div className="text-sm font-bold text-red-600 bg-red-50 p-2 rounded relative border border-red-100">
+                  <div
+                    className={`${BEFORE_BOX} text-sm font-bold p-2 rounded relative`}
+                  >
                     😓 {card.before}
                   </div>
-                  <div className="text-sm font-bold text-green-600 bg-green-50 p-2 rounded border border-green-100">
+                  <div className={`${AFTER_BOX} text-sm font-bold p-2 rounded`}>
                     ✅ {card.after}
                   </div>
                   <div className="flex justify-between items-center mt-2">
-                    <div className="text-xs font-bold text-gray-500 bg-gray-200/50 px-2 py-1 rounded">
+                    <div className="text-xs font-bold text-gray-500 dark:text-gray-400 bg-gray-200/50 dark:bg-gray-700/50 px-2 py-1 rounded">
                       狀態:{" "}
                       {card.approval === "approved" ? "🟢 已核准" : "🟡 待審核"}
                     </div>

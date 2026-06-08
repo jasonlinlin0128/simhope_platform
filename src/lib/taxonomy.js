@@ -115,7 +115,7 @@ export function getCTA(tool) {
     return {
       label: "⛔ 已終止維護",
       href: null,
-      cls: "bg-red-100 text-red-600 cursor-not-allowed",
+      cls: "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 cursor-not-allowed",
       disabled: true,
     };
   }
@@ -123,7 +123,7 @@ export function getCTA(tool) {
     return {
       label: "🚧 開發中，敬請期待",
       href: `/tool/${id}`,
-      cls: "bg-gray-200 text-gray-500 hover:bg-gray-300",
+      cls: "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600",
       disabled: false,
     };
   }
@@ -142,7 +142,7 @@ export function getCTA(tool) {
       return {
         label: "👀 看詳情 →",
         href: `/tool/${id}`,
-        cls: "bg-gray-300 text-gray-700 hover:bg-gray-400",
+        cls: "bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-400 dark:hover:bg-gray-500",
         disabled: false,
       };
     }
@@ -188,7 +188,7 @@ export function getCTA(tool) {
     return {
       label: "👀 看詳情 →",
       href: `/tool/${id}`,
-      cls: "bg-gray-300 text-gray-700 hover:bg-gray-400",
+      cls: "bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-400 dark:hover:bg-gray-500",
       disabled: false,
     };
   }

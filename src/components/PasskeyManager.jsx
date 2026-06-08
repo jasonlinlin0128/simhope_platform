@@ -7,6 +7,7 @@ import {
   listPasskeys,
   deletePasskey,
 } from "@/lib/passkey";
+import { DANGER_BTN } from "@/lib/uiClasses";
 
 /**
  * passkey 管理區（dashboard「安全設定」用）：
@@ -143,7 +144,7 @@ export default function PasskeyManager() {
                 <button
                   onClick={() => handleDelete(p.id)}
                   disabled={busy}
-                  className="px-3 py-1.5 rounded-lg bg-red-50 text-red-600 font-bold text-xs border border-red-200 hover:bg-red-100 disabled:opacity-50 whitespace-nowrap"
+                  className={`${DANGER_BTN} px-3 py-1.5 rounded-lg font-bold text-xs disabled:opacity-50 whitespace-nowrap`}
                 >
                   移除
                 </button>
