@@ -11,10 +11,14 @@ import {
   orderBy,
   limit,
   startAfter,
+  Timestamp,
 } from "firebase/firestore";
 import { useToast } from "@/components/Toast";
 
 const PAGE_SIZE = 50;
+// 結案後保留 180 天，過後由 Firestore TTL policy（欄位 expireAt）自動清除。
+const RETENTION_MS = 180 * 24 * 60 * 60 * 1000;
+const newExpireAt = () => Timestamp.fromMillis(Date.now() + RETENTION_MS);
 
 export default function RequestInbox() {
   const [reqs, setReqs] = useState([]);
@@ -88,7 +92,10 @@ export default function RequestInbox() {
         role: "developer",
         devStatus: "approved",
       });
-      await updateDoc(doc(db, "requests", r.id), { status: "approved" });
+      await updateDoc(doc(db, "requests", r.id), {
+        status: "approved",
+        expireAt: newExpireAt(),
+      });
       setStatus(r.id, "approved");
     } catch (e) {
       toast.error("核准失敗：" + (e.code || e.message));
@@ -98,7 +105,10 @@ export default function RequestInbox() {
     try {
       if (r.uid)
         await updateDoc(doc(db, "users", r.uid), { devStatus: "rejected" });
-      await updateDoc(doc(db, "requests", r.id), { status: "rejected" });
+      await updateDoc(doc(db, "requests", r.id), {
+        status: "rejected",
+        expireAt: newExpireAt(),
+      });
       setStatus(r.id, "rejected");
     } catch (e) {
       toast.error("操作失敗：" + (e.code || e.message));
@@ -106,7 +116,10 @@ export default function RequestInbox() {
   };
   const markHandled = async (r) => {
     try {
-      await updateDoc(doc(db, "requests", r.id), { status: "handled" });
+      await updateDoc(doc(db, "requests", r.id), {
+        status: "handled",
+        expireAt: newExpireAt(),
+      });
       setStatus(r.id, "handled");
     } catch (e) {
       toast.error("操作失敗：" + (e.code || e.message));
