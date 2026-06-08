@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { passkeySupported, registerPasskey, listPasskeys } from "@/lib/passkey";
+import Modal from "@/components/Modal";
 
 const DISMISS_KEY = "passkeyPromptDismissed";
 
@@ -63,51 +64,60 @@ export default function PasskeyPrompt() {
   };
 
   return (
-    <div className="fixed inset-0 z-[210] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-      <div className="bg-[var(--color-card-bg)] rounded-3xl shadow-2xl border border-[var(--color-card-border)] w-full max-w-sm p-8 flex flex-col gap-4 text-center">
-        <div className="text-5xl">🔐</div>
-        {done ? (
-          <>
-            <h2 className="text-xl font-black text-[var(--color-text-dark)]">
-              設定完成！
-            </h2>
-            <p className="text-sm text-[var(--color-text-mid)]">
-              下次登入可直接用 Face ID / 指紋。
-            </p>
-          </>
-        ) : (
-          <>
-            <h2 className="text-xl font-black text-[var(--color-text-dark)]">
-              要不要設定 Face ID 快速登入？
-            </h2>
-            <p className="text-sm text-[var(--color-text-mid)] leading-relaxed">
-              在這台裝置註冊一次，之後登入免打密碼、免選 Google 帳號，直接用
-              Face ID / 指紋進來。
-            </p>
+    <Modal
+      onClose={() => dismiss(false)}
+      labelledBy="pk-title"
+      showClose={false}
+      className="max-w-sm p-8 flex flex-col gap-4 text-center shadow-2xl border border-[var(--color-card-border)]"
+    >
+      <div className="text-5xl">🔐</div>
+      {done ? (
+        <>
+          <h2
+            id="pk-title"
+            className="text-xl font-black text-[var(--color-text-dark)]"
+          >
+            設定完成！
+          </h2>
+          <p className="text-sm text-[var(--color-text-mid)]">
+            下次登入可直接用 Face ID / 指紋。
+          </p>
+        </>
+      ) : (
+        <>
+          <h2
+            id="pk-title"
+            className="text-xl font-black text-[var(--color-text-dark)]"
+          >
+            要不要設定 Face ID 快速登入？
+          </h2>
+          <p className="text-sm text-[var(--color-text-mid)] leading-relaxed">
+            在這台裝置註冊一次，之後登入免打密碼、免選 Google 帳號，直接用 Face
+            ID / 指紋進來。
+          </p>
+          <button
+            onClick={handleSetup}
+            disabled={busy}
+            className="w-full py-3 rounded-xl bg-gradient-to-br from-[var(--color-clay-purple)] to-[var(--color-clay-blue)] text-white font-extrabold text-sm shadow hover:-translate-y-0.5 transition disabled:opacity-60"
+          >
+            {busy ? "設定中…" : "🔐 馬上設定"}
+          </button>
+          <div className="flex gap-2">
             <button
-              onClick={handleSetup}
-              disabled={busy}
-              className="w-full py-3 rounded-xl bg-gradient-to-br from-[var(--color-clay-purple)] to-[var(--color-clay-blue)] text-white font-extrabold text-sm shadow hover:-translate-y-0.5 transition disabled:opacity-60"
+              onClick={() => dismiss(false)}
+              className="flex-1 py-2 rounded-xl bg-gray-100 dark:bg-gray-700 text-[var(--color-text-mid)] font-bold text-sm"
             >
-              {busy ? "設定中…" : "🔐 馬上設定"}
+              稍後再說
             </button>
-            <div className="flex gap-2">
-              <button
-                onClick={() => dismiss(false)}
-                className="flex-1 py-2 rounded-xl bg-gray-100 dark:bg-gray-700 text-[var(--color-text-mid)] font-bold text-sm"
-              >
-                稍後再說
-              </button>
-              <button
-                onClick={() => dismiss(true)}
-                className="flex-1 py-2 rounded-xl bg-gray-100 dark:bg-gray-700 text-[var(--color-text-mid)] font-bold text-sm"
-              >
-                不再提示
-              </button>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
+            <button
+              onClick={() => dismiss(true)}
+              className="flex-1 py-2 rounded-xl bg-gray-100 dark:bg-gray-700 text-[var(--color-text-mid)] font-bold text-sm"
+            >
+              不再提示
+            </button>
+          </div>
+        </>
+      )}
+    </Modal>
   );
 }
