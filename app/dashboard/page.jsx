@@ -67,6 +67,7 @@ export default function Dashboard() {
   const [myTools, setMyTools] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 4 欄表單 state
   const [formData, setFormData] = useState({
@@ -135,6 +136,8 @@ export default function Dashboard() {
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     try {
       const id =
         "t_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7);
@@ -174,6 +177,8 @@ export default function Dashboard() {
           ? "儲存失敗：你不是開發者帳號，無法提交工具。請聯絡管理員開通。"
           : "儲存失敗，請稍後再試",
       );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -317,9 +322,10 @@ export default function Dashboard() {
 
               <button
                 type="submit"
-                className="mt-2 px-6 py-4 rounded-xl bg-gradient-to-br from-[var(--color-clay-purple)] to-[var(--color-clay-blue)] text-white font-extrabold text-base shadow-md hover:-translate-y-0.5 hover:shadow-lg transition-all"
+                disabled={isSubmitting}
+                className="mt-2 px-6 py-4 rounded-xl bg-gradient-to-br from-[var(--color-clay-purple)] to-[var(--color-clay-blue)] text-white font-extrabold text-base shadow-md hover:-translate-y-0.5 hover:shadow-lg transition-all disabled:opacity-60 disabled:cursor-not-allowed disabled:translate-y-0"
               >
-                📤 送出，等審核
+                {isSubmitting ? "送出中…" : "📤 送出，等審核"}
               </button>
 
               <p className="text-center text-xs text-gray-400">
