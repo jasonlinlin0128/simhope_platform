@@ -7,6 +7,8 @@ import ThemeProvider from "@/components/ThemeProvider";
 import BlobBackground from "@/components/BlobBackground";
 import ChatbotWidget from "@/components/ChatbotWidget";
 import PasskeyPrompt from "@/components/PasskeyPrompt";
+import { ToastProvider } from "@/components/Toast";
+import { ConfirmProvider } from "@/components/ConfirmDialog";
 
 const nunito = Nunito({
   variable: "--font-nunito",
@@ -35,15 +37,19 @@ export default function RootLayout({ children }) {
       >
         <ThemeProvider>
           <BlobBackground />
-          <AuthProvider>
-            <Navbar />
-            <main className="flex-1 w-full max-w-7xl mx-auto py-8">
-              {children}
-            </main>
-            <Footer />
-            <ChatbotWidget />
-            <PasskeyPrompt />
-          </AuthProvider>
+          <ToastProvider>
+            <ConfirmProvider>
+              <AuthProvider>
+                <Navbar />
+                <main className="flex-1 w-full max-w-7xl mx-auto py-8">
+                  {children}
+                </main>
+                <Footer />
+                <ChatbotWidget />
+                <PasskeyPrompt />
+              </AuthProvider>
+            </ConfirmProvider>
+          </ToastProvider>
         </ThemeProvider>
       </body>
     </html>
