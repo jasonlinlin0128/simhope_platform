@@ -16,7 +16,7 @@ import LoginModal from "@/components/LoginModal";
  */
 export default function Navbar() {
   const { user, isAdmin, loading } = useAuth();
-  const { isDark, toggle } = useTheme();
+  const { toggle } = useTheme();
   const [showLogin, setShowLogin] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -96,7 +96,8 @@ export default function Navbar() {
             aria-label="切換深色模式"
             className="w-9 h-9 rounded-full border border-gray-200 dark:border-gray-600 bg-transparent flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-base"
           >
-            {isDark ? "☀️" : "🌙"}
+            <span className="hidden dark:inline">☀️</span>
+            <span className="dark:hidden">🌙</span>
           </button>
 
           {/* Auth section */}
@@ -187,7 +188,8 @@ export default function Navbar() {
             </>
           )}
           <button onClick={toggle} className="text-left">
-            {isDark ? "☀️ 淺色" : "🌙 深色"}
+            <span className="hidden dark:inline">☀️ 淺色</span>
+            <span className="dark:hidden">🌙 深色</span>
           </button>
         </div>
       )}

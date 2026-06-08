@@ -35,6 +35,12 @@ export default function RootLayout({ children }) {
       <body
         className={`${nunito.variable} ${notoSansTC.variable} antialiased bg-[var(--color-bg)] text-[var(--color-text-dark)] min-h-screen flex flex-col`}
       >
+        {/* Pre-paint：hydration 前依偏好設好 dark class，避免深色模式閃白 (FOUC) */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark');}}catch(e){}})();`,
+          }}
+        />
         <ThemeProvider>
           <BlobBackground />
           <ToastProvider>
