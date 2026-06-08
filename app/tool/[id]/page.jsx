@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, use } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { db } from "@/lib/firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import AIPanel from "@/components/AIPanel";
@@ -818,7 +818,6 @@ export default function ToolDetail({ params }) {
   const { id } = use(params);
   const { user, isAdmin, loading: authLoading } = useAuth();
   const toast = useToast();
-  const router = useRouter();
 
   const [tool, setTool] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -834,19 +833,13 @@ export default function ToolDetail({ params }) {
   const fetchTool = useCallback(async () => {
     try {
       const docSnap = await getDoc(doc(db, "tools", id));
-      if (!docSnap.exists()) {
-        router.push("/");
-        return;
-      }
+      if (!docSnap.exists()) return; // tool 留 null → 渲染 not-found 狀態頁
       const data = docSnap.data();
-      const isPublic =
-        ["live", "beta", "new", "dev", "terminated"].includes(data.status) ||
-        data.approval === "approved";
+      const isPublic = ["live", "beta", "new", "dev", "terminated"].includes(
+        data.status,
+      );
       const isOwner = user && data.authorUid === user.uid;
-      if (!isPublic && !isOwner && !isAdmin) {
-        router.push("/");
-        return;
-      }
+      if (!isPublic && !isOwner && !isAdmin) return; // 無權限 → not-found 狀態頁
       setTool(data);
       const blocks = (data.blog?.blocks || []).map((b) =>
         b.id ? b : { ...b, id: crypto.randomUUID() },
@@ -858,9 +851,10 @@ export default function ToolDetail({ params }) {
       setActiveTab(defaultTabForType(data.type || "webapp"));
     } catch (e) {
       console.error(e);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-  }, [id, router, user, isAdmin]);
+  }, [id, user, isAdmin]);
 
   useEffect(() => {
     if (!authLoading) fetchTool();
@@ -925,7 +919,24 @@ export default function ToolDetail({ params }) {
         載入中，請稍候…
       </p>
     );
-  if (!tool) return null;
+  if (!tool)
+    return (
+      <div className="flex flex-col items-center justify-center text-center py-24 gap-4">
+        <div className="text-6xl">🔍</div>
+        <h1 className="text-2xl font-black text-[var(--color-text-dark)]">
+          找不到這個工具
+        </h1>
+        <p className="text-[var(--color-text-mid)] max-w-sm">
+          這個工具可能不存在、已下架，或你沒有檢視權限。
+        </p>
+        <Link
+          href="/hub"
+          className="mt-2 px-6 py-3 rounded-xl bg-gradient-to-br from-[var(--color-clay-purple)] to-[var(--color-clay-blue)] text-white font-extrabold text-sm shadow-md hover:-translate-y-0.5 transition-all"
+        >
+          ← 回資源中心
+        </Link>
+      </div>
+    );
 
   return (
     <div>
