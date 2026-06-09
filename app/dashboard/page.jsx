@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
@@ -77,15 +77,7 @@ export default function Dashboard() {
     category: "tool",
   });
 
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push("/");
-    } else if (user) {
-      fetchMyTools();
-    }
-  }, [user, authLoading, router]);
-
-  const fetchMyTools = async () => {
+  const fetchMyTools = useCallback(async () => {
     setLoading(true);
     try {
       const q = query(
@@ -98,7 +90,15 @@ export default function Dashboard() {
       console.error("Failed to load tools", error);
     }
     setLoading(false);
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push("/");
+    } else if (user) {
+      fetchMyTools();
+    }
+  }, [user, authLoading, router, fetchMyTools]);
 
   // AI 文案生成 — 只填 title + tagline（其他細節經企室審核時補）
   const handleGenerate = async (prompt) => {
