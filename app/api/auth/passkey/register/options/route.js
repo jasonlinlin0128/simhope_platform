@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { generateRegistrationOptions } from "@simplewebauthn/server";
 import { getAdmin } from "@/lib/firebaseAdmin";
 import { requireUser, getRpInfo, storeChallenge } from "@/lib/passkeyServer";
+import { rateLimit, clientIp } from "@/lib/rateLimit.mjs";
+import { HttpError } from "@/lib/httpError.mjs";
 
 /**
  * POST /api/auth/passkey/register/options
@@ -9,6 +11,10 @@ import { requireUser, getRpInfo, storeChallenge } from "@/lib/passkeyServer";
  */
 export async function POST(request) {
   try {
+    const ip = clientIp(request);
+    if (!rateLimit(`pk-register:${ip}`, { limit: 10, windowMs: 60000 }).ok)
+      throw new HttpError(429, "操作過於頻繁，請稍後再試");
+
     const decoded = await requireUser(request);
     const uid = decoded.uid;
     const email = decoded.email || "";
