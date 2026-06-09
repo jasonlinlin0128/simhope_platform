@@ -4,7 +4,13 @@ import { useState, useEffect, useCallback, use } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
 import { db } from "@/lib/firebase";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { sameTimestamp } from "@/lib/sameTimestamp.mjs";
+import {
+  doc,
+  getDoc,
+  runTransaction,
+  serverTimestamp,
+} from "firebase/firestore";
 import AIPanel from "@/components/AIPanel";
 import { getStatusLabel } from "@/components/ToolCard";
 import UploadButton from "@/components/UploadButton";
@@ -892,12 +898,25 @@ export default function ToolDetail({ params }) {
     if (!canEdit) return;
     setIsSaving(true);
     try {
-      await updateDoc(doc(db, "tools", id), {
-        blog: { ...tool.blog, blocks: localBlocks },
-        url: localExtras.url,
-        type: localExtras.type,
-        versions: localVersions,
-        updatedAt: new Date(),
+      const ref = doc(db, "tools", id);
+      // 樂觀鎖：交易內比對 updatedAt，期間被別人改過就中止（不靜默覆蓋）。
+      await runTransaction(db, async (tx) => {
+        const snap = await tx.get(ref);
+        if (
+          !snap.exists() ||
+          !sameTimestamp(snap.data().updatedAt, tool.updatedAt)
+        ) {
+          const e = new Error("CONFLICT");
+          e.code = "conflict";
+          throw e;
+        }
+        tx.update(ref, {
+          blog: { ...tool.blog, blocks: localBlocks },
+          url: localExtras.url,
+          type: localExtras.type,
+          versions: localVersions,
+          updatedAt: serverTimestamp(),
+        });
       });
       toast.success("儲存成功！");
       setIsEditMode(false);
@@ -905,9 +924,11 @@ export default function ToolDetail({ params }) {
     } catch (error) {
       console.error(error);
       toast.error(
-        error.code === "permission-denied"
-          ? "儲存失敗：你沒有編輯此工具的權限"
-          : "儲存失敗，請稍後再試",
+        error.code === "conflict"
+          ? "這個工具在你編輯期間被其他人更新了。請重新整理載入最新版本後再編輯（避免覆蓋對方的修改）。"
+          : error.code === "permission-denied"
+            ? "儲存失敗：你沒有編輯此工具的權限"
+            : "儲存失敗，請稍後再試",
       );
     }
     setIsSaving(false);

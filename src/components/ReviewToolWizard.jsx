@@ -4,12 +4,13 @@ import { useState, useEffect } from "react";
 import {
   doc,
   getDoc,
-  updateDoc,
+  runTransaction,
   deleteDoc,
   serverTimestamp,
 } from "firebase/firestore";
 import Link from "next/link";
 import { db, auth } from "@/lib/firebase";
+import { sameTimestamp } from "@/lib/sameTimestamp.mjs";
 import { DEPTS } from "@/lib/db";
 import { CATEGORIES, CATEGORY_ORDER, TYPES } from "@/lib/taxonomy";
 import VersionEditor from "@/components/VersionEditor";
@@ -200,11 +201,28 @@ export default function ReviewToolWizard({ tool, onClose, onSaved }) {
       if (newStatus) {
         payload.status = newStatus;
       }
-      await updateDoc(doc(db, "tools", tool.id), payload);
+      const ref = doc(db, "tools", tool.id);
+      // 樂觀鎖：交易內比對 updatedAt，期間被別人改過就中止（不靜默覆蓋）。
+      await runTransaction(db, async (tx) => {
+        const snap = await tx.get(ref);
+        if (
+          !snap.exists() ||
+          !sameTimestamp(snap.data().updatedAt, tool.updatedAt)
+        ) {
+          const e = new Error("CONFLICT");
+          e.code = "conflict";
+          throw e;
+        }
+        tx.update(ref, payload);
+      });
       onSaved?.();
     } catch (err) {
       console.error(err);
-      toast.error("儲存失敗：" + err.message);
+      toast.error(
+        err.code === "conflict"
+          ? "這個工具在你開啟審核期間被其他人更新了，請關閉重開後再操作。"
+          : "儲存失敗：" + err.message,
+      );
     } finally {
       setSaving(false);
     }
