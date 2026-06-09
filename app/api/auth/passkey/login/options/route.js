@@ -11,7 +11,7 @@ import { HttpError } from "@/lib/httpError.mjs";
 export async function POST(request) {
   try {
     const ip = clientIp(request);
-    if (!rateLimit(`pk-login:${ip}`, { limit: 10, windowMs: 60000 }).ok)
+    if (!rateLimit(`pk-login:${ip}`, { limit: 30, windowMs: 60000 }).ok)
       throw new HttpError(429, "操作過於頻繁，請稍後再試");
 
     const { rpID } = getRpInfo(request);
