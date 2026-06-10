@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 import { getAdmin } from "./firebaseAdmin";
 import { HttpError } from "./httpError.mjs";
+import { Timestamp } from "firebase-admin/firestore";
 
 /**
  * passkey API route 共用伺服器端 helper。
@@ -35,12 +36,18 @@ export function getRpInfo(request) {
 export async function storeChallenge({ challenge, uid = null, type }) {
   const { adminDb } = getAdmin();
   const challengeId = randomUUID();
-  await adminDb.collection("webauthnChallenges").doc(challengeId).set({
-    challenge,
-    uid,
-    type,
-    createdAt: Date.now(),
-  });
+  const now = Date.now();
+  await adminDb
+    .collection("webauthnChallenges")
+    .doc(challengeId)
+    .set({
+      challenge,
+      uid,
+      type,
+      createdAt: now,
+      // TTL：Firestore TTL policy（欄位 expireAt）過期後清掉沒被消費的孤兒 challenge。
+      expireAt: Timestamp.fromMillis(now + CHALLENGE_TTL_MS),
+    });
   return challengeId;
 }
 
