@@ -32,7 +32,9 @@ export default function Accordion({ items = [] }) {
               </span>
             </button>
             {open && (
-              <div className="px-5 pb-4 pt-1 border-t border-[var(--color-card-border)]">
+              /* Q&A 內文走 /docs、/changelog 的閱讀風格（text-mid + leading-relaxed），
+                 蓋掉 MarkdownContent 的文章級樣式（那套是詳情頁長文用的，對 accordion 太大太鬆） */
+              <div className="px-5 pb-4 pt-2 border-t border-[var(--color-card-border)] [&_p]:text-[var(--color-text-mid)] [&_p]:text-base [&_p]:leading-relaxed [&_p]:mb-3 [&_p:last-child]:mb-0 [&_li]:text-[var(--color-text-mid)] [&_li]:text-base [&_li]:leading-relaxed [&_ul]:my-2 [&_ul:last-child]:mb-0 [&_ol]:my-2 [&_ol:last-child]:mb-0 [&_strong]:text-inherit">
                 <MarkdownContent>{item.a || ""}</MarkdownContent>
               </div>
             )}
