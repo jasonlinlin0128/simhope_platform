@@ -64,7 +64,7 @@ export async function POST(req) {
       return NextResponse.json({ ok: true });
     }
 
-    // type === 'feature'：免登入提需求
+    // type === 'feature'：免登入提需求（登入則補可信 uid，讓使用者能在 /my-requests 看狀態）
     const name = String(body.name || "")
       .slice(0, 50)
       .trim();
@@ -77,14 +77,28 @@ export async function POST(req) {
     if (!message)
       return NextResponse.json({ error: "請填寫需求內容" }, { status: 400 });
 
-    const ref = await adminDb.collection("requests").add({
+    // 有帶 Bearer token 且驗證通過 → 附上 server 端可信 uid；否則匿名（不拒絕）。
+    let featureUid = null;
+    const featAuth = req.headers.get("authorization") || "";
+    const featToken = featAuth.startsWith("Bearer ") ? featAuth.slice(7) : "";
+    if (featToken) {
+      try {
+        featureUid = (await adminAuth.verifyIdToken(featToken)).uid;
+      } catch {
+        featureUid = null; // 驗失敗 → 當匿名
+      }
+    }
+
+    const featureDoc = {
       type: "feature",
       name,
       contact,
       message,
       status: "pending",
       createdAt: FieldValue.serverTimestamp(),
-    });
+    };
+    if (featureUid) featureDoc.uid = featureUid;
+    const ref = await adminDb.collection("requests").add(featureDoc);
     await notify(
       `💡 提需求\n來自：${name}${contact ? `（${contact}）` : ""}\n內容：${message}\nrequest id: ${ref.id}`,
     );

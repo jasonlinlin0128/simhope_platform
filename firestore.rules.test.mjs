@@ -69,6 +69,15 @@ async function seed() {
     await setDoc(doc(db, "analytics_daily", "20260610"), {
       date: "2026-06-10", toolOpen: 2,
     });
+    await setDoc(doc(db, "requests", "req_dev1"), {
+      type: "feature", uid: "dev1", message: "m1", status: "pending", createdAt: 1000,
+    });
+    await setDoc(doc(db, "requests", "req_dev2"), {
+      type: "feature", uid: "dev2", message: "m2", status: "pending", createdAt: 1000,
+    });
+    await setDoc(doc(db, "requests", "req_anon"), {
+      type: "feature", message: "m3", status: "pending", createdAt: 1000, // 無 uid（匿名）
+    });
   });
 }
 
@@ -286,6 +295,23 @@ await it("47. admin 可讀 analytics_daily、但仍不可寫", async () => {
   await assertFails(
     setDoc(doc(admin, "analytics_daily", "20260610"), { toolOpen: 1 }),
   );
+});
+// ===== requests 讀自己（B-2b）=====
+await it("48. dev1 讀自己的 request（uid 相符）→ ALLOW", async () => {
+  await assertSucceeds(getDoc(doc(dev1, "requests", "req_dev1")));
+});
+await it("49. dev1 讀別人的 request → DENY", async () => {
+  await assertFails(getDoc(doc(dev1, "requests", "req_dev2")));
+});
+await it("50. dev1 讀匿名 request（無 uid）→ DENY", async () => {
+  await assertFails(getDoc(doc(dev1, "requests", "req_anon")));
+});
+await it("51. admin 讀任意 request → ALLOW", async () => {
+  await assertSucceeds(getDoc(doc(admin, "requests", "req_dev2")));
+  await assertSucceeds(getDoc(doc(admin, "requests", "req_anon")));
+});
+await it("52. anon（未登入）讀 request → DENY", async () => {
+  await assertFails(getDoc(doc(anon, "requests", "req_dev1")));
 });
 // ===== TESTS END =====
 

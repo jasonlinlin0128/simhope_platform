@@ -113,6 +113,12 @@ export default function Navbar() {
           {!loading && user && (
             <>
               <Link
+                href="/my-requests"
+                className="hidden md:inline hover:text-violet-500 dark:hover:text-violet-400 transition-colors"
+              >
+                我的需求
+              </Link>
+              <Link
                 href={isAdmin ? "/admin" : "/dashboard"}
                 className="px-4 py-2 rounded-full bg-gradient-to-br from-violet-400 to-blue-400 text-white font-bold text-[0.82rem] shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all"
               >
@@ -170,6 +176,9 @@ export default function Navbar() {
           )}
           {!loading && user && (
             <>
+              <Link href="/my-requests" onClick={() => setMenuOpen(false)}>
+                我的需求
+              </Link>
               <Link
                 href={isAdmin ? "/admin" : "/dashboard"}
                 onClick={() => setMenuOpen(false)}

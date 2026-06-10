@@ -90,9 +90,12 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // 申請/需求：client 不可建（只 server Admin SDK 建，防偽造）；admin 可讀 + 改 status/刪除
+    // 申請/需求：client 不可建（只 server Admin SDK 建，防偽造）；
+    //   讀：admin 全讀，或登入者讀自己的（uid 相符；匿名 request 無 uid → 僅 admin）；
+    //   改/刪：僅 admin。
     match /requests/{reqId} {
-      allow read: if isAdmin();
+      allow read: if isAdmin()
+        || (isSignedIn() && resource.data.uid == request.auth.uid);
       allow create: if false;
       allow update, delete: if isAdmin();
     }

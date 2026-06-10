@@ -1,5 +1,6 @@
 import { db } from "./firebase";
 import { normalizeMetrics } from "./metrics.mjs";
+import { sortByCreatedAtDesc } from "./requests.mjs";
 import {
   collection,
   getDocs,
@@ -236,4 +237,18 @@ export async function getMetrics() {
   } catch {
     return normalizeMetrics({});
   }
+}
+
+/**
+ * 取目前使用者自己提的需求（feature requests），新→舊。
+ * 用等值查 uid==X（免 composite index）+ client 排序。
+ * @param {string} uid
+ * @returns {Promise<object[]>}
+ */
+export async function getMyRequests(uid) {
+  if (!uid) return [];
+  const snap = await getDocs(
+    query(collection(db, "requests"), where("uid", "==", uid)),
+  );
+  return sortByCreatedAtDesc(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
 }
