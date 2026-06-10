@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { isStaleBackupCollection } from "./backupCollections.mjs";
 
-// 必須命中的 7 個正式 prod 舊備份 collection（2026-06-11 實測）
+// 必須命中的 8 個正式 prod 舊備份 collection（2026-06-11 dry-run 實測）
 const SHOULD_MATCH = [
   "tools-backup-2026-05-27",
   "tools-backup-2026-05-28",
@@ -35,7 +35,7 @@ const MUST_NOT_MATCH = [
   "backup-tools",
 ];
 
-test("命中全部 7 個正式舊備份 collection", () => {
+test("命中全部 8 個正式舊備份 collection", () => {
   for (const n of SHOULD_MATCH)
     assert.equal(isStaleBackupCollection(n), true, `應命中: ${n}`);
 });

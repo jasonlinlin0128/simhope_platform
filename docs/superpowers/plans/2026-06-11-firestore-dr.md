@@ -28,7 +28,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { isStaleBackupCollection } from "./backupCollections.mjs";
 
-// 必須命中的 7 個正式 prod 舊備份 collection（2026-06-11 實測）
+// 必須命中的 8 個正式 prod 舊備份 collection（2026-06-11 實測）
 const SHOULD_MATCH = [
   "tools-backup-2026-05-27",
   "tools-backup-2026-05-28",
@@ -61,7 +61,7 @@ const MUST_NOT_MATCH = [
   "backup-tools",
 ];
 
-test("命中全部 7 個正式舊備份 collection", () => {
+test("命中全部 8 個正式舊備份 collection", () => {
   for (const n of SHOULD_MATCH)
     assert.equal(isStaleBackupCollection(n), true, `應命中: ${n}`);
 });
@@ -99,7 +99,7 @@ export function isStaleBackupCollection(name) {
 - [ ] **Step 4: 跑測試確認通過**
 
 Run: `npm run test:unit`
-Expected: PASS（既有 52 + 新 2 = 54 tests pass）
+Expected: PASS（既有 52 + 新 2 = 54（matcher 命中 8 個 prod 備份） tests pass）
 
 - [ ] **Step 5: Commit**
 
@@ -194,7 +194,7 @@ process.exit(0);
 - [ ] **Step 2: dry-run 驗證（只讀，安全）**
 
 Run: `node scripts/cleanup-backup-collections.mjs`
-Expected: 印出**恰好 7 個** collection（`tools-backup-*`×5、`painCards-backup-*`×2、`requests-backup-2026-06-08`）+ 各自 doc 數；結尾 dry-run 提示。**不刪任何東西。**
+Expected: 印出**恰好 8 個** collection（`tools-backup-*`×5、`painCards-backup-*`×2、`requests-backup-2026-06-08`）+ 各自 doc 數；結尾 dry-run 提示。**不刪任何東西。**
 
 - [ ] **Step 3: Commit**
 
@@ -446,10 +446,10 @@ Expected: 2 warnings（皆既有 tool/[id] img）0 errors
 Run: `npm run build`
 Expected: 成功（本 PR 不動 app 程式，純 scripts/docs/lib + AGENTS）
 
-- [ ] **Step 3: cleanup dry-run 再確認一次（恰 7 個、不刪）**
+- [ ] **Step 3: cleanup dry-run 再確認一次（恰 8 個、不刪）**
 
 Run: `node scripts/cleanup-backup-collections.mjs`
-Expected: 命中恰好 7 個舊備份 collection、dry-run 不刪。
+Expected: 命中恰好 8 個舊備份 collection、dry-run 不刪。
 
 - [ ] **Step 4: 最終 commit（若有修正）**
 
@@ -470,4 +470,4 @@ Co-Authored-By: Jason simhope ai agent <jasonlin@simhope.com.tw>"
 2. 開 PR、等 Jason merge。
 3. **Jason（merge 後）**：跑 runbook 的 2 條 gcloud（開 PITR + 建 daily backup schedule）。
 4. **我代驗**：`node scripts/dr-status.mjs` → 確認 PITR ENABLED + schedule 存在。
-5. **等第一個 daily backup 跑出來後**，才 `node scripts/cleanup-backup-collections.mjs --apply` 清 7 個舊備份（真 DR 兜底）。
+5. **等第一個 daily backup 跑出來後**，才 `node scripts/cleanup-backup-collections.mjs --apply` 清 8 個舊備份（真 DR 兜底）。

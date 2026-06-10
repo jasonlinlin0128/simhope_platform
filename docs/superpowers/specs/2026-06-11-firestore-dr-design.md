@@ -5,7 +5,7 @@
 
 ## 1. 問題
 
-目前唯一的「備份」是 migration script 寫進**同一個 Firestore** 的 backup collection。實證 prod 有 **7 個 in-DB backup collection**（`tools-backup-2026-05-27/28/29×2/06-01`、`painCards-backup-2026-05-28/29`、`requests-backup-2026-06-08`）——專案級災難（誤刪 DB、勒索、region 故障）會同生共死，**等於沒有真正的 DR**。每次 `--apply` migration 都在走鋼索。
+目前唯一的「備份」是 migration script 寫進**同一個 Firestore** 的 backup collection。實證 prod 有 **8 個 in-DB backup collection**（`tools-backup-2026-05-27/28/29×2/06-01`、`painCards-backup-2026-05-28/29`、`requests-backup-2026-06-08`）——專案級災難（誤刪 DB、勒索、region 故障）會同生共死，**等於沒有真正的 DR**。每次 `--apply` migration 都在走鋼索。
 
 **現況**：project `simhope-platform`、database `(default)`、FIRESTORE_NATIVE、region **asia-east1**、**PITR 目前 DISABLED**。
 
@@ -19,7 +19,7 @@
 
 - **兩層**：PITR（7 天連續）+ managed daily scheduled backup。
 - **保留期**：daily backup **14 天**（無 weekly）。
-- **順帶 (a)**：清掉 7 個舊 in-DB backup collection。
+- **順帶 (a)**：清掉 8 個舊 in-DB backup collection。
 - **順帶 (b)**：migration 慣例改靠 PITR（取代寫 in-DB backup collection）。
 
 ## 4. 設計
@@ -72,7 +72,7 @@ gcloud firestore backups schedules list --database='(default)' --project=simhope
 
 - `docs/runbooks/firestore-dr.md` — 完整 runbook（設定 + 兩情境復原 + 確切指令 + restore 後 reapply 清單）。
 - `scripts/dr-status.mjs` — 用 SA 查 PITR 啟用狀態 + backup schedule（我可代驗 Jason 設定完）。唯讀。
-- `scripts/cleanup-backup-collections.mjs` — dry-run/`--apply` 刪 7 個舊 in-DB backup collection（idempotent；只刪 `*-backup-*` 命名；遞迴刪 doc）。
+- `scripts/cleanup-backup-collections.mjs` — dry-run/`--apply` 刪 8 個舊 in-DB backup collection（idempotent；只刪 `*-backup-*` 命名；遞迴刪 doc）。
 - `AGENTS.md` — migration 慣例更新（順帶 b）。
 
 ## 5. Rollout（順序重要 — 別在新 DR 確立前刪舊備份）
@@ -80,7 +80,7 @@ gcloud firestore backups schedules list --database='(default)' --project=simhope
 1. **Jason 跑 2 條 gcloud**（開 PITR + 建 backup schedule）。
 2. 我跑 `dr-status.mjs` 驗 PITR=ENABLED + schedule 存在。
 3. **等第一個 daily backup 跑出來**（或確認 schedule active）→ 確認 DB 外有真備份。
-4. **才**跑 `cleanup-backup-collections.mjs --apply` 刪 7 個舊 in-DB backup（此時真 DR 已兜底）。
+4. **才**跑 `cleanup-backup-collections.mjs --apply` 刪 8 個舊 in-DB backup（此時真 DR 已兜底）。
 5. AGENTS.md 慣例更新（隨 PR）。
 
 ## 6. 影響檔案
