@@ -1,4 +1,5 @@
 import { db } from "./firebase";
+import { normalizeMetrics } from "./metrics.mjs";
 import {
   collection,
   getDocs,
@@ -221,4 +222,18 @@ export async function getApprovedPainCards(isAdmin = false) {
   if (snap.empty && defaultPains.length > 0) return defaultPains;
 
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+/**
+ * 讀使用累計數（首頁 MetricsBand 用）。
+ * doc 不存在 / 讀取失敗 → 全 0（冷啟動安全）。
+ * @returns {Promise<{toolOpen:number, toolView:number, search:number, requestSubmit:number}>}
+ */
+export async function getMetrics() {
+  try {
+    const snap = await getDoc(doc(db, "analytics", "totals"));
+    return normalizeMetrics(snap.exists() ? snap.data() : {});
+  } catch {
+    return normalizeMetrics({});
+  }
 }
