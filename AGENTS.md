@@ -21,10 +21,16 @@ Firestore 的 `approval` 欄位移除，但移除 approval 依賴的新版
 1. **改變資料結構的 migration，要等「依賴新結構的程式碼」先 merge + deploy 後才跑**，
    或把 migration 跟 code 放同一個 PR、merge 後立刻依序執行。
 2. **正確順序**：code merge → production deploy 成功 → 再跑 `--apply` migration。
-3. 每個 migration script 都要：`--apply` 才寫入（預設 dry-run）、寫入前自動
-   備份到 `<collection>-backup-YYYY-MM-DD/` collection、idempotent（可重跑）。
+3. 每個 migration script 都要：`--apply` 才寫入（預設 dry-run）、idempotent（可重跑）。
+   ~~寫入前自動備份到 `<collection>-backup-YYYY-MM-DD/` collection~~ → **見第 5 點：PITR
+   上線後不必再寫 in-DB 備份**。
 4. 跑完 prod migration 後，**一定要連 live 站驗證**（不是只看 build 過），
    因為 build 過不代表「資料 × 程式碼」組合在 runtime 正確。
+5. **PITR 上線後（2026-06-11）migration 安全網改靠 Firestore PITR**（7 天連續復原）+
+   daily managed backup（留 14 天）——**新 migration 不必再寫「備份到
+   `<collection>-backup-YYYY-MM-DD/`」的 in-DB 備份**（同庫備份對 DR 無效又累積垃圾）。
+   改成：跑 `--apply` 前記下 UTC timestamp，出事照 `docs/runbooks/firestore-dr.md`
+   情境 A 用 PITR clone 回滾。既有 script 的 in-DB 備份邏輯可保留（無害），新寫的不要再加。
 
 ## tools collection 欄位現況（2026-05-29 後）
 
