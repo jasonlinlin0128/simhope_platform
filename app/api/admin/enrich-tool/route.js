@@ -28,7 +28,9 @@ export async function POST(request) {
 
     // ── 嘗試抓 GitHub README（抓不到也沒關係，靠 title/tagline 生成）──
     let readme = "";
-    const gh = url.match(/github\.com\/([^/]+)\/([^/?#]+)/);
+    const gh = url.match(
+      /^https?:\/\/(?:www\.)?github\.com\/([^/]+)\/([^/?#]+)/,
+    );
     if (gh) {
       const owner = gh[1];
       const repo = gh[2].replace(/\.git$/, "");

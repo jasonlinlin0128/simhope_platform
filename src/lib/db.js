@@ -10,7 +10,6 @@ import {
   query,
   where,
   serverTimestamp,
-  orderBy,
 } from "firebase/firestore";
 
 export const DEPTS = {
