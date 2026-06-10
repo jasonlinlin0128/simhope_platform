@@ -3,11 +3,13 @@
 import { useState } from "react";
 import Modal from "@/components/Modal";
 import { track } from "@/lib/track";
+import { useAuth } from "@/context/AuthContext";
 
 const MAILTO = "mailto:jasonlin@simhope.com.tw?subject=AI工具需求";
 
 /** 提需求卡：左 email、右免登入線上表單 + AI 輔助。@param {{onClose:()=>void}} props */
 export default function RequestCard({ onClose }) {
+  const { user } = useAuth();
   const [name, setName] = useState("");
   const [contact, setContact] = useState("");
   const [message, setMessage] = useState("");
@@ -47,9 +49,17 @@ export default function RequestCard({ onClose }) {
     setErr("");
     setSending(true);
     try {
+      const headers = { "Content-Type": "application/json" };
+      if (user) {
+        try {
+          headers.Authorization = `Bearer ${await user.getIdToken()}`;
+        } catch {
+          /* 取 token 失敗 → 當匿名送 */
+        }
+      }
       const res = await fetch("/api/request", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
           type: "feature",
           name: name.trim(),
