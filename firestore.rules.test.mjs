@@ -63,6 +63,12 @@ async function seed() {
     await setDoc(doc(db, "painCards", "pc_dev1"), {
       authorUid: "dev1", approval: "pending", before: "b", after: "a",
     });
+    await setDoc(doc(db, "analytics", "totals"), {
+      toolOpen: 5, toolView: 9,
+    });
+    await setDoc(doc(db, "analytics_daily", "20260610"), {
+      date: "2026-06-10", toolOpen: 2,
+    });
   });
 }
 
@@ -258,6 +264,27 @@ await it("41. admin 無約束 LIST tools → ALLOW", async () => {
 await it("42. dev1 LIST tools where authorUid=='dev1'（dashboard）→ ALLOW", async () => {
   await assertSucceeds(
     getDocs(query(collection(dev1, "tools"), where("authorUid", "==", "dev1"))),
+  );
+});
+// ===== analytics（使用數據）=====
+await it("43. anon 可讀 analytics/totals（首頁要顯示）→ ALLOW", async () => {
+  await assertSucceeds(getDoc(doc(anon, "analytics", "totals")));
+});
+await it("44. anon 不可寫 analytics/totals → DENY", async () => {
+  await assertFails(setDoc(doc(anon, "analytics", "totals"), { toolOpen: 999 }));
+});
+await it("45. dev（一般登入）不可寫 analytics/totals → DENY", async () => {
+  await assertFails(
+    updateDoc(doc(dev1, "analytics", "totals"), { toolOpen: 999 }),
+  );
+});
+await it("46. anon 不可讀 analytics_daily（僅 admin）→ DENY", async () => {
+  await assertFails(getDoc(doc(anon, "analytics_daily", "20260610")));
+});
+await it("47. admin 可讀 analytics_daily、但仍不可寫", async () => {
+  await assertSucceeds(getDoc(doc(admin, "analytics_daily", "20260610")));
+  await assertFails(
+    setDoc(doc(admin, "analytics_daily", "20260610"), { toolOpen: 1 }),
   );
 });
 // ===== TESTS END =====
