@@ -5,15 +5,19 @@
  * 之後的增刪改走 admin 後台 FaqManager；本 script 只負責一次性起手內容。
  *
  * === 使用方式 ===
- *   node scripts/seed-faqs.mjs           # dry-run（只讀＋印出將寫入的內容）
- *   node scripts/seed-faqs.mjs --apply   # 寫入
+ *   node scripts/seed-faqs.mjs                    # dry-run（只讀＋印出將寫入的內容）
+ *   node scripts/seed-faqs.mjs --apply            # 寫入（只新增缺的）
+ *   node scripts/seed-faqs.mjs --update           # dry-run 預覽：草稿改了哪些 seed-* doc
+ *   node scripts/seed-faqs.mjs --apply --update   # 新增缺的 + 把內容有異動的 seed-* doc 同步成草稿版
  *
  * 慣例對齊（repo migration scripts）：
  * - dry-run 預設、--apply 才寫入
- * - idempotent：deterministic doc id `seed-<category>-<order>` 已存在→跳過；
- *   另比對 question 全文，若 Jason 已用後台手貼同題（auto id）也跳過，不產生重複。
- * - 不備份：本 script 只「新增」文件，不碰任何既有 doc（非破壞性，同
- *   backfill-challenge-expireat 的理由）；seeded doc id 全部 `seed-` 開頭，要清可逐筆刪。
+ * - idempotent：deterministic doc id `seed-<category>-<order>` 已存在→跳過（--update 時
+ *   內容有異動才覆寫）；另比對 question 全文，若 Jason 已用後台手貼同題（auto id）也跳過。
+ * - 不備份：新增不碰既有 doc；--update 只覆寫 `seed-*` 前綴（草稿是這些 doc 的 source of
+ *   truth——若曾在後台 FaqManager 直接改過 seed-* 的內容，--update 會以草稿為準蓋回去；
+ *   後台自行新增的 auto-id doc 永遠不受影響）。
+ * - ⚠️ 題目搬分類 / 改序號會產生新 id，舊 seed doc 不會自動刪，需後台手動清。
  *
  * 欄位 schema 與 FaqManager.save() 一致：question/answer/category/order/published。
  */
@@ -30,6 +34,7 @@ const DRAFT_PATH = join(__dirname, "..", "docs", "faq-content-2026-06-09.md");
 const VALID_CATEGORIES = ["login", "usage", "submit", "security", "install"];
 
 const DRY_RUN = !process.argv.includes("--apply");
+const UPDATE = process.argv.includes("--update");
 
 // ── 解析草稿 ──────────────────────────────────────────────
 // 結構：`## <emoji> <key> — <label>` 開分類；`### [order N] 問題` 開一題；
@@ -104,47 +109,68 @@ initializeApp({ credential: cert(sa) });
 const db = getFirestore();
 
 const snap = await db.collection("faqs").get();
-const existingIds = new Set(snap.docs.map((d) => d.id));
+const existingById = new Map(snap.docs.map((d) => [d.id, d.data()]));
 const existingQuestions = new Set(
   snap.docs.map((d) => (d.data().question || "").trim()),
 );
 console.log(`\nfaqs collection 現有：${snap.size} 筆`);
 
 let toWrite = [];
+let toUpdate = [];
 let skipped = 0;
 for (const f of faqs) {
   const id = `seed-${f.category}-${f.order}`;
-  if (existingIds.has(id) || existingQuestions.has(f.question)) {
+  const existing = existingById.get(id);
+  if (existing) {
+    const changed =
+      existing.question !== f.question ||
+      existing.answer !== f.answer ||
+      existing.order !== f.order ||
+      existing.published !== f.published;
+    if (UPDATE && changed) {
+      toUpdate.push({ id, data: f });
+    } else {
+      skipped++;
+      console.log(`  跳過（已存在${changed ? "，內容有異動但未帶 --update" : "、無異動"}）：${id}`);
+    }
+    continue;
+  }
+  if (existingQuestions.has(f.question)) {
     skipped++;
-    console.log(`  跳過（已存在）：${id} ${f.question}`);
+    console.log(`  跳過（後台已有同題）：${f.question}`);
     continue;
   }
   toWrite.push({ id, data: f });
 }
 
-console.log(`\n待寫入 ${toWrite.length} 筆、跳過 ${skipped} 筆`);
+console.log(`\n待新增 ${toWrite.length} 筆、待更新 ${toUpdate.length} 筆、跳過 ${skipped} 筆`);
 for (const { id, data } of toWrite) {
-  console.log(`\n── ${id}（order ${data.order}）`);
+  console.log(`\n── 新增 ${id}（order ${data.order}）`);
+  console.log(`Q: ${data.question}`);
+  console.log(`A: ${data.answer.slice(0, 120)}${data.answer.length > 120 ? "…" : ""}`);
+}
+for (const { id, data } of toUpdate) {
+  console.log(`\n── 更新 ${id}（order ${data.order}）`);
   console.log(`Q: ${data.question}`);
   console.log(`A: ${data.answer.slice(0, 120)}${data.answer.length > 120 ? "…" : ""}`);
 }
 
 if (DRY_RUN) {
   console.log("\n>>> dry-run，確認內容後加 --apply 寫入：");
-  console.log("    node scripts/seed-faqs.mjs --apply");
+  console.log(`    node scripts/seed-faqs.mjs --apply${UPDATE ? " --update" : ""}`);
   process.exit(0);
 }
 
-if (!toWrite.length) {
+if (!toWrite.length && !toUpdate.length) {
   console.log("\n沒有要寫入的，結束。");
   process.exit(0);
 }
 
 const batch = db.batch();
-for (const { id, data } of toWrite) {
+for (const { id, data } of [...toWrite, ...toUpdate]) {
   batch.set(db.collection("faqs").doc(id), data);
 }
 await batch.commit();
-console.log(`\n✅ 完成。${toWrite.length} 題已寫入 faqs collection。`);
-console.log("   到 /faq 驗證顯示；後續編輯走 admin 後台 FaqManager。");
+console.log(`\n✅ 完成。新增 ${toWrite.length} 筆、更新 ${toUpdate.length} 筆。`);
+console.log("   到 /faq 驗證顯示；後續編輯走 admin 後台 FaqManager 或改草稿重跑 --apply --update。");
 process.exit(0);
