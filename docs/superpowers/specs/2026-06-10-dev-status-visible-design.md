@@ -19,7 +19,7 @@
 
 - ❌ feature「提需求」迴路 / uid 捕捉 / 「我的需求」檢視 / rules 改 —— 全在 **B-2b**。
 - ❌ 動 firestore.rules（devStatus 在 user 自己的 doc，登入者本就可讀；零 rules）。
-- ❌ 即時更新（申請後 reload 反映 pending；LoginModal 自身有「✅ 已送出」即時確認）。
+- ❌ 即時更新（申請後 reload 反映 pending；LoginModal 自身有「🕓 已送出，請等管理員核准」即時確認）。
 - ❌ Navbar / dashboard / 全站提示（決策＝**只 /access**）。
 
 ## 3. 已確認的產品決策（Jason）
@@ -88,7 +88,8 @@ export function devCtaState(role, devStatus) {
 ## 5. 資料流 / 邊界
 
 - **來源**：`useAuth().profile.devStatus`（已載入、登入者可讀自己的 user doc）。
-- **申請後即時性**：LoginModal 送出設 server 端 devStatus=pending，但 in-memory `profile` 仍舊值 → /access 要 **reload** 才見 pending。LoginModal 自有「✅ 已送出申請」即時確認，故 UX 不斷裂。**可接受**（不加 profile 自動 refresh，YAGNI）。
+- **申請後即時性**：LoginModal 送出設 server 端 devStatus=pending，但 in-memory `profile` 仍舊值 → /access 要 **reload** 才見 pending。LoginModal 自身在送出後切到「🕓 已送出，請等管理員核准」即時確認（`applied` flag），故 UX 不斷裂。**可接受**（不加 profile 自動 refresh，YAGNI）。
+- **DevStatusCTA 在 `loading` 期間回 null**（reviewer nit）：auth/profile 尚未到位時不渲染任何 CTA，避免對已登入者瞬閃「申請成為開發者」鈕。
 - **rejected 重新申請流**：點「📩 重新申請」→ 開 LoginModal → 既有 `/api/request type:access` 成功會把 devStatus 打回 `pending` + 新增一筆 request（server 端現行行為，無需改）→ reload 後 /access 顯示 pending。✅ 端到端可行、零後端改動。
 
 ## 6. 測試

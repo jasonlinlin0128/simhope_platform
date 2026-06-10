@@ -25,3 +25,13 @@ test("viewer + rejected → rejected", () => {
 test("viewer + approved（防呆：role 尚未升級）→ none", () => {
   assert.equal(devCtaState("viewer", "approved"), "none");
 });
+
+test("role 優先於 devStatus：developer + pending/rejected 仍 none", () => {
+  assert.equal(devCtaState("developer", "pending"), "none");
+  assert.equal(devCtaState("developer", "rejected"), "none");
+  assert.equal(devCtaState("admin", "rejected"), "none");
+});
+
+test("未知 devStatus 字串 → 安全退回 apply", () => {
+  assert.equal(devCtaState("viewer", "weird"), "apply");
+});

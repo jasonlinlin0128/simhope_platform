@@ -9,7 +9,8 @@ import { devCtaState } from "@/lib/devStatus.mjs";
  * @param {{ onApply: () => void }} props  onApply：開 LoginModal 申請流程
  */
 export default function DevStatusCTA({ onApply }) {
-  const { user, isAdmin, isDeveloper, profile } = useAuth();
+  const { user, isAdmin, isDeveloper, profile, loading } = useAuth();
+  if (loading) return null; // auth/profile 載入中：別閃錯狀態（profile 尚未到位）
   if (!user) return null; // 未登入：頁面別處已有「登入後即可申請」
 
   const role = isAdmin ? "admin" : isDeveloper ? "developer" : "viewer";
