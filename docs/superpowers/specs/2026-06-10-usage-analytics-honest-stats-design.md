@@ -92,14 +92,16 @@ export function track(event, payload = {}) { ... }
 
 ## 6. 埋點（4 個事件）
 
-| 事件             | 觸發點                                                                               | 檔案                                                    |
-| ---------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------- |
-| `tool_open`      | **僅當 CTA 是真實「開啟/下載」動作時**：ToolCard + 詳情頁的「馬上打開/下載」CTA 點擊 | `src/components/ToolCard.jsx`、`app/tool/[id]/page.jsx` |
-| `tool_view`      | 詳情頁掛載（`useEffect` 抓到 tool 後）                                               | `app/tool/[id]/page.jsx`                                |
-| `search`         | hub 搜尋框（debounce ~600ms 後、query 非空才送）                                     | `app/hub/page.jsx`                                      |
-| `request_submit` | RequestCard 送出成功 + access 申請送出成功（POST `type:"access"` 成功處）            | `src/components/RequestCard.jsx`、申請流程              |
+| 事件             | 觸發點                                                                           | 檔案                                                              |
+| ---------------- | -------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `tool_open`      | **ToolCard CTA 的外部「開啟/下載」連結點擊**（卡片底部 `cta.external` 的 `<a>`） | `src/components/ToolCard.jsx`                                     |
+| `tool_view`      | 詳情頁掛載（`fetchTool` 成功 `setTool` 後）                                      | `app/tool/[id]/page.jsx`                                          |
+| `search`         | hub 搜尋框（重用既有 300ms `debouncedQuery`、非空才送）                          | `app/hub/page.jsx`                                                |
+| `request_submit` | RequestCard 送出成功（feature）+ LoginModal 申請送出成功（access）               | `src/components/RequestCard.jsx`、`src/components/LoginModal.jsx` |
 
-- **`tool_open` 只在「實際使用」時送，不含純導航**：`getCTA(tool)` 回傳 `disabled:true`（terminated）或 href 指向 `/tool/{id}`（dev/pending/embedded 那種「🚧 開發中」「查看部署資訊」CTA）時 **不送** `tool_open`——那只是進詳情頁看，會由 `tool_view` 捕捉。只有 href 是外部開啟 / 下載連結（webapp/download/doc/mcp/api/skill 的可用 CTA）才送。判斷依據：`getCTA` 回傳的 `disabled` 為 false 且 `href` 非 `/tool/` 開頭。
+- **`tool_open` 只在「實際使用」時送，不含純導航**：ToolCard 底部 CTA 只有 `cta.external` 那條（webapp/download/doc/mcp/api/skill 的可用外連 `<a target="_blank">`）才送；`cta.disabled`（terminated）與內部 `<Link href="/tool/{id}">`（dev/pending/embedded 的「🚧 開發中」「查看部署資訊」純導航）**不送**——進詳情頁由 `tool_view` 捕捉。
+- **範圍界定（B-1）**：`tool_open` 只埋在 **ToolCard CTA**（首頁 + hub 卡片格，使用者掃 marketplace 直接點開的主路徑、且為單一共用元件＝一處乾淨埋點）。**詳情頁內**的 5 個型別專屬開啟/下載連結（skill zip / mcpb / webapp url / download exe / api docsUrl，散在 1202 行檔的多個 top-level 子元件、`id` 不在其 scope）**本期不埋**——進詳情頁已由 `tool_view` 捕捉，且首頁累計數寧可少算（honest-conservative）不可多算。詳情頁開啟埋點列為 fast-follow（待 tool/[id] 拆分後再加）。
+- **`search` 只計次、不存查詢字串**：`track("search")` 不帶 query text（隱私乾淨、與「只存匯總計數」一致）；「同事在搜什麼」的字串彙整較敏感且需另設計，列為後續。
 - 埋點一律呼叫 `track(...)`，單一 import 點，不散落 fetch。
 
 ## 7. 讀取路徑 / 首頁
@@ -154,11 +156,11 @@ match /analytics_daily/{day} {
 
 ## 10. 測試
 
-- **unit（node:test）**：
-  - `track.js`：event enum 驗證、payload 組裝、session 去重邏輯（mock `sessionStorage` + `fetch`）。
-  - `/api/track` handler 的 increment 組裝（mock Admin SDK，斷言 totals + daily + byTool 的 increment 呼叫正確、未知 event → 400）。
-  - `getMetrics()`：doc 存在/不存在（→ 全 0）兩路徑。
-- **rules（emulator）**：analytics write deny、totals 公開讀、daily 僅 admin 讀（3+ 條）。
+- **unit（node:test）**：把可測純邏輯抽到不依賴 firebase 的 `.mjs`（同 rateLimit/apiAuth 慣例），client/server 共用：
+  - `src/lib/trackEvents.mjs`：`eventField`（事件→欄位映射 / 未知→null）、`shouldTrack`（去重 + 未知事件不送，注入 seen）、`buildIncrements`（tool_open+toolId→含 byToolKey、tool_view 不記 byTool、未知→null）。
+  - `src/lib/metrics.mjs`：`normalizeMetrics`（缺欄補 0）。
+- **rules（emulator）**：analytics write deny、totals 公開讀、daily 僅 admin 讀（5 條）。
+- `/api/track` route 與 `track.js` client glue 屬薄包裝（核心邏輯已在上述純 `.mjs` 測過）→ 靠 build/lint + rules 測 + 部署後手動驗，不另 mock Admin SDK/fetch。
 - **build / lint**：基準不變（lint 目前 2 warnings 0 errors）。
 - **手動 / MCP**：部署後驗首頁三數字皆真、點工具→ `totals.toolOpen` 增加、admin 使用概況顯示排名。
 
@@ -171,5 +173,5 @@ match /analytics_daily/{day} {
 
 ## 12. 影響檔案清單
 
-**新增**：`app/api/track/route.js`、`src/lib/track.js`、`src/lib/track.test.mjs`、`src/components/UsageDashboard.jsx`
-**修改**：`src/lib/db.js`（+`getMetrics`）、`app/page.jsx`（MetricsBand 三 slot + 讀 metrics）、`src/components/ToolCard.jsx`（CTA 埋 `tool_open`）、`app/tool/[id]/page.jsx`（`tool_view` + CTA `tool_open`）、`app/hub/page.jsx`（`search` 埋點）、`src/components/RequestCard.jsx`（`request_submit`）、`app/admin/page.jsx`（+usage tab）、`firestore.rules`（+analytics 兩 match）、`firestore.rules.test.mjs`（+analytics 測試）
+**新增**：`src/lib/trackEvents.mjs` + `.test.mjs`、`src/lib/metrics.mjs` + `.test.mjs`、`src/lib/track.js`（client glue）、`app/api/track/route.js`、`src/components/UsageDashboard.jsx`
+**修改**：`src/lib/db.js`（+`getMetrics`，import `metrics.mjs`）、`app/page.jsx`（MetricsBand 三 slot + 讀 `getMetrics`）、`src/components/ToolCard.jsx`（CTA `cta.external` 埋 `tool_open`）、`app/tool/[id]/page.jsx`（`tool_view` on load）、`app/hub/page.jsx`（`search` 埋點）、`src/components/RequestCard.jsx`（`request_submit` feature）、`src/components/LoginModal.jsx`（`request_submit` access）、`app/admin/page.jsx`（+usage tab）、`firestore.rules`（+analytics 兩 match）、`firestore.rules.test.mjs`（+analytics 測試）
