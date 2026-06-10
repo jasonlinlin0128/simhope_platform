@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { typeBadge, getCTA } from "@/lib/taxonomy";
+import { track } from "@/lib/track";
 
 // Helper color map for the icon background
 const colorMap = {
@@ -75,11 +76,13 @@ export default function ToolCard({ tool }) {
   const badge = typeBadge(type);
   const cta = getCTA(tool);
 
-  // CTA 點擊處理：阻止冒泡到卡片連結
+  // CTA 點擊處理：external（真實開啟/下載）才記 tool_open；disabled 阻止導航。
   const handleCtaClick = (e) => {
     if (cta.disabled) {
       e.preventDefault();
+      return;
     }
+    if (cta.external) track("tool_open", { toolId: id });
     // 不要 stopPropagation — 因為卡片本身用 <Link>，CTA 用 <a>，HTML 不允許 nested links，所以已分開
   };
 

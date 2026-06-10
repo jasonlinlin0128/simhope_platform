@@ -5,6 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
 import { db } from "@/lib/firebase";
 import { sameTimestamp } from "@/lib/sameTimestamp.mjs";
+import { track } from "@/lib/track";
 import {
   doc,
   getDoc,
@@ -847,6 +848,7 @@ export default function ToolDetail({ params }) {
       const isOwner = user && data.authorUid === user.uid;
       if (!isPublic && !isOwner && !isAdmin) return; // 無權限 → not-found 狀態頁
       setTool(data);
+      track("tool_view", { toolId: id }); // 同 session 去重 → 重整/重抓不重複計
       const blocks = (data.blog?.blocks || []).map((b) =>
         b.id ? b : { ...b, id: crypto.randomUUID() },
       );

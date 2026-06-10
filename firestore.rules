@@ -105,5 +105,16 @@ service cloud.firestore {
     match /webauthnChallenges/{id} {
       allow read, write: if false;
     }
+
+    // 使用數據：累計數公開可讀（首頁顯示）；每日明細僅 admin 讀；
+    // 一律禁止 client 寫（只 Admin SDK 經 /api/track 寫，防灌水）。
+    match /analytics/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /analytics_daily/{day} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
   }
 }

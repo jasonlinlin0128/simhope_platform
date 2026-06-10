@@ -7,6 +7,7 @@ import { getCatalog } from "@/lib/db";
 import { categoryCounts, CATEGORIES, CATEGORY_ORDER } from "@/lib/taxonomy";
 import ToolCard from "@/components/ToolCard";
 import CategoryTabs from "@/components/CategoryTabs";
+import { track } from "@/lib/track";
 
 function HubInner() {
   const searchParams = useSearchParams();
@@ -29,6 +30,11 @@ function HubInner() {
     const t = setTimeout(() => setDebouncedQuery(searchQuery.trim()), 300);
     return () => clearTimeout(t);
   }, [searchQuery]);
+
+  // 重用既有 300ms debouncedQuery 記 search（非空才送；不帶 query text）
+  useEffect(() => {
+    if (debouncedQuery) track("search");
+  }, [debouncedQuery]);
 
   const activeTools = useMemo(
     () => tools.filter((t) => t.status !== "terminated"),
