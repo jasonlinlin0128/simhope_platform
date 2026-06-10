@@ -8,6 +8,7 @@ import {
   doc,
   updateDoc,
   query,
+  where,
   orderBy,
   limit,
   startAfter,
@@ -29,18 +30,17 @@ export default function RequestInbox() {
   const [hasMore, setHasMore] = useState(false);
   const [filter, setFilter] = useState("pending"); // pending | all
 
-  // 取一頁：orderBy(createdAt desc) + limit；after 給定時用 startAfter 往後翻。
-  const fetchPage = useCallback(async (after) => {
+  // 取一頁：pending 時在 query 層過濾 where(status==pending)，分頁就在「已過濾集合」上翻
+  // → 待審項目永不因排在第一頁之後而消失（修 audit #1）。all 時不加 where（如原本）。
+  // pending+orderBy(createdAt) 需複合索引（firestore.indexes.json：status ASC + createdAt DESC）。
+  const fetchPage = useCallback(async (after, statusFilter) => {
     const coll = collection(db, "requests");
-    const q = after
-      ? query(
-          coll,
-          orderBy("createdAt", "desc"),
-          startAfter(after),
-          limit(PAGE_SIZE),
-        )
-      : query(coll, orderBy("createdAt", "desc"), limit(PAGE_SIZE));
-    const snap = await getDocs(q);
+    const constraints = [orderBy("createdAt", "desc")];
+    if (statusFilter === "pending")
+      constraints.unshift(where("status", "==", "pending"));
+    if (after) constraints.push(startAfter(after));
+    constraints.push(limit(PAGE_SIZE));
+    const snap = await getDocs(query(coll, ...constraints));
     return {
       rows: snap.docs.map((d) => ({ id: d.id, ...d.data() })),
       last: snap.docs[snap.docs.length - 1] || null,
@@ -48,25 +48,28 @@ export default function RequestInbox() {
     };
   }, []);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const { rows, last, full } = await fetchPage(null);
-      setReqs(rows);
-      setCursor(last);
-      setHasMore(full);
-    } catch (e) {
-      console.error("載入 requests 失敗（rules 是否已發布？）:", e);
-    } finally {
-      setLoading(false);
-    }
-  }, [fetchPage]);
+  const load = useCallback(
+    async (statusFilter) => {
+      setLoading(true);
+      try {
+        const { rows, last, full } = await fetchPage(null, statusFilter);
+        setReqs(rows);
+        setCursor(last);
+        setHasMore(full);
+      } catch (e) {
+        console.error("載入 requests 失敗（rules 已發布？索引已建？）:", e);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [fetchPage],
+  );
 
   const loadMore = async () => {
     if (!cursor || loadingMore) return;
     setLoadingMore(true);
     try {
-      const { rows, last, full } = await fetchPage(cursor);
+      const { rows, last, full } = await fetchPage(cursor, filter);
       setReqs((prev) => [...prev, ...rows]);
       setCursor(last);
       setHasMore(full);
@@ -77,9 +80,10 @@ export default function RequestInbox() {
     }
   };
 
+  // filter 變就從第一頁重新載入（pending/all 是不同 query），不再只 client 重濾。
   useEffect(() => {
-    load();
-  }, [load]);
+    load(filter);
+  }, [load, filter]);
 
   // 本地更新單筆狀態（毋需重抓整頁、保留已載入頁、即時反應）。
   const setStatus = (id, status) =>
