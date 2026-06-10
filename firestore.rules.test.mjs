@@ -6,7 +6,17 @@ import {
   assertFails,
   assertSucceeds,
 } from "@firebase/rules-unit-testing";
-import { doc, setDoc, updateDoc, deleteDoc, getDoc } from "firebase/firestore";
+import {
+  doc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  getDoc,
+  getDocs,
+  collection,
+  query,
+  where,
+} from "firebase/firestore";
 
 const PROJECT_ID = "demo-simhope-rules";
 let passed = 0;
@@ -187,6 +197,67 @@ await it("27. 作者 setDoc 覆寫既有工具改 status=live（走 update 評�
     setDoc(doc(dev1, "tools", "t_pending"), {
       authorUid: "dev1", status: "live", createdAt: 1000, title: "P",
     }),
+  );
+});
+console.log("tools / painCards read 收緊（S3）:");
+await it("28. anon 讀公開 t_live → ALLOW", async () => {
+  await assertSucceeds(getDoc(doc(anon, "tools", "t_live")));
+});
+await it("29. anon 讀未審 t_pending → DENY", async () => {
+  await assertFails(getDoc(doc(anon, "tools", "t_pending")));
+});
+await it("30. dev2（非作者非 admin）讀 t_pending → DENY", async () => {
+  await assertFails(getDoc(doc(dev2, "tools", "t_pending")));
+});
+await it("31. dev1（作者）讀自己 t_pending → ALLOW", async () => {
+  await assertSucceeds(getDoc(doc(dev1, "tools", "t_pending")));
+});
+await it("32. admin 讀 t_pending → ALLOW", async () => {
+  await assertSucceeds(getDoc(doc(admin, "tools", "t_pending")));
+});
+await it("33. viewer（無 role）讀公開 t_live → ALLOW", async () => {
+  await assertSucceeds(getDoc(doc(viewer1, "tools", "t_live")));
+});
+await it("34. anon 讀已核准 pc1 → ALLOW", async () => {
+  await assertSucceeds(getDoc(doc(anon, "painCards", "pc1")));
+});
+await it("35. anon 讀未核准 pc_dev1 → DENY", async () => {
+  await assertFails(getDoc(doc(anon, "painCards", "pc_dev1")));
+});
+await it("36. dev1（作者）讀自己 pc_dev1 → ALLOW", async () => {
+  await assertSucceeds(getDoc(doc(dev1, "painCards", "pc_dev1")));
+});
+await it("37. admin 讀 pc_dev1 → ALLOW", async () => {
+  await assertSucceeds(getDoc(doc(admin, "painCards", "pc_dev1")));
+});
+
+console.log("LIST query 相容性（P0 防護：home/hub/admin/dashboard 查詢）:");
+await it("38. anon LIST tools where status in [public]（home/hub）→ ALLOW", async () => {
+  await assertSucceeds(
+    getDocs(
+      query(
+        collection(anon, "tools"),
+        where("status", "in", ["live", "beta", "new", "dev", "terminated"]),
+      ),
+    ),
+  );
+});
+await it("39. anon 無約束 LIST tools（含 pending）→ DENY", async () => {
+  await assertFails(getDocs(collection(anon, "tools")));
+});
+await it("40. anon LIST painCards where approval=='approved' → ALLOW", async () => {
+  await assertSucceeds(
+    getDocs(
+      query(collection(anon, "painCards"), where("approval", "==", "approved")),
+    ),
+  );
+});
+await it("41. admin 無約束 LIST tools → ALLOW", async () => {
+  await assertSucceeds(getDocs(collection(admin, "tools")));
+});
+await it("42. dev1 LIST tools where authorUid=='dev1'（dashboard）→ ALLOW", async () => {
+  await assertSucceeds(
+    getDocs(query(collection(dev1, "tools"), where("authorUid", "==", "dev1"))),
   );
 });
 // ===== TESTS END =====
