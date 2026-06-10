@@ -11,6 +11,7 @@ import {
 import { loginWithPasskey, passkeySupported } from "@/lib/passkey";
 import { useAuth } from "@/context/AuthContext";
 import Modal from "@/components/Modal";
+import { track } from "@/lib/track";
 
 function GoogleIcon() {
   return (
@@ -165,6 +166,7 @@ export default function LoginModal({ onClose, initialTab = "login" }) {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "送出失敗");
+      track("request_submit");
       setApplied(true);
     } catch (e) {
       setError(e.message || "送出失敗，請稍後再試");

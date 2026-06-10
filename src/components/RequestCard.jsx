@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Modal from "@/components/Modal";
+import { track } from "@/lib/track";
 
 const MAILTO = "mailto:jasonlin@simhope.com.tw?subject=AI工具需求";
 
@@ -58,6 +59,7 @@ export default function RequestCard({ onClose }) {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "送出失敗");
+      track("request_submit");
       setDone(true);
     } catch (e) {
       setErr(e.message || "送出失敗，請稍後再試");
