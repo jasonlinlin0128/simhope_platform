@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { getCatalog, getApprovedPainCards } from "@/lib/db";
+import { getCatalog, getApprovedPainCards, getMetrics } from "@/lib/db";
 import { categoryCounts, CATEGORIES, CATEGORY_ORDER } from "@/lib/taxonomy";
 import CategoryEntryCard from "@/components/CategoryEntryCard";
 import MetricsBand from "@/components/MetricsBand";
@@ -59,14 +59,21 @@ const PAIN_CHIPS = [
 export default function Home() {
   const [tools, setTools] = useState([]);
   const [painCards, setPainCards] = useState([]);
+  const [metrics, setMetrics] = useState({
+    toolOpen: 0,
+    toolView: 0,
+    search: 0,
+    requestSubmit: 0,
+  });
   const [loading, setLoading] = useState(true);
 
   // 讀資料
   useEffect(() => {
-    Promise.all([getCatalog(), getApprovedPainCards()])
-      .then(([toolsData, painsData]) => {
+    Promise.all([getCatalog(), getApprovedPainCards(), getMetrics()])
+      .then(([toolsData, painsData, metricsData]) => {
         setTools(toolsData);
         setPainCards(painsData);
+        setMetrics(metricsData);
       })
       .catch((err) => console.error("Failed to load:", err))
       .finally(() => setLoading(false));
@@ -159,8 +166,11 @@ export default function Home() {
         <MetricsBand
           stats={[
             { value: loading ? "…" : activeCount, label: "可用資源" },
-            { value: "30+", label: "同仁每週使用" },
-            { value: "10h", label: "估計每週省下" },
+            {
+              value: loading ? "…" : metrics.toolOpen.toLocaleString(),
+              label: "累計工具開啟",
+            },
+            { value: loading ? "…" : painCards.length, label: "痛點解法" },
           ]}
         />
       </section>
