@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import LoginModal from "@/components/LoginModal";
+import DevStatusCTA from "@/components/DevStatusCTA";
 
 const ROLES = [
   {
@@ -101,13 +102,8 @@ export default function AccessPage() {
                   </li>
                 ))}
               </ul>
-              {r.key === "developer" && current === "viewer" && (
-                <button
-                  onClick={() => setShowReq(true)}
-                  className="mt-5 w-full py-2.5 rounded-full bg-[var(--color-clay-purple)] text-white font-extrabold text-sm"
-                >
-                  📩 申請成為開發者
-                </button>
+              {r.key === "developer" && (
+                <DevStatusCTA onApply={() => setShowReq(true)} />
               )}
             </div>
           );
