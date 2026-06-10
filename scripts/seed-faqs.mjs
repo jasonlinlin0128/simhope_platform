@@ -125,6 +125,7 @@ for (const f of faqs) {
     const changed =
       existing.question !== f.question ||
       existing.answer !== f.answer ||
+      existing.category !== f.category ||
       existing.order !== f.order ||
       existing.published !== f.published;
     if (UPDATE && changed) {
