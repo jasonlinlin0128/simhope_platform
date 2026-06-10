@@ -99,9 +99,11 @@ export function track(event, payload = {}) { ... }
 | `search`         | hub 搜尋框（重用既有 300ms `debouncedQuery`、非空才送）                          | `app/hub/page.jsx`                                                |
 | `request_submit` | RequestCard 送出成功（feature）+ LoginModal 申請送出成功（access）               | `src/components/RequestCard.jsx`、`src/components/LoginModal.jsx` |
 
-- **`tool_open` 只在「實際使用」時送，不含純導航**：ToolCard 底部 CTA 只有 `cta.external` 那條（webapp/download/doc/mcp/api/skill 的可用外連 `<a target="_blank">`）才送；`cta.disabled`（terminated）與內部 `<Link href="/tool/{id}">`（dev/pending/embedded 的「🚧 開發中」「查看部署資訊」純導航）**不送**——進詳情頁由 `tool_view` 捕捉。
+- **`tool_open` 只在「實際使用」時送，不含純導航**：ToolCard 底部 CTA 只有 `cta.external` 那條（外連 `<a target="_blank">`）才送；`cta.disabled`（terminated）與內部 `<Link>`（純導航）**不送**。
+  - **實證 getCTA 的 external 真值**（`src/lib/taxonomy.js`）：`external:true` 僅 **webapp / download / doc / api**（L198 的陣列）＋ **skill（有 zip 時）**（L154）。**`mcp` 與 `embedded` external=false**（mcp L171-198 走內部 Link、embedded 走 `/tool/{id}`）→ **mcp/embedded 不送 `tool_open`**（reviewer nit A）。影響：MCP/場域工具的「開啟」首頁不計入累計數——honest-conservative，且 mcp 多半無 dlUrl 會落到「看詳情→」內部連結由 `tool_view` 捕捉。**若日後要讓 mcp 安裝連結也算開啟＋新分頁開啟，把 `"mcp"` 加進 getCTA 的 external 陣列**（屬 UX 行為變更，另案，不在 B-1 偷渡）。
 - **範圍界定（B-1）**：`tool_open` 只埋在 **ToolCard CTA**（首頁 + hub 卡片格，使用者掃 marketplace 直接點開的主路徑、且為單一共用元件＝一處乾淨埋點）。**詳情頁內**的 5 個型別專屬開啟/下載連結（skill zip / mcpb / webapp url / download exe / api docsUrl，散在 1202 行檔的多個 top-level 子元件、`id` 不在其 scope）**本期不埋**——進詳情頁已由 `tool_view` 捕捉，且首頁累計數寧可少算（honest-conservative）不可多算。詳情頁開啟埋點列為 fast-follow（待 tool/[id] 拆分後再加）。
 - **`search` 只計次、不存查詢字串**：`track("search")` 不帶 query text（隱私乾淨、與「只存匯總計數」一致）；「同事在搜什麼」的字串彙整較敏感且需另設計，列為後續。
+  - **計數語意是「debounce 後的查詢變動數」非「相異搜尋數」**（reviewer nit B）：打字＋退格（abc→ab→a）會各記一次，故 admin「搜尋次數」偏高。本期當作粗略方向信號可接受；要精準再做 per-session 去重或只在查詢變長時送。
 - 埋點一律呼叫 `track(...)`，單一 import 點，不散落 fetch。
 
 ## 7. 讀取路徑 / 首頁
