@@ -87,7 +87,7 @@ export function track(event, payload = {}) { ... }
 ```
 
 - `fetch("/api/track", { POST, keepalive: true })`，**fire-and-forget**：不 await UI、`.catch(()=>{})` 吞錯（追蹤失敗絕不影響使用者操作）。
-- **同 session 去重**：`sessionStorage` 記 `${event}:${toolId}` 已送過則跳過（避免使用者重整/來回灌同一筆，讓 `tool_open` 數字更誠實）。`search` 不去重（每次查詢都有意義）。
+- **同 session 去重（只限 `tool_open` / `tool_view`）**：`sessionStorage` 記 `${event}:${toolId}` 已送過則跳過（避免重整/來回灌同一工具，讓開啟/瀏覽數更誠實）。`search` 與 `request_submit` **不去重**（每次查詢、每筆需求都是真事件，同 session 兩筆需求都要算）。
 - `keepalive: true` 讓「點外連結即離開」的 `tool_open` 仍送得出去。
 
 ## 6. 埋點（4 個事件）
