@@ -455,7 +455,7 @@ Expected: 命中恰好 8 個舊備份 collection、dry-run 不刪。
 
 ```bash
 git add -A
-git commit -m "test(dr): 全套驗證綠（unit 54 / lint / build / cleanup dry-run 7 命中）
+git commit -m "test(dr): 全套驗證綠（unit 54 / lint / build / cleanup dry-run 8 命中）
 
 Co-Authored-By: Jason simhope ai agent <jasonlin@simhope.com.tw>"
 ```
