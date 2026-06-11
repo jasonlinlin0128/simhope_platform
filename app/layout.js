@@ -60,13 +60,25 @@ export default function RootLayout({ children }) {
             __html: `(function(){try{var t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark');}}catch(e){}})();`,
           }}
         />
+        {/* a11y: 跳到主內容（平常 sr-only，鍵盤 focus 時現身） */}
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-[var(--color-clay-purple)] focus:text-white focus:font-extrabold focus:shadow-lg"
+        >
+          跳到主內容
+        </a>
         <ThemeProvider>
           <BlobBackground />
           <ToastProvider>
             <ConfirmProvider>
               <AuthProvider>
                 <Navbar />
-                <main className="flex-1 w-full max-w-7xl mx-auto py-8">
+                <main
+                  id="main"
+                  tabIndex={-1}
+                  style={{ outline: "none" }}
+                  className="flex-1 w-full max-w-7xl mx-auto py-8"
+                >
                   {children}
                 </main>
                 <Footer />
