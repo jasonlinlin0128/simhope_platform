@@ -24,9 +24,28 @@ const notoSansTC = Noto_Sans_TC({
   preload: false, // required for CJK fonts — no latin subset to preload
 });
 
+const OG_DESC =
+  "公司內部 AI 資源中心 — 工具 · 平臺 · 專案 · MCP · Skill，打開就能用";
+
 export const metadata = {
+  // 讓 og:image / 相對 URL 解析成絕對網址（OG 圖必需）。
+  metadataBase: new URL("https://simhope-platform.vercel.app"),
   title: "SimHope AI 工具箱",
   description: "專為公司同仁設計的 AI 工具中心",
+  // og:image 由 app/opengraph-image.js 檔案慣例自動注入；這裡補其餘 OG 欄位。
+  openGraph: {
+    title: "SimHope AI Hub",
+    description: OG_DESC,
+    siteName: "SimHope AI Hub",
+    locale: "zh_TW",
+    type: "website",
+    url: "/",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SimHope AI Hub",
+    description: OG_DESC,
+  },
 };
 
 export default function RootLayout({ children }) {

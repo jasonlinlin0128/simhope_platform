@@ -17,9 +17,21 @@ export async function generateMetadata({ params }) {
       const title = data.fields?.title?.stringValue;
       const tagline = data.fields?.tagline?.stringValue;
       if (title) {
+        const desc = tagline || "專為公司同仁設計的 AI 工具中心";
+        // og:image 沿用全站 app/opengraph-image.js（工具頁不自訂圖，只帶自己的標題）。
         return {
           title: `${title} — SimHope AI 工具箱`,
-          description: tagline || "專為公司同仁設計的 AI 工具中心",
+          description: desc,
+          openGraph: {
+            title: `${title} — SimHope AI Hub`,
+            description: desc,
+            type: "article",
+          },
+          twitter: {
+            card: "summary_large_image",
+            title: `${title} — SimHope AI Hub`,
+            description: desc,
+          },
         };
       }
     }
