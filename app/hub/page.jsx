@@ -8,5 +8,7 @@ import HubExplorer from "@/components/HubExplorer";
 export default async function HubPage({ searchParams }) {
   const { cat } = await searchParams;
   const tools = await getServerCatalog();
-  return <HubExplorer tools={tools} initialCat={cat || "all"} />;
+  // ?cat= 重複時 Next 給陣列；取首值，與舊 useSearchParams().get() 行為一致。
+  const initialCat = (Array.isArray(cat) ? cat[0] : cat) || "all";
+  return <HubExplorer tools={tools} initialCat={initialCat} />;
 }

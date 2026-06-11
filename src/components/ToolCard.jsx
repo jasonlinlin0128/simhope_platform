@@ -133,7 +133,7 @@ export default function ToolCard({ tool }) {
             <span className="ml-auto text-gray-400 dark:text-gray-500 font-medium tracking-tighter">
               {new Date(
                 typeof updatedAt === "object" ? updatedAt.toDate() : updatedAt,
-              ).toLocaleDateString()}
+              ).toLocaleDateString("zh-TW", { timeZone: "Asia/Taipei" })}
             </span>
           )}
         </div>
