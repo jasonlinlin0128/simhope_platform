@@ -7,6 +7,7 @@ import { auth } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
 import { useTheme } from "@/context/ThemeContext";
 import LoginModal from "@/components/LoginModal";
+import HubMark from "@/components/HubMark";
 
 /**
  * Sticky top navigation bar. Integrates Auth (useAuth), Theme toggle, and LoginModal.
@@ -25,8 +26,8 @@ export default function Navbar() {
       <nav className="sticky top-0 z-50 px-4 md:px-10 py-3 flex justify-between items-center bg-[var(--color-nav-bg)] border-b border-[var(--color-nav-border)] backdrop-blur-md transition-all duration-300">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5 no-underline">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-400 to-blue-400 flex items-center justify-center text-xl flex-shrink-0 shadow-sm">
-            🏭
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-400 to-blue-400 flex items-center justify-center flex-shrink-0 shadow-sm">
+            <HubMark size={20} color="#fff" />
           </div>
           <span className="font-black text-[1.1rem] text-[#1e1b4b] dark:text-gray-100 leading-tight">
             SimHope AI 工具中心
