@@ -30,7 +30,8 @@ async function loadGoogleFont(weight) {
 const CHIPS = ["工具", "平臺", "專案", "MCP", "Skill"];
 
 export default async function OpengraphImage() {
-  // 兩個 weight：標題用 900、其餘用 700。任一抓失敗就略過（不讓整張圖 500）。
+  // 兩個 weight：標題用 900、其餘用 700。單一 weight 抓失敗就略過該 weight
+  // （另一個仍能撐住中文渲染）。
   const fonts = [];
   for (const weight of [900, 700]) {
     try {
@@ -41,8 +42,13 @@ export default async function OpengraphImage() {
         style: "normal",
       });
     } catch {
-      // 略過該 weight；至少另一個 weight 能撐住中文渲染。
+      // 略過該 weight。
     }
+  }
+  // 兩個 weight 都失敗 → 與其讓 Satori 丟隱晦的「No fonts are loaded」（本路由 build 期
+  // 靜態產生 → 變成費解的 build 失敗），不如明講原因。仍是 fail-safe：壞圖不會上線。
+  if (fonts.length === 0) {
+    throw new Error("OG 字型子集抓取全失敗（Noto Sans TC）— 無法產生 OG 圖");
   }
 
   return new ImageResponse(
