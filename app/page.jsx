@@ -1,13 +1,16 @@
-"use client";
-
-import { useState, useEffect, useMemo } from "react";
-import { getCatalog, getApprovedPainCards, getMetrics } from "@/lib/db";
+import {
+  getServerCatalog,
+  getServerPainCards,
+  getServerMetrics,
+} from "@/lib/serverCatalog";
 import { categoryCounts, CATEGORIES, CATEGORY_ORDER } from "@/lib/taxonomy";
 import CategoryEntryCard from "@/components/CategoryEntryCard";
 import MetricsBand from "@/components/MetricsBand";
-import PainCard, { PAIN_CATEGORIES } from "@/components/PainCard";
+import PainPointsExplorer from "@/components/PainPointsExplorer";
 import Link from "next/link";
 import RequestButton from "@/components/RequestButton";
+
+export const revalidate = 300; // ISR 5 分鐘
 
 const TESTIMONIALS = [
   {
@@ -56,59 +59,14 @@ const PAIN_CHIPS = [
   { emoji: "⏰", text: "工時統計耗時" },
 ];
 
-export default function Home() {
-  const [tools, setTools] = useState([]);
-  const [painCards, setPainCards] = useState([]);
-  const [metrics, setMetrics] = useState({
-    toolOpen: 0,
-    toolView: 0,
-    search: 0,
-    requestSubmit: 0,
-  });
-  const [loading, setLoading] = useState(true);
-
-  // 讀資料
-  useEffect(() => {
-    Promise.all([getCatalog(), getApprovedPainCards(), getMetrics()])
-      .then(([toolsData, painsData, metricsData]) => {
-        setTools(toolsData);
-        setPainCards(painsData);
-        setMetrics(metricsData);
-      })
-      .catch((err) => console.error("Failed to load:", err))
-      .finally(() => setLoading(false));
-  }, []);
-
-  // 各 category 計數（入口卡 / metrics 用）— terminated 不算（categoryCounts 內處理）
-  const counts = useMemo(() => categoryCounts(tools), [tools]);
+export default async function Home() {
+  const [tools, painCards, metrics] = await Promise.all([
+    getServerCatalog(),
+    getServerPainCards(),
+    getServerMetrics(),
+  ]);
+  const counts = categoryCounts(tools);
   const activeCount = counts.all;
-
-  // 痛點類別篩選
-  const [selectedPainCategory, setSelectedPainCategory] = useState("all");
-
-  // 痛點各類別張數
-  const painCategoryCounts = useMemo(() => {
-    const counts = { all: painCards.length };
-    for (const key of Object.keys(PAIN_CATEGORIES)) {
-      counts[key] = painCards.filter((c) => c.category === key).length;
-    }
-    return counts;
-  }, [painCards]);
-
-  // 痛點卡片：依類別篩選 → 「有對應工具優先 → 孤兒在後」排序
-  const sortedPainCards = useMemo(() => {
-    const filtered =
-      selectedPainCategory === "all"
-        ? painCards
-        : painCards.filter((c) => c.category === selectedPainCategory);
-    return [...filtered].sort((a, b) => {
-      const aHas = !!a.relatedToolId;
-      const bHas = !!b.relatedToolId;
-      if (aHas && !bHas) return -1;
-      if (!aHas && bHas) return 1;
-      return 0;
-    });
-  }, [painCards, selectedPainCategory]);
 
   return (
     <div className="flex flex-col gap-24 px-4 md:px-0">
@@ -143,7 +101,7 @@ export default function Home() {
           <br />
           目前收錄{" "}
           <strong className="text-[var(--color-text-dark)]">
-            {loading ? "…" : activeCount} 個資源
+            {activeCount} 個資源
           </strong>
           ，持續新增中。
         </p>
@@ -165,12 +123,9 @@ export default function Home() {
 
         <MetricsBand
           stats={[
-            { value: loading ? "…" : activeCount, label: "可用資源" },
-            {
-              value: loading ? "…" : metrics.toolOpen.toLocaleString(),
-              label: "累計工具開啟",
-            },
-            { value: loading ? "…" : painCards.length, label: "痛點解法" },
+            { value: activeCount, label: "可用資源" },
+            { value: metrics.toolOpen.toLocaleString(), label: "累計工具開啟" },
+            { value: painCards.length, label: "痛點解法" },
           ]}
         />
       </section>
@@ -197,7 +152,7 @@ export default function Home() {
             <CategoryEntryCard
               key={k}
               category={CATEGORIES[k]}
-              count={loading ? "…" : counts[k]}
+              count={counts[k]}
             />
           ))}
         </div>
@@ -217,56 +172,7 @@ export default function Home() {
           </p>
         </div>
 
-        {/* 痛點類別 chip 列 */}
-        {!loading && painCards.length > 0 && (
-          <div className="mb-8 max-w-5xl mx-auto">
-            <div className="flex flex-wrap gap-2 justify-center">
-              <button
-                onClick={() => setSelectedPainCategory("all")}
-                className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-extrabold border-2 transition-all ${
-                  selectedPainCategory === "all"
-                    ? "bg-[var(--color-clay-coral)] text-white border-[var(--color-clay-coral)] shadow-md"
-                    : "bg-white dark:bg-gray-800 text-[var(--color-text-mid)] border-gray-200 dark:border-gray-700 hover:border-[var(--color-clay-coral)]/40"
-                }`}
-              >
-                全部
-                <span className="text-xs opacity-70">
-                  {painCategoryCounts.all}
-                </span>
-              </button>
-              {Object.entries(PAIN_CATEGORIES).map(([key, cat]) => {
-                const active = selectedPainCategory === key;
-                const count = painCategoryCounts[key] ?? 0;
-                if (count === 0) return null;
-                return (
-                  <button
-                    key={key}
-                    onClick={() => setSelectedPainCategory(key)}
-                    className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-extrabold border-2 transition-all ${
-                      active
-                        ? "bg-[var(--color-clay-coral)] text-white border-[var(--color-clay-coral)] shadow-md"
-                        : "bg-white dark:bg-gray-800 text-[var(--color-text-mid)] border-gray-200 dark:border-gray-700 hover:border-[var(--color-clay-coral)]/40 hover:-translate-y-0.5"
-                    }`}
-                  >
-                    <span>{cat.emoji}</span>
-                    {cat.label}
-                    <span className="text-xs opacity-70">{count}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {loading ? (
-          <div className="text-center py-10 text-gray-400">載入中，請稍候…</div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {sortedPainCards.map((c) => (
-              <PainCard key={c.id} card={c} />
-            ))}
-          </div>
-        )}
+        <PainPointsExplorer painCards={painCards} />
       </section>
 
       {/* ── TESTIMONIALS ── */}
