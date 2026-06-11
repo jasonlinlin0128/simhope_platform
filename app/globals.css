@@ -5,13 +5,20 @@
 
 /* Blob float fallback keyframe */
 @keyframes blobFloat {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-20px); }
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
 }
 
 @theme inline {
   /* Override Tailwind v4 default font-sans so preflight uses our fonts */
-  --font-sans: var(--font-nunito), var(--font-noto-sans-tc), ui-sans-serif, system-ui, sans-serif;
+  --font-sans:
+    var(--font-nunito), var(--font-noto-sans-tc), ui-sans-serif, system-ui,
+    sans-serif;
 
   --color-bg: var(--bg);
   --color-clay-yellow: var(--clay-yellow);
@@ -37,44 +44,57 @@
 }
 
 :root {
-  --bg: #FFF8F0;
-  --clay-yellow: #FFD166;
-  --clay-coral: #FF6B6B;
-  --clay-purple: #A78BFA;
-  --clay-blue: #60A5FA;
-  --clay-green: #34D399;
-  --clay-pink: #F472B6;
-  --clay-orange: #FB923C;
-  --text-dark: #1E1B4B;
-  --text-mid: #4B5563;
-  
-  --shadow-clay-val: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
-  --shadow-clay-lg-val: 0 16px 48px rgba(0, 0, 0, 0.14), 0 4px 16px rgba(0, 0, 0, 0.1);
-  --card-bg: #FFFFFF;
+  --bg: #fff8f0;
+  --clay-yellow: #ffd166;
+  --clay-coral: #ff6b6b;
+  --clay-purple: #a78bfa;
+  --clay-blue: #60a5fa;
+  --clay-green: #34d399;
+  --clay-pink: #f472b6;
+  --clay-orange: #fb923c;
+  --text-dark: #1e1b4b;
+  --text-mid: #4b5563;
+
+  --shadow-clay-val:
+    0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-clay-lg-val:
+    0 16px 48px rgba(0, 0, 0, 0.14), 0 4px 16px rgba(0, 0, 0, 0.1);
+  --card-bg: #ffffff;
   --card-border: rgba(255, 255, 255, 0.9);
   --nav-bg: rgba(255, 248, 240, 0.8);
   --nav-border: rgba(255, 255, 255, 0.6);
-  --footer-bg: #1E1B4B;
-  --footer-text: #FFFFFF;
+  --footer-bg: #1e1b4b;
+  --footer-text: #ffffff;
 }
 
 .dark {
-  --bg: #1C1714;
-  --text-dark: #FDF4EC;
-  --text-mid: #B8A898;
+  --bg: #1c1714;
+  --text-dark: #fdf4ec;
+  --text-mid: #b8a898;
 
-  --shadow-clay-val: 0 8px 32px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.35);
-  --shadow-clay-lg-val: 0 16px 48px rgba(0, 0, 0, 0.65), 0 4px 16px rgba(0, 0, 0, 0.5);
-  --card-bg: #261E19;
+  --shadow-clay-val:
+    0 8px 32px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.35);
+  --shadow-clay-lg-val:
+    0 16px 48px rgba(0, 0, 0, 0.65), 0 4px 16px rgba(0, 0, 0, 0.5);
+  --card-bg: #261e19;
   --card-border: rgba(255, 235, 210, 0.08);
   --nav-bg: rgba(28, 23, 20, 0.85);
   --nav-border: rgba(255, 235, 210, 0.07);
-  --footer-bg: #0F0D0B;
-  --footer-text: #FDF4EC;
+  --footer-bg: #0f0d0b;
+  --footer-text: #fdf4ec;
 }
 
 body {
   background-color: var(--bg);
   color: var(--text-dark);
-  font-family: var(--font-nunito), var(--font-noto-sans-tc), ui-sans-serif, system-ui, sans-serif;
+  font-family:
+    var(--font-nunito), var(--font-noto-sans-tc), ui-sans-serif, system-ui,
+    sans-serif;
+}
+
+/* a11y：全站鍵盤焦點環。:focus-visible 只在鍵盤導航時觸發，滑鼠點擊不顯示。
+   不設 border-radius（避免改到元素本身形狀；現代瀏覽器 outline 會跟隨元素圓角）。 */
+:focus-visible {
+  outline: 2px solid var(--color-clay-purple);
+  outline-offset: 2px;
 }
