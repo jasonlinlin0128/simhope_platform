@@ -180,26 +180,32 @@ async function packageSkill(slug, dir) {
   if (DRY_RUN)
     return { skillZipUrl: "(dry-run 未上傳)", manifest: { include, excluded } };
 
-  const stage = mkdtempSync(join(tmpdir(), `skill-${slug}-`));
+  // stage path 用純 ASCII（不含 slug），避免 PowerShell console 編碼問題
+  const stage = mkdtempSync(join(tmpdir(), "skill-"));
   for (const rel of include) {
     const dst = join(stage, slug, rel);
     mkdirSync(dirname(dst), { recursive: true });
     copyFileSync(join(dir, rel), dst);
   }
-  const zipPath = join(tmpdir(), `${slug}.zip`);
-  rmSync(zipPath, { force: true });
-  // git-bash 無 zip → 用 Windows PowerShell Compress-Archive 打包 staging 內的 <slug> 資料夾
+  // zip 放在 stage 內，保持路徑 ASCII；slug 子資料夾名 (CJK) 只出現在 zip 內部 entry
+  const zipPath = join(stage, "output.zip");
+  // 用 .NET ZipFile::CreateFromDirectory + UTF-8 encoding，確保 EFS flag 正確設置
+  // → 解壓後資料夾名不再 mojibake。-EncodedCommand (Base64 UTF-16LE) 繞過 console 編碼限制。
+  const srcPath = join(stage, slug);
+  const psCommand =
+    `Add-Type -AssemblyName System.IO.Compression.FileSystem; ` +
+    `[System.IO.Compression.ZipFile]::CreateFromDirectory('${srcPath}', '${zipPath}', ` +
+    `[System.IO.Compression.CompressionLevel]::Optimal, $true, [System.Text.Encoding]::UTF8)`;
   execFileSync("powershell", [
-    "-NoProfile",
-    "-Command",
-    `Compress-Archive -Path '${join(stage, slug)}' -DestinationPath '${zipPath}' -Force`,
+    "-NonInteractive",
+    "-EncodedCommand",
+    Buffer.from(psCommand, "utf16le").toString("base64"),
   ]);
   const dest = `skills/${slug}.zip`;
   await getStorage().bucket(BUCKET).upload(zipPath, { destination: dest });
   await getStorage().bucket(BUCKET).file(dest).makePublic();
   const skillZipUrl = `https://storage.googleapis.com/${BUCKET}/${dest}`;
   rmSync(stage, { recursive: true, force: true });
-  rmSync(zipPath, { force: true });
   return { skillZipUrl, manifest: { include, excluded } };
 }
 
