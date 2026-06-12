@@ -32,8 +32,8 @@ const BUCKET = "simhope-platform.firebasestorage.app";
 // 分類 map：slug → "own" | "thirdparty" | "skip"。未列到預設 "skip"（保守，不誤上個人專屬）。
 const CLASSIFY = {
   "security-audit": "own",
-  批次excel轉word: "own",
-  "progress-report": "own",
+  批次excel轉word: "own", // examples/ 經 scrub 排除（含真實案例）
+  "progress-report": "skip", // ⚠️ SKILL.md+references 本體含機密（主管/ROI）→ 不可公開
   "ai-collaboration-standards": "own",
   "logo-generator": "thirdparty",
   // 以下 3 個是 Codex 自開發、Jason 建議先不上（2026-06-12）
