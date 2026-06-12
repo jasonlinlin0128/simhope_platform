@@ -36,9 +36,10 @@ const CLASSIFY = {
   "progress-report": "own",
   "ai-collaboration-standards": "own",
   "logo-generator": "thirdparty",
-  "agent-browser": "thirdparty",
-  "agent-builder": "thirdparty",
-  "mcp-builder": "thirdparty",
+  // 以下 3 個是 Codex 自開發、Jason 建議先不上（2026-06-12）
+  "agent-browser": "skip",
+  "agent-builder": "skip",
+  "mcp-builder": "skip",
   ai: "skip",
   "ai-inbox": "skip",
   "coord-add": "skip",
@@ -187,7 +188,12 @@ async function packageSkill(slug, dir) {
   }
   const zipPath = join(tmpdir(), `${slug}.zip`);
   rmSync(zipPath, { force: true });
-  execFileSync("zip", ["-r", "-q", zipPath, slug], { cwd: stage });
+  // git-bash 無 zip → 用 Windows PowerShell Compress-Archive 打包 staging 內的 <slug> 資料夾
+  execFileSync("powershell", [
+    "-NoProfile",
+    "-Command",
+    `Compress-Archive -Path '${join(stage, slug)}' -DestinationPath '${zipPath}' -Force`,
+  ]);
   const dest = `skills/${slug}.zip`;
   await getStorage().bucket(BUCKET).upload(zipPath, { destination: dest });
   await getStorage().bucket(BUCKET).file(dest).makePublic();
