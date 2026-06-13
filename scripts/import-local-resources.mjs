@@ -22,6 +22,7 @@ import { homedir, tmpdir } from "os";
 import { execFileSync } from "child_process";
 import { shouldExcludePath, containsSecret } from "../src/lib/skillScrub.mjs";
 import { callGemini } from "../src/lib/gemini.mjs";
+import { psQuote } from "../src/lib/psEscape.mjs";
 
 const DRY_RUN = !process.argv.includes("--apply");
 const UPDATE = process.argv.includes("--update");
@@ -192,9 +193,10 @@ async function packageSkill(slug, dir) {
   // 用 .NET ZipFile::CreateFromDirectory + UTF-8 encoding，確保 EFS flag 正確設置
   // → 解壓後資料夾名不再 mojibake。-EncodedCommand (Base64 UTF-16LE) 繞過 console 編碼限制。
   const srcPath = join(stage, slug);
+  // psQuote 跳脫單引號，避免 slug（資料夾名）含 ' 造成 PowerShell 命令注入。
   const psCommand =
     `Add-Type -AssemblyName System.IO.Compression.FileSystem; ` +
-    `[System.IO.Compression.ZipFile]::CreateFromDirectory('${srcPath}', '${zipPath}', ` +
+    `[System.IO.Compression.ZipFile]::CreateFromDirectory(${psQuote(srcPath)}, ${psQuote(zipPath)}, ` +
     `[System.IO.Compression.CompressionLevel]::Optimal, $true, [System.Text.Encoding]::UTF8)`;
   execFileSync("powershell", [
     "-NonInteractive",
