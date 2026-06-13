@@ -4,6 +4,7 @@ import { callGemini } from "@/lib/gemini.mjs";
 import { HttpError, handleApiError } from "@/lib/apiError.mjs";
 import { rateLimit, clientIp } from "@/lib/rateLimit.mjs";
 import { isSafeHttpUrl } from "@/lib/safeUrl";
+import { fetchWithTimeout } from "@/lib/fetchWithTimeout.mjs";
 
 /**
  * POST /api/ai/assist-block
@@ -49,7 +50,7 @@ export async function POST(request) {
       );
       if (gh) {
         try {
-          const r = await fetch(
+          const r = await fetchWithTimeout(
             `https://api.github.com/repos/${gh[1]}/${gh[2].replace(/\.git$/, "")}/readme`,
             {
               headers: {
@@ -57,6 +58,7 @@ export async function POST(request) {
                 "User-Agent": "simhope-platform",
               },
             },
+            { timeoutMs: 8000 },
           );
           if (r.ok) sourceText = (await r.text()).slice(0, 6000);
         } catch {
@@ -66,10 +68,14 @@ export async function POST(request) {
         try {
           // redirect: manual → 3xx 變 opaqueredirect（r.ok=false）→ 不跟隨轉址，
           // 擋掉「安全 host 30x 轉到內網」的 redirect-SSRF。
-          const r = await fetch(sourceUrl, {
-            headers: { "User-Agent": "simhope-platform" },
-            redirect: "manual",
-          });
+          const r = await fetchWithTimeout(
+            sourceUrl,
+            {
+              headers: { "User-Agent": "simhope-platform" },
+              redirect: "manual",
+            },
+            { timeoutMs: 8000 },
+          );
           if (r.ok) sourceText = (await r.text()).slice(0, 6000);
         } catch {
           /* 抓不到就略過 */

@@ -3,6 +3,7 @@ import { requireRole } from "@/lib/apiAuth.mjs";
 import { callGemini } from "@/lib/gemini.mjs";
 import { HttpError, handleApiError } from "@/lib/apiError.mjs";
 import { rateLimit, clientIp } from "@/lib/rateLimit.mjs";
+import { fetchWithTimeout } from "@/lib/fetchWithTimeout.mjs";
 
 /**
  * POST /api/admin/enrich-tool
@@ -35,7 +36,7 @@ export async function POST(request) {
       const owner = gh[1];
       const repo = gh[2].replace(/\.git$/, "");
       try {
-        const r = await fetch(
+        const r = await fetchWithTimeout(
           `https://api.github.com/repos/${owner}/${repo}/readme`,
           {
             headers: {
@@ -43,6 +44,7 @@ export async function POST(request) {
               "User-Agent": "simhope-platform",
             },
           },
+          { timeoutMs: 8000 },
         );
         if (r.ok) readme = (await r.text()).slice(0, 6000); // 截斷避免 prompt 過長
       } catch {
