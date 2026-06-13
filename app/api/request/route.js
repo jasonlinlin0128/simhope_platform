@@ -3,6 +3,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import { getAdmin } from "@/lib/firebaseAdmin";
 import { notify } from "@/lib/notify";
 import { rateLimit, clientIp } from "@/lib/rateLimit.mjs";
+import { buildAccessRequestUserUpdate } from "@/lib/accessRequest.mjs";
 
 /**
  * POST /api/request
@@ -52,11 +53,15 @@ export async function POST(req) {
         status: "pending",
         createdAt: FieldValue.serverTimestamp(),
       });
-      // 記錄申請狀態到 user 文件（Admin SDK，可信）
-      await adminDb
-        .collection("users")
-        .doc(decoded.uid)
-        .set({ devStatus: "pending" }, { merge: true });
+      // 記錄申請狀態到 user 文件（Admin SDK，可信）。
+      // 先讀現有文件：若不存在/缺 role 補 role:'viewer'，避免後續 firestore.rules
+      // 讀 users.role 為 null 而把已核准的開發者擋在外面（見 src/lib/accessRequest.mjs）。
+      const userRef = adminDb.collection("users").doc(decoded.uid);
+      const userSnap = await userRef.get();
+      await userRef.set(
+        buildAccessRequestUserUpdate(userSnap.exists ? userSnap.data() : null),
+        { merge: true },
+      );
 
       await notify(
         `🔑 開發者申請\n來自：${name || email || decoded.uid}\n理由：${reason}\nrequest id: ${ref.id}`,
