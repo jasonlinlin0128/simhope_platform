@@ -32,6 +32,7 @@ const dev1 = testEnv.authenticatedContext("dev1").firestore();
 const dev2 = testEnv.authenticatedContext("dev2").firestore();
 const admin = testEnv.authenticatedContext("admin1").firestore();
 const viewer1 = testEnv.authenticatedContext("viewer1").firestore();
+const newuser = testEnv.authenticatedContext("newuser").firestore(); // 無 seed users 文件（測首次自建）
 
 // 每條測試前清空並重新種子 → 測試彼此獨立。
 async function seed() {
@@ -78,6 +79,11 @@ async function seed() {
     await setDoc(doc(db, "requests", "req_anon"), {
       type: "feature", message: "m3", status: "pending", createdAt: 1000, // 無 uid（匿名）
     });
+    await setDoc(doc(db, "faqs", "faq1"), {
+      q: "Q", a: "A", category: "login", order: 1,
+    });
+    await setDoc(doc(db, "passkeys", "pk1"), { uid: "dev1", credId: "abc" }); // server-only
+    await setDoc(doc(db, "webauthnChallenges", "ch1"), { challenge: "xyz", expireAt: 1 }); // server-only
   });
 }
 
@@ -312,6 +318,93 @@ await it("51. admin 讀任意 request → ALLOW", async () => {
 });
 await it("52. anon（未登入）讀 request → DENY", async () => {
   await assertFails(getDoc(doc(anon, "requests", "req_dev1")));
+});
+// ===== users（角色不變式 / 提權防護）=====
+console.log("users 集合（提權防護 / 角色不變式）:");
+await it("53. anon 讀 users → DENY（需登入）", async () => {
+  await assertFails(getDoc(doc(anon, "users", "dev1")));
+});
+await it("54. dev1（登入）讀別人 users 文件 → ALLOW（admin 後台需列）", async () => {
+  await assertSucceeds(getDoc(doc(dev1, "users", "dev2")));
+});
+await it("55. newuser 首次建自己 users 文件（無 role）→ ALLOW", async () => {
+  await assertSucceeds(setDoc(doc(newuser, "users", "newuser"), { email: "n@x.com" }));
+});
+await it("56. newuser 建自己 users 文件 role:'developer'（自我提權）→ DENY", async () => {
+  await assertFails(setDoc(doc(newuser, "users", "newuser"), { role: "developer" }));
+});
+await it("57. newuser 建別人 uid 的 users 文件 → DENY", async () => {
+  await assertFails(setDoc(doc(newuser, "users", "dev2"), { email: "x@x.com" }));
+});
+await it("58. admin 建任意 role 的 users 文件 → ALLOW", async () => {
+  await assertSucceeds(setDoc(doc(admin, "users", "made_by_admin"), { role: "developer" }));
+});
+await it("59. dev1 改自己非 role 欄位（devStatus，即 /api/request 情境）→ ALLOW", async () => {
+  await assertSucceeds(updateDoc(doc(dev1, "users", "dev1"), { devStatus: "pending" }));
+});
+await it("60. dev1 改自己 role（自我提權）→ DENY", async () => {
+  await assertFails(updateDoc(doc(dev1, "users", "dev1"), { role: "admin" }));
+});
+await it("61. admin 改 dev1 的 role → ALLOW", async () => {
+  await assertSucceeds(updateDoc(doc(admin, "users", "dev1"), { role: "admin" }));
+});
+await it("62. dev2 改 dev1 的文件（非本人非 admin）→ DENY", async () => {
+  await assertFails(updateDoc(doc(dev2, "users", "dev1"), { devStatus: "pending" }));
+});
+await it("63. dev1 刪自己 users 文件（僅 admin）→ DENY", async () => {
+  await assertFails(deleteDoc(doc(dev1, "users", "dev1")));
+});
+await it("64. admin 刪 users 文件 → ALLOW", async () => {
+  await assertSucceeds(deleteDoc(doc(admin, "users", "viewer1")));
+});
+// ===== faqs（公開讀 / admin 寫）=====
+console.log("faqs（公開讀 / 僅 admin 寫）:");
+await it("65. anon 讀 faq → ALLOW", async () => {
+  await assertSucceeds(getDoc(doc(anon, "faqs", "faq1")));
+});
+await it("66. dev1（非 admin）寫 faq → DENY", async () => {
+  await assertFails(updateDoc(doc(dev1, "faqs", "faq1"), { a: "hacked" }));
+});
+await it("67. admin 寫 faq → ALLOW", async () => {
+  await assertSucceeds(updateDoc(doc(admin, "faqs", "faq1"), { a: "official" }));
+});
+// ===== passkeys / webauthnChallenges（server-only，client 一律拒）=====
+console.log("passkeys / webauthnChallenges（client 一律拒）:");
+await it("68. anon 讀 passkey → DENY", async () => {
+  await assertFails(getDoc(doc(anon, "passkeys", "pk1")));
+});
+await it("69. dev1 寫 passkey → DENY", async () => {
+  await assertFails(setDoc(doc(dev1, "passkeys", "pk_evil"), { uid: "dev1" }));
+});
+await it("70. admin（client）讀 passkey → DENY（只 Admin SDK 可，連 admin client 也擋）", async () => {
+  await assertFails(getDoc(doc(admin, "passkeys", "pk1")));
+});
+await it("71. anon 讀 webauthnChallenge → DENY", async () => {
+  await assertFails(getDoc(doc(anon, "webauthnChallenges", "ch1")));
+});
+await it("72. dev1 寫 webauthnChallenge → DENY", async () => {
+  await assertFails(setDoc(doc(dev1, "webauthnChallenges", "ch_evil"), { challenge: "x" }));
+});
+// ===== requests client 寫入全禁（防偽造）=====
+console.log("requests（client 不可建/改/刪）:");
+await it("73. dev1 client 建 request（防偽造）→ DENY", async () => {
+  await assertFails(
+    setDoc(doc(dev1, "requests", "req_forged"), {
+      type: "feature", uid: "dev1", message: "forged", status: "pending", createdAt: 1,
+    }),
+  );
+});
+await it("74. dev1 改既有 request（僅 admin）→ DENY", async () => {
+  await assertFails(updateDoc(doc(dev1, "requests", "req_dev1"), { status: "handled" }));
+});
+await it("75. admin 改 request 狀態 → ALLOW", async () => {
+  await assertSucceeds(updateDoc(doc(admin, "requests", "req_dev1"), { status: "handled" }));
+});
+await it("76. dev1 刪 request（僅 admin）→ DENY", async () => {
+  await assertFails(deleteDoc(doc(dev1, "requests", "req_dev1")));
+});
+await it("77. admin 刪 request → ALLOW", async () => {
+  await assertSucceeds(deleteDoc(doc(admin, "requests", "req_anon")));
 });
 // ===== TESTS END =====
 
