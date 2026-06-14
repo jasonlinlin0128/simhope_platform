@@ -87,3 +87,25 @@ export async function getServerMetrics() {
     return normalizeMetrics({});
   }
 }
+
+/**
+ * 全期 per-tool 瀏覽數（analytics/toolViews doc）。doc 不存在 / 失敗 → {}。
+ * 只回數值欄位（濾掉 updatedAt 等非數值 key）。
+ * @returns {Promise<Record<string, number>>}
+ */
+export async function getServerToolViews() {
+  try {
+    const res = await fetch(`${BASE}/analytics/toolViews`, {
+      next: { revalidate: REVALIDATE },
+    });
+    if (!res.ok) return {};
+    const obj = docToObject(await res.json());
+    const out = {};
+    for (const [k, v] of Object.entries(obj)) {
+      if (typeof v === "number") out[k] = v;
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}

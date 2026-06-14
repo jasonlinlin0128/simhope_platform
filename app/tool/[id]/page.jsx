@@ -848,7 +848,8 @@ export default function ToolDetail({ params }) {
       const isOwner = user && data.authorUid === user.uid;
       if (!isPublic && !isOwner && !isAdmin) return; // 無權限 → not-found 狀態頁
       setTool(data);
-      track("tool_view", { toolId: id }); // 同 session 去重 → 重整/重抓不重複計
+      // 非作者且非 admin 才計（防自看灌水）；track 內仍 session 去重
+      if (!isOwner && !isAdmin) track("tool_view", { toolId: id });
       const blocks = (data.blog?.blocks || []).map((b) =>
         b.id ? b : { ...b, id: crypto.randomUUID() },
       );
