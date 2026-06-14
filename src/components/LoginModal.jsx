@@ -241,6 +241,7 @@ export default function LoginModal({ onClose, initialTab = "login" }) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="your@simhope.com.tw"
+              aria-label="電子郵件"
               className="w-full px-4 py-2.5 rounded-xl border border-[var(--color-card-border)] bg-[var(--color-card-bg)] text-[var(--color-text-dark)] font-semibold text-sm outline-none focus:border-[var(--color-clay-purple)]"
             />
             <input
@@ -248,6 +249,7 @@ export default function LoginModal({ onClose, initialTab = "login" }) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
+              aria-label="密碼"
               className="w-full px-4 py-2.5 rounded-xl border border-[var(--color-card-border)] bg-[var(--color-card-bg)] text-[var(--color-text-dark)] font-semibold text-sm outline-none focus:border-[var(--color-clay-purple)]"
             />
             <button
@@ -317,6 +319,7 @@ export default function LoginModal({ onClose, initialTab = "login" }) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="your@simhope.com.tw"
+                aria-label="電子郵件"
                 className="w-full px-4 py-2.5 rounded-xl border border-[var(--color-card-border)] bg-[var(--color-card-bg)] text-[var(--color-text-dark)] font-semibold text-sm outline-none focus:border-[var(--color-clay-purple)]"
               />
               <input
@@ -324,6 +327,7 @@ export default function LoginModal({ onClose, initialTab = "login" }) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="密碼（至少 6 碼）"
+                aria-label="密碼（至少 6 碼）"
                 className="w-full px-4 py-2.5 rounded-xl border border-[var(--color-card-border)] bg-[var(--color-card-bg)] text-[var(--color-text-dark)] font-semibold text-sm outline-none focus:border-[var(--color-clay-purple)]"
               />
               <input
@@ -331,6 +335,7 @@ export default function LoginModal({ onClose, initialTab = "login" }) {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="再次輸入密碼"
+                aria-label="再次輸入密碼"
                 className="w-full px-4 py-2.5 rounded-xl border border-[var(--color-card-border)] bg-[var(--color-card-bg)] text-[var(--color-text-dark)] font-semibold text-sm outline-none focus:border-[var(--color-clay-purple)]"
               />
               <button
@@ -351,6 +356,7 @@ export default function LoginModal({ onClose, initialTab = "login" }) {
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="你想開發 / 上架什麼？（讓管理員了解你的用途）"
+                aria-label="申請理由"
                 rows={4}
                 maxLength={1000}
                 className="w-full px-4 py-2.5 rounded-xl border border-[var(--color-card-border)] bg-[var(--color-card-bg)] text-[var(--color-text-dark)] font-semibold text-sm outline-none focus:border-[var(--color-clay-purple)]"
