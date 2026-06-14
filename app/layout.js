@@ -48,6 +48,17 @@ export const metadata = {
   },
 };
 
+// Next 16：viewport / themeColor 改用獨立 export。themeColor 讓行動裝置瀏覽器
+// chrome 配合深淺色；不設 maximumScale（保留使用者縮放，a11y）。
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#1f2937" },
+  ],
+};
+
 export default function RootLayout({ children }) {
   return (
     <html lang="zh-TW" className="scroll-smooth" suppressHydrationWarning>
