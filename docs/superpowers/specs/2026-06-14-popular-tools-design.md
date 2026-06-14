@@ -43,8 +43,8 @@
   → track("tool_view", { toolId })         // session 去重（既有）
   → POST /api/track（Admin SDK、60/min IP 限流，皆既有）
      → analytics/totals.toolView +1                         （既有）
-     → analytics_daily/{day}: toolView +1, byTool.{id} +1   （byTool 為本案新增涵蓋 tool_view；留作未來趨勢榜）
-     → analytics/toolViews.{id} +1                          （本案新增：全期 per-tool aggregate）
+     → analytics_daily/{day}: toolView +1                   （daily byTool 維持只記 opens、不混入 view，保護 admin 開啟排名語意）
+     → analytics/toolViews.{id} +1                          （本案新增：全期 per-tool 瀏覽 aggregate）
 
 首頁 app/page.jsx（server component, revalidate=300）
   → getServerCatalog() + getServerToolViews()（REST，匿名、受 rules）
@@ -54,9 +54,9 @@
 
 ## 元件（邊界清楚、可獨立測）
 
-1. **`src/lib/trackEvents.mjs`** — `buildIncrements(event, toolId)` 讓 `tool_view` 也回 `byToolKey`（目前只有 `tool_open`）。純邏輯。
-2. **`app/api/track/route.js`** — 當 `event === "tool_view"` 且有 toolId，於同一 batch 多 `set(analytics/toolViews, { [id]: increment(1) }, { merge: true })`（巢狀 map + merge，與既有 byTool 寫法一致）。
-3. **`app/tool/[id]/page.jsx`** — tool 成功載入後（`loading` 結束、`tool` 非 null）`track("tool_view", { toolId: id })`；**`canEdit`（作者/admin）為真時不送**（防自看灌水）。
+1. **`src/lib/trackEvents.mjs`** — `buildIncrements(event, toolId)` 新增回傳 `viewToolKey`（`tool_view` + toolId → toolId，否則 null）；`byToolKey`（opens、daily byTool 用）維持不變，**不把 view 混進 daily byTool**（保護 admin 開啟排名語意）。純邏輯。
+2. **`app/api/track/route.js`** — 當 `inc.viewToolKey` 存在時，於同一 batch 多 `set(analytics/toolViews, { [viewToolKey]: increment(1) }, { merge: true })`（巢狀 map + merge，與既有 byTool 寫法一致）。
+3. **`app/tool/[id]/page.jsx`** — `track("tool_view", { toolId: id })` **已存在**（`fetchTool` 內、session 去重）；本案改為**僅當非作者且非 admin 才送**（`!isOwner && !isAdmin`，防自看灌水）。
 4. **`src/lib/serverCatalog.js`** — 新增 `getServerToolViews()`：REST 讀 `analytics/toolViews`，回 `{ [toolId]: number }`；doc 不存在 / 失敗 → `{}`（沿用 `getServerMetrics` 的 fail-soft 模式 + `next: { revalidate: 300 }`）。
 5. **`src/lib/popularTools.mjs`（新）** — 純函式 `rankPopularTools(tools, viewsMap, { limit = 6, minWithViews = 3, statuses = ["live","beta","new"] })`：
    - 篩選 `statuses` 內的工具；
@@ -100,7 +100,7 @@ analytics/toolViews = { "<toolId>": <number>, ... , updatedAt: <serverTimestamp 
 
 ## 測試（TDD）
 
-- `trackEvents.test.mjs`：`buildIncrements("tool_view", id)` 現在回 `{ field:"toolView", byToolKey:id }`（原本 byToolKey 為 null）；無 toolId 時 byToolKey 仍 null；其餘事件不變。
+- `trackEvents.test.mjs`：`buildIncrements("tool_view", id)` 現在回 `viewToolKey:id`（`byToolKey` 仍 null）；`tool_open` 回 `byToolKey:id`、`viewToolKey:null`；無 toolId 時兩者皆 null。
 - `popularTools.test.mjs`：依數排序、top N 截斷、未達門檻回 `[]`、排除非 live/beta/new、無瀏覽工具不混入、viewsMap 缺鍵當 0。
 - `serverCatalog` 的 `getServerToolViews`：REST 回應解析 + fail-soft（可比照既有 metrics 測法；若 REST 解析已有 `firestoreValue` 覆蓋則複用）。
 - 埋點呼叫（client）、首頁 JSX 區塊：build / lint + 部署後人工驗。
