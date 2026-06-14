@@ -4,6 +4,7 @@ import { useState } from "react";
 import Modal from "@/components/Modal";
 import { track } from "@/lib/track";
 import { useAuth } from "@/context/AuthContext";
+import { INPUT_BOX } from "@/lib/uiClasses";
 
 const MAILTO = "mailto:jasonlin@simhope.com.tw?subject=AI工具需求";
 
@@ -136,7 +137,7 @@ export default function RequestCard({ onClose }) {
                 placeholder="姓名（必填）"
                 aria-label="姓名"
                 maxLength={50}
-                className="flex-1 bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm"
+                className={`flex-1 ${INPUT_BOX} p-2 text-sm`}
               />
               <input
                 value={contact}
@@ -144,7 +145,7 @@ export default function RequestCard({ onClose }) {
                 placeholder="聯絡方式（選填：分機/email）"
                 aria-label="聯絡方式（選填）"
                 maxLength={100}
-                className="flex-1 bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm"
+                className={`flex-1 ${INPUT_BOX} p-2 text-sm`}
               />
             </div>
             <textarea

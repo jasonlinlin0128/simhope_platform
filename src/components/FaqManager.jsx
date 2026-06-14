@@ -13,6 +13,7 @@ import {
 import { FAQ_CATEGORIES } from "@/lib/faq";
 import { useToast } from "@/components/Toast";
 import { useConfirm } from "@/components/ConfirmDialog";
+import { INPUT_BOX } from "@/lib/uiClasses";
 
 const BLANK = {
   question: "",
@@ -95,14 +96,14 @@ export default function FaqManager() {
               setEditing({ ...editing, question: e.target.value })
             }
             placeholder="問題"
-            className="bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm font-bold"
+            className={`${INPUT_BOX} p-2 text-sm font-bold`}
           />
           <textarea
             value={editing.answer}
             onChange={(e) => setEditing({ ...editing, answer: e.target.value })}
             placeholder="答案（支援 markdown）"
             rows={4}
-            className="bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm"
+            className={`${INPUT_BOX} p-2 text-sm`}
           />
           <div className="flex gap-2 flex-wrap items-center">
             <select
@@ -110,7 +111,7 @@ export default function FaqManager() {
               onChange={(e) =>
                 setEditing({ ...editing, category: e.target.value })
               }
-              className="bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm"
+              className={`${INPUT_BOX} p-2 text-sm`}
             >
               {FAQ_CATEGORIES.map((c) => (
                 <option key={c.key} value={c.key}>
@@ -125,7 +126,7 @@ export default function FaqManager() {
                 setEditing({ ...editing, order: e.target.value })
               }
               placeholder="排序"
-              className="w-20 bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm"
+              className={`w-20 ${INPUT_BOX} p-2 text-sm`}
             />
             <label className="flex items-center gap-1 text-sm font-bold">
               <input
