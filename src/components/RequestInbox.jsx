@@ -7,6 +7,8 @@ import {
   getDocs,
   doc,
   updateDoc,
+  setDoc,
+  serverTimestamp,
   query,
   where,
   orderBy,
@@ -16,6 +18,7 @@ import {
 } from "firebase/firestore";
 import { useToast } from "@/components/Toast";
 import { INPUT_BOX } from "@/lib/uiClasses";
+import { notifyUidForHandled } from "@/lib/requestNotify.mjs";
 
 const PAGE_SIZE = 50;
 // 結案後保留 180 天，過後由 Firestore TTL policy（欄位 expireAt）自動清除。
@@ -123,8 +126,22 @@ export default function RequestInbox() {
     try {
       await updateDoc(doc(db, "requests", r.id), {
         status: "handled",
+        handledAt: serverTimestamp(),
         expireAt: newExpireAt(),
       });
+      // 站內未讀通知：標記提需求者 profile（匿名請求無 uid → 跳過；失敗不擋主流程）
+      const uid = notifyUidForHandled(r);
+      if (uid) {
+        try {
+          await setDoc(
+            doc(db, "users", uid),
+            { unreadHandledRequest: true },
+            { merge: true },
+          );
+        } catch (e2) {
+          console.error("標記未讀失敗（不擋主流程）：", e2);
+        }
+      }
       setStatus(r.id, "handled");
     } catch (e) {
       toast.error("操作失敗：" + (e.code || e.message));

@@ -5,6 +5,8 @@ import { useAuth } from "@/context/AuthContext";
 import { getMyRequests } from "@/lib/db";
 import RequestCard from "@/components/RequestCard";
 import LoginModal from "@/components/LoginModal";
+import { db } from "@/lib/firebase";
+import { doc, setDoc } from "firebase/firestore";
 
 const STATUS = {
   pending: {
@@ -23,7 +25,7 @@ function fmtDate(createdAt) {
 }
 
 export default function MyRequestsPage() {
-  const { user, loading } = useAuth();
+  const { user, loading, profile, refreshProfile } = useAuth();
   // reqs===null = 尚未抓取（含 auth 解析中 / 抓取中）；array = 已抓取結果。
   const [reqs, setReqs] = useState(null);
   const [showReq, setShowReq] = useState(false);
@@ -41,6 +43,24 @@ export default function MyRequestsPage() {
       cancelled = true;
     };
   }, [user, loading]);
+
+  // 進來這頁就算「已讀」：清掉未讀旗標並即時刷新 profile（Navbar 紅點消失）
+  useEffect(() => {
+    if (loading || !user || !profile?.unreadHandledRequest) return;
+    let cancelled = false;
+    setDoc(
+      doc(db, "users", user.uid),
+      { unreadHandledRequest: false },
+      { merge: true },
+    )
+      .then(() => {
+        if (!cancelled) refreshProfile();
+      })
+      .catch((e) => console.error("清除未讀失敗:", e));
+    return () => {
+      cancelled = true;
+    };
+  }, [user, loading, profile, refreshProfile]);
 
   return (
     <div className="max-w-3xl mx-auto px-4 md:px-0 py-10">
