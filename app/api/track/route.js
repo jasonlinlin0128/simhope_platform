@@ -30,6 +30,7 @@ export async function POST(req) {
 
     const totalsRef = adminDb.collection("analytics").doc("totals");
     const dailyRef = adminDb.collection("analytics_daily").doc(dayId);
+    const toolViewsRef = adminDb.collection("analytics").doc("toolViews");
 
     const totalsUpdate = {
       [inc.field]: FieldValue.increment(1),
@@ -49,6 +50,17 @@ export async function POST(req) {
     const batch = adminDb.batch();
     batch.set(totalsRef, totalsUpdate, { merge: true });
     batch.set(dailyRef, dailyUpdate, { merge: true });
+    // 全期 per-tool 瀏覽累計（首頁熱門用；與 daily byTool=opens 分開，不混語意）
+    if (inc.viewToolKey) {
+      batch.set(
+        toolViewsRef,
+        {
+          [inc.viewToolKey]: FieldValue.increment(1),
+          updatedAt: FieldValue.serverTimestamp(),
+        },
+        { merge: true },
+      );
+    }
     await batch.commit();
 
     return NextResponse.json({ ok: true });
