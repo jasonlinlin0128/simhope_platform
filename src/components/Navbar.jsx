@@ -8,6 +8,7 @@ import { signOut } from "firebase/auth";
 import { useTheme } from "@/context/ThemeContext";
 import LoginModal from "@/components/LoginModal";
 import HubMark from "@/components/HubMark";
+import { hasUnreadHandled } from "@/lib/requestNotify.mjs";
 
 /**
  * Sticky top navigation bar. Integrates Auth (useAuth), Theme toggle, and LoginModal.
@@ -16,7 +17,7 @@ import HubMark from "@/components/HubMark";
  * - Admin: links to /admin
  */
 export default function Navbar() {
-  const { user, isAdmin, loading } = useAuth();
+  const { user, isAdmin, loading, profile } = useAuth();
   const { toggle } = useTheme();
   const [showLogin, setShowLogin] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -130,6 +131,12 @@ export default function Navbar() {
                 className="hidden md:inline hover:text-violet-500 dark:hover:text-violet-400 transition-colors"
               >
                 我的需求
+                {hasUnreadHandled(profile) && (
+                  <span
+                    className="inline-block w-2 h-2 ml-1 rounded-full bg-red-500 align-middle"
+                    aria-label="有更新"
+                  />
+                )}
               </Link>
               <Link
                 href={isAdmin ? "/admin" : "/dashboard"}
@@ -194,6 +201,12 @@ export default function Navbar() {
             <>
               <Link href="/my-requests" onClick={() => setMenuOpen(false)}>
                 我的需求
+                {hasUnreadHandled(profile) && (
+                  <span
+                    className="inline-block w-2 h-2 ml-1 rounded-full bg-red-500 align-middle"
+                    aria-label="有更新"
+                  />
+                )}
               </Link>
               <Link
                 href={isAdmin ? "/admin" : "/dashboard"}
