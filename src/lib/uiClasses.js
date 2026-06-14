@@ -24,3 +24,15 @@ export const MUTED_BTN =
 // 灰 icon 鈕（text-gray-500）
 export const MUTED_ICON_BTN =
   "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600";
+
+// ── 表單輸入框原子 ──
+// 淺灰底 + 灰框 + 圓角（含 dark:）。寬度（w-full / flex-1）、內距、字級由呼叫端組合，
+// 例：`w-full ${INPUT_BOX} p-2 text-sm`。用於 admin 審核 wizard / FAQ 後台 / 提需求表單。
+export const INPUT_BOX =
+  "bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600";
+
+// 詳情頁 block 編輯器的輸入框核心（卡片底色 + 卡片框 + 紫色 focus）。
+// 不含寬度 / 文字色 / 圓角大小（xl vs lg）→ 由呼叫端組合，例：
+// `flex-1 ${CARD_FIELD} text-[var(--color-text-dark)] rounded-xl`。
+export const CARD_FIELD =
+  "bg-[var(--color-card-bg)] border border-[var(--color-card-border)] px-3 py-2 text-sm outline-none focus:border-[var(--color-clay-purple)]";

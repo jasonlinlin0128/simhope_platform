@@ -15,6 +15,7 @@ import {
   Timestamp,
 } from "firebase/firestore";
 import { useToast } from "@/components/Toast";
+import { INPUT_BOX } from "@/lib/uiClasses";
 
 const PAGE_SIZE = 50;
 // 結案後保留 180 天，過後由 Firestore TTL policy（欄位 expireAt）自動清除。
@@ -154,7 +155,7 @@ export default function RequestInbox() {
         <select
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
-          className="bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm"
+          className={`${INPUT_BOX} p-2 text-sm`}
         >
           <option value="pending">待處理</option>
           <option value="all">全部</option>

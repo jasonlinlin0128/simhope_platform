@@ -14,7 +14,7 @@ import { sameTimestamp } from "@/lib/sameTimestamp.mjs";
 import { DEPTS } from "@/lib/db";
 import { CATEGORIES, CATEGORY_ORDER, TYPES } from "@/lib/taxonomy";
 import VersionEditor from "@/components/VersionEditor";
-import { DANGER_BTN } from "@/lib/uiClasses";
+import { DANGER_BTN, INPUT_BOX } from "@/lib/uiClasses";
 import { useToast } from "@/components/Toast";
 import { useConfirm } from "@/components/ConfirmDialog";
 
@@ -355,14 +355,14 @@ export default function ReviewToolWizard({ tool, onClose, onSaved }) {
               <input
                 value={form.icon}
                 onChange={(e) => update({ icon: e.target.value })}
-                className="w-full bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-xl text-center outline-none focus:border-[var(--color-clay-purple)]"
+                className={`w-full ${INPUT_BOX} p-2 text-xl text-center outline-none focus:border-[var(--color-clay-purple)]`}
               />
             </FormField>
             <FormField label="工具名字">
               <input
                 value={form.title}
                 onChange={(e) => update({ title: e.target.value })}
-                className="w-full bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm outline-none focus:border-[var(--color-clay-purple)]"
+                className={`w-full ${INPUT_BOX} p-2 text-sm outline-none focus:border-[var(--color-clay-purple)]`}
               />
             </FormField>
           </div>
@@ -370,14 +370,14 @@ export default function ReviewToolWizard({ tool, onClose, onSaved }) {
             <input
               value={form.tagline}
               onChange={(e) => update({ tagline: e.target.value })}
-              className="w-full bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm outline-none focus:border-[var(--color-clay-purple)]"
+              className={`w-full ${INPUT_BOX} p-2 text-sm outline-none focus:border-[var(--color-clay-purple)]`}
             />
           </FormField>
           <FormField label="類別（目錄分類，使用者看的）">
             <select
               value={form.category}
               onChange={(e) => update({ category: e.target.value })}
-              className="w-full bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm"
+              className={`w-full ${INPUT_BOX} p-2 text-sm`}
             >
               {CATEGORY_ORDER.map((k) => (
                 <option key={k} value={k}>
@@ -390,7 +390,7 @@ export default function ReviewToolWizard({ tool, onClose, onSaved }) {
             <select
               value={form.type}
               onChange={(e) => update({ type: e.target.value })}
-              className="w-full bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm"
+              className={`w-full ${INPUT_BOX} p-2 text-sm`}
             >
               {Object.entries(TYPES)
                 .filter(([k]) => k !== "showcase")
@@ -406,7 +406,7 @@ export default function ReviewToolWizard({ tool, onClose, onSaved }) {
               value={form.url}
               onChange={(e) => update({ url: e.target.value })}
               placeholder="https://..."
-              className="w-full bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm font-mono"
+              className={`w-full ${INPUT_BOX} p-2 text-sm font-mono`}
             />
           </FormField>
 
@@ -417,7 +417,7 @@ export default function ReviewToolWizard({ tool, onClose, onSaved }) {
               onChange={(e) => update({ desc: e.target.value })}
               rows={5}
               placeholder="**Before**：原本的狀況...&#10;**After**：用這個工具後..."
-              className="w-full bg-gray-50 dark:bg-gray-700 p-3 rounded-lg border border-gray-200 dark:border-gray-600 text-sm font-mono resize-y"
+              className={`w-full ${INPUT_BOX} p-3 text-sm font-mono resize-y`}
             />
           </FormField>
 
@@ -450,7 +450,7 @@ export default function ReviewToolWizard({ tool, onClose, onSaved }) {
               <select
                 value={form.dept}
                 onChange={(e) => update({ dept: e.target.value })}
-                className="w-full bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm"
+                className={`w-full ${INPUT_BOX} p-2 text-sm`}
               >
                 {Object.entries(DEPTS).map(([k, v]) => (
                   <option key={k} value={k}>
@@ -464,7 +464,7 @@ export default function ReviewToolWizard({ tool, onClose, onSaved }) {
                 value={form.folder}
                 onChange={(e) => update({ folder: e.target.value })}
                 placeholder="例：日報表專案"
-                className="w-full bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm"
+                className={`w-full ${INPUT_BOX} p-2 text-sm`}
               />
             </FormField>
           </div>
@@ -473,7 +473,7 @@ export default function ReviewToolWizard({ tool, onClose, onSaved }) {
               value={form.scenarios}
               onChange={(e) => update({ scenarios: e.target.value })}
               placeholder="生產現場, 工時統計"
-              className="w-full bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm"
+              className={`w-full ${INPUT_BOX} p-2 text-sm`}
             />
           </FormField>
           <FormField label="標籤 tags (用逗號分隔)">
@@ -481,7 +481,7 @@ export default function ReviewToolWizard({ tool, onClose, onSaved }) {
               value={form.tags}
               onChange={(e) => update({ tags: e.target.value })}
               placeholder="AI, RAG, Teams"
-              className="w-full bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm"
+              className={`w-full ${INPUT_BOX} p-2 text-sm`}
             />
           </FormField>
 
@@ -509,7 +509,7 @@ export default function ReviewToolWizard({ tool, onClose, onSaved }) {
               value={form.blogSummary}
               onChange={(e) => update({ blogSummary: e.target.value })}
               rows={2}
-              className="w-full bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm"
+              className={`w-full ${INPUT_BOX} p-2 text-sm`}
             />
             <p className="text-xs text-gray-400 mt-1">
               註：詳細說明的 block editor（圖文/影音步驟）請到「詳情頁 →
@@ -683,6 +683,185 @@ function FormField({ label, children }) {
   );
 }
 
+// typeData 各類型的欄位定義（單一真相來源；加新類型 = 加一筆，不必再複製 JSX 分支）。
+// kind: "input" | "select" | "textarea"；mono: 等寬字；variant:"code" 深色程式碼框；
+// rows: textarea 列數；resize: 可拉高；options: select 的 [value, label]。
+const TYPE_DATA_FIELDS = {
+  download: [
+    {
+      key: "platform",
+      label: "platform",
+      kind: "select",
+      options: [
+        ["", "(無)"],
+        ["windows", "Windows"],
+        ["mac", "Mac"],
+        ["linux", "Linux"],
+        ["crossplatform", "Cross-platform"],
+      ],
+    },
+    {
+      key: "fileName",
+      label: "fileName",
+      kind: "input",
+      mono: true,
+      placeholder: "installer.exe",
+    },
+  ],
+  doc: [
+    {
+      key: "fileType",
+      label: "fileType",
+      kind: "select",
+      options: [
+        ["", "(無)"],
+        ["pdf", "PDF"],
+        ["docx", "Word (.docx)"],
+        ["xlsx", "Excel (.xlsx)"],
+        ["zip", "ZIP"],
+        ["other", "其他"],
+      ],
+    },
+    {
+      key: "fileName",
+      label: "fileName",
+      kind: "input",
+      mono: true,
+      placeholder: "表單名.docx",
+    },
+  ],
+  mcp: [
+    {
+      key: "mcpbUrl",
+      label: "mcpbUrl (.mcpb 一鍵安裝包連結)",
+      kind: "input",
+      mono: true,
+      placeholder: "https://.../iso-form.mcpb",
+    },
+    {
+      key: "npmPackage",
+      label: "npmPackage",
+      kind: "input",
+      mono: true,
+      placeholder: "@simhope/iso-form-mcp 或 github:simhope/iso-form-mcp",
+    },
+    {
+      key: "repoUrl",
+      label: "repoUrl",
+      kind: "input",
+      mono: true,
+      placeholder: "https://github.com/simhope/...",
+    },
+    {
+      key: "configSnippet",
+      label: "configSnippet（給 Cursor / VSCode 貼到 mcp config 的 JSON）",
+      kind: "textarea",
+      variant: "code",
+      rows: 6,
+      placeholder:
+        '{\n  "mcpServers": {\n    "iso-form": { "command": "npx", "args": ["-y", "github:simhope/iso-form-mcp"] }\n  }\n}',
+    },
+  ],
+  api: [
+    {
+      key: "endpoint",
+      label: "endpoint",
+      kind: "input",
+      mono: true,
+      placeholder: "https://api.simhope.local/...",
+    },
+    {
+      key: "docsUrl",
+      label: "docsUrl",
+      kind: "input",
+      mono: true,
+      placeholder: "https://docs.simhope.local/...",
+    },
+    {
+      key: "sdkPackage",
+      label: "sdkPackage (optional)",
+      kind: "input",
+      mono: true,
+      placeholder: "@simhope/translate-sdk",
+    },
+  ],
+  embedded: [
+    {
+      key: "location",
+      label: "location（部署地點 — 哪台電腦 / 哪個設備 / 哪個區域）",
+      kind: "input",
+      placeholder: "例：機敏辦公室影印機旁的專用電腦 / 加工部 3 號機台電腦",
+    },
+    {
+      key: "accessNote",
+      label: "accessNote（怎麼使用 / 找誰開通）",
+      kind: "textarea",
+      rows: 3,
+      resize: true,
+      placeholder: "例：直接到該台電腦操作即可；需要權限請找 MIS。",
+    },
+    {
+      key: "contact",
+      label: "contact（負責窗口，選填）",
+      kind: "input",
+      placeholder: "例：經企室 Jason / MIS 團隊",
+    },
+  ],
+  skill: [
+    {
+      key: "installPath",
+      label: "installPath",
+      kind: "input",
+      mono: true,
+      placeholder: "~/.claude/skills/",
+    },
+  ],
+};
+
+// download / doc 兩欄並排，其餘單欄。
+const TYPE_DATA_GRID = new Set(["download", "doc"]);
+
+function TypeDataInput({ field, value, onChange }) {
+  if (field.kind === "select") {
+    return (
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={`w-full ${INPUT_BOX} p-2 text-sm`}
+      >
+        {field.options.map(([v, l]) => (
+          <option key={v} value={v}>
+            {l}
+          </option>
+        ))}
+      </select>
+    );
+  }
+  if (field.kind === "textarea") {
+    const cls =
+      field.variant === "code"
+        ? "w-full bg-gray-900 text-gray-100 p-3 rounded-lg border border-gray-700 text-xs font-mono resize-y"
+        : `w-full ${INPUT_BOX} p-2 text-sm${field.resize ? " resize-y" : ""}`;
+    return (
+      <textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        rows={field.rows}
+        placeholder={field.placeholder}
+        className={cls}
+      />
+    );
+  }
+  return (
+    <input
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={field.placeholder}
+      className={`w-full ${INPUT_BOX} p-2 text-sm${field.mono ? " font-mono" : ""}`}
+    />
+  );
+}
+
 function TypeDataEditor({ type, td, updateTd }) {
   if (type === "webapp") {
     return (
@@ -691,181 +870,22 @@ function TypeDataEditor({ type, td, updateTd }) {
       </p>
     );
   }
-
-  if (type === "download") {
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <FormField label="platform">
-          <select
-            value={td.platform || ""}
-            onChange={(e) => updateTd({ platform: e.target.value })}
-            className="w-full bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm"
-          >
-            <option value="">(無)</option>
-            <option value="windows">Windows</option>
-            <option value="mac">Mac</option>
-            <option value="linux">Linux</option>
-            <option value="crossplatform">Cross-platform</option>
-          </select>
-        </FormField>
-        <FormField label="fileName">
-          <input
-            value={td.fileName || ""}
-            onChange={(e) => updateTd({ fileName: e.target.value })}
-            placeholder="installer.exe"
-            className="w-full bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm font-mono"
+  const fields = TYPE_DATA_FIELDS[type];
+  if (!fields) return null;
+  const layout = TYPE_DATA_GRID.has(type)
+    ? "grid grid-cols-1 md:grid-cols-2 gap-3"
+    : "flex flex-col gap-3";
+  return (
+    <div className={layout}>
+      {fields.map((field) => (
+        <FormField key={field.key} label={field.label}>
+          <TypeDataInput
+            field={field}
+            value={td[field.key] || ""}
+            onChange={(v) => updateTd({ [field.key]: v })}
           />
         </FormField>
-      </div>
-    );
-  }
-
-  if (type === "doc") {
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <FormField label="fileType">
-          <select
-            value={td.fileType || ""}
-            onChange={(e) => updateTd({ fileType: e.target.value })}
-            className="w-full bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm"
-          >
-            <option value="">(無)</option>
-            <option value="pdf">PDF</option>
-            <option value="docx">Word (.docx)</option>
-            <option value="xlsx">Excel (.xlsx)</option>
-            <option value="zip">ZIP</option>
-            <option value="other">其他</option>
-          </select>
-        </FormField>
-        <FormField label="fileName">
-          <input
-            value={td.fileName || ""}
-            onChange={(e) => updateTd({ fileName: e.target.value })}
-            placeholder="表單名.docx"
-            className="w-full bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm font-mono"
-          />
-        </FormField>
-      </div>
-    );
-  }
-
-  if (type === "mcp") {
-    return (
-      <div className="flex flex-col gap-3">
-        <FormField label="mcpbUrl (.mcpb 一鍵安裝包連結)">
-          <input
-            value={td.mcpbUrl || ""}
-            onChange={(e) => updateTd({ mcpbUrl: e.target.value })}
-            placeholder="https://.../iso-form.mcpb"
-            className="w-full bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm font-mono"
-          />
-        </FormField>
-        <FormField label="npmPackage">
-          <input
-            value={td.npmPackage || ""}
-            onChange={(e) => updateTd({ npmPackage: e.target.value })}
-            placeholder="@simhope/iso-form-mcp 或 github:simhope/iso-form-mcp"
-            className="w-full bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm font-mono"
-          />
-        </FormField>
-        <FormField label="repoUrl">
-          <input
-            value={td.repoUrl || ""}
-            onChange={(e) => updateTd({ repoUrl: e.target.value })}
-            placeholder="https://github.com/simhope/..."
-            className="w-full bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm font-mono"
-          />
-        </FormField>
-        <FormField label="configSnippet（給 Cursor / VSCode 貼到 mcp config 的 JSON）">
-          <textarea
-            value={td.configSnippet || ""}
-            onChange={(e) => updateTd({ configSnippet: e.target.value })}
-            rows={6}
-            placeholder='{&#10;  "mcpServers": {&#10;    "iso-form": { "command": "npx", "args": ["-y", "github:simhope/iso-form-mcp"] }&#10;  }&#10;}'
-            className="w-full bg-gray-900 text-gray-100 p-3 rounded-lg border border-gray-700 text-xs font-mono resize-y"
-          />
-        </FormField>
-      </div>
-    );
-  }
-
-  if (type === "api") {
-    return (
-      <div className="flex flex-col gap-3">
-        <FormField label="endpoint">
-          <input
-            value={td.endpoint || ""}
-            onChange={(e) => updateTd({ endpoint: e.target.value })}
-            placeholder="https://api.simhope.local/..."
-            className="w-full bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm font-mono"
-          />
-        </FormField>
-        <FormField label="docsUrl">
-          <input
-            value={td.docsUrl || ""}
-            onChange={(e) => updateTd({ docsUrl: e.target.value })}
-            placeholder="https://docs.simhope.local/..."
-            className="w-full bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm font-mono"
-          />
-        </FormField>
-        <FormField label="sdkPackage (optional)">
-          <input
-            value={td.sdkPackage || ""}
-            onChange={(e) => updateTd({ sdkPackage: e.target.value })}
-            placeholder="@simhope/translate-sdk"
-            className="w-full bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm font-mono"
-          />
-        </FormField>
-      </div>
-    );
-  }
-
-  if (type === "embedded") {
-    return (
-      <div className="flex flex-col gap-3">
-        <FormField label="location（部署地點 — 哪台電腦 / 哪個設備 / 哪個區域）">
-          <input
-            value={td.location || ""}
-            onChange={(e) => updateTd({ location: e.target.value })}
-            placeholder="例：機敏辦公室影印機旁的專用電腦 / 加工部 3 號機台電腦"
-            className="w-full bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm"
-          />
-        </FormField>
-        <FormField label="accessNote（怎麼使用 / 找誰開通）">
-          <textarea
-            value={td.accessNote || ""}
-            onChange={(e) => updateTd({ accessNote: e.target.value })}
-            rows={3}
-            placeholder="例：直接到該台電腦操作即可；需要權限請找 MIS。"
-            className="w-full bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm resize-y"
-          />
-        </FormField>
-        <FormField label="contact（負責窗口，選填）">
-          <input
-            value={td.contact || ""}
-            onChange={(e) => updateTd({ contact: e.target.value })}
-            placeholder="例：經企室 Jason / MIS 團隊"
-            className="w-full bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm"
-          />
-        </FormField>
-      </div>
-    );
-  }
-
-  if (type === "skill") {
-    return (
-      <div className="flex flex-col gap-3">
-        <FormField label="installPath">
-          <input
-            value={td.installPath || ""}
-            onChange={(e) => updateTd({ installPath: e.target.value })}
-            placeholder="~/.claude/skills/"
-            className="w-full bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm font-mono"
-          />
-        </FormField>
-      </div>
-    );
-  }
-
-  return null;
+      ))}
+    </div>
+  );
 }

@@ -16,7 +16,7 @@ import AIPanel from "@/components/AIPanel";
 import { getStatusLabel } from "@/components/ToolCard";
 import UploadButton from "@/components/UploadButton";
 import { TYPE_ACTION, getTabsForType, defaultTabForType } from "@/lib/taxonomy";
-import { DANGER_ICON_BTN, MUTED_ICON_BTN } from "@/lib/uiClasses";
+import { DANGER_ICON_BTN, MUTED_ICON_BTN, CARD_FIELD } from "@/lib/uiClasses";
 import Accordion from "@/components/Accordion";
 import MarkdownContent from "@/components/MarkdownContent";
 import ArticleDesc from "@/components/ArticleDesc";
@@ -289,7 +289,7 @@ function BlockEditor({
               value={block.content || ""}
               onChange={(e) => onChange({ ...block, content: e.target.value })}
               placeholder="貼上圖片 URL（https://...）"
-              className="flex-1 bg-[var(--color-card-bg)] text-[var(--color-text-dark)] border border-[var(--color-card-border)] rounded-xl px-3 py-2 text-sm outline-none focus:border-[var(--color-clay-purple)]"
+              className={`flex-1 ${CARD_FIELD} text-[var(--color-text-dark)] rounded-xl`}
             />
             <UploadButton
               pathPrefix="images"
@@ -301,7 +301,7 @@ function BlockEditor({
             value={block.caption || ""}
             onChange={(e) => onChange({ ...block, caption: e.target.value })}
             placeholder="圖片說明文字（選填）"
-            className="w-full bg-[var(--color-card-bg)] text-[var(--color-text-mid)] border border-[var(--color-card-border)] rounded-xl px-3 py-2 text-sm outline-none focus:border-[var(--color-clay-purple)]"
+            className={`w-full ${CARD_FIELD} text-[var(--color-text-mid)] rounded-xl`}
           />
           {block.content && (
             <img
@@ -323,7 +323,7 @@ function BlockEditor({
               value={block.content || ""}
               onChange={(e) => onChange({ ...block, content: e.target.value })}
               placeholder="貼上音檔 URL（mp3/wav/m4a/ogg）"
-              className="flex-1 bg-[var(--color-card-bg)] text-[var(--color-text-dark)] border border-[var(--color-card-border)] rounded-xl px-3 py-2 text-sm outline-none focus:border-[var(--color-clay-purple)]"
+              className={`flex-1 ${CARD_FIELD} text-[var(--color-text-dark)] rounded-xl`}
             />
             <UploadButton
               pathPrefix="audio"
@@ -341,7 +341,7 @@ function BlockEditor({
             <select
               value={block.source || ""}
               onChange={(e) => onChange({ ...block, source: e.target.value })}
-              className="bg-[var(--color-card-bg)] text-[var(--color-text-dark)] border border-[var(--color-card-border)] rounded-xl px-3 py-2 text-sm outline-none focus:border-[var(--color-clay-purple)]"
+              className={`${CARD_FIELD} text-[var(--color-text-dark)] rounded-xl`}
             >
               <option value="">無來源標籤</option>
               {Object.entries(AUDIO_SOURCES).map(([key, val]) => (
@@ -354,7 +354,7 @@ function BlockEditor({
               value={block.caption || ""}
               onChange={(e) => onChange({ ...block, caption: e.target.value })}
               placeholder="音檔說明文字（選填）"
-              className="flex-1 bg-[var(--color-card-bg)] text-[var(--color-text-mid)] border border-[var(--color-card-border)] rounded-xl px-3 py-2 text-sm outline-none focus:border-[var(--color-clay-purple)]"
+              className={`flex-1 ${CARD_FIELD} text-[var(--color-text-mid)] rounded-xl`}
             />
           </div>
           {block.content && (
@@ -374,7 +374,7 @@ function BlockEditor({
             value={block.content || ""}
             onChange={(e) => onChange({ ...block, content: e.target.value })}
             placeholder="貼上 YouTube 連結（https://youtube.com/watch?v=...）"
-            className="w-full bg-[var(--color-card-bg)] text-[var(--color-text-dark)] border border-[var(--color-card-border)] rounded-xl px-3 py-2 text-sm outline-none focus:border-[var(--color-clay-purple)]"
+            className={`w-full ${CARD_FIELD} text-[var(--color-text-dark)] rounded-xl`}
           />
           {vid && (
             <div
@@ -406,7 +406,7 @@ function BlockEditor({
             onChange={(e) => onChange({ ...block, content: e.target.value })}
             placeholder={"打開工具\n選擇目標檔案\n點擊「執行」按鈕\n完成！"}
             rows={4}
-            className="w-full bg-[var(--color-card-bg)] text-[var(--color-text-dark)] border border-[var(--color-card-border)] rounded-xl px-3 py-2 text-sm outline-none focus:border-[var(--color-clay-purple)] resize-y"
+            className={`w-full ${CARD_FIELD} text-[var(--color-text-dark)] rounded-xl resize-y`}
           />
         </div>
       )}
@@ -430,7 +430,7 @@ function BlockEditor({
                     onChange({ ...block, items });
                   }}
                   placeholder="問題"
-                  className="flex-1 bg-[var(--color-card-bg)] text-[var(--color-text-dark)] border border-[var(--color-card-border)] rounded-lg px-3 py-2 text-sm font-bold outline-none focus:border-[var(--color-clay-purple)]"
+                  className={`flex-1 ${CARD_FIELD} text-[var(--color-text-dark)] rounded-lg font-bold`}
                 />
                 <button
                   onClick={() => {
@@ -454,7 +454,7 @@ function BlockEditor({
                 }}
                 placeholder="答案（支援 markdown）"
                 rows={2}
-                className="bg-[var(--color-card-bg)] text-[var(--color-text-dark)] border border-[var(--color-card-border)] rounded-lg px-3 py-2 text-sm outline-none focus:border-[var(--color-clay-purple)] resize-y"
+                className={`${CARD_FIELD} text-[var(--color-text-dark)] rounded-lg resize-y`}
               />
             </div>
           ))}
@@ -499,7 +499,7 @@ function BlockEditor({
                   : "輸入說明文字..."
             }
             rows={block.type === "text" ? 5 : 3}
-            className="w-full bg-[var(--color-card-bg)] text-[var(--color-text-dark)] border border-[var(--color-card-border)] rounded-xl px-3 py-2 text-sm outline-none focus:border-[var(--color-clay-purple)] resize-y"
+            className={`w-full ${CARD_FIELD} text-[var(--color-text-dark)] rounded-xl resize-y`}
           />
         </div>
       )}
