@@ -227,10 +227,14 @@ export default function Dashboard() {
             >
               {/* ① 名字 */}
               <div>
-                <label className="block text-xs font-extrabold text-[var(--color-text-mid)] mb-2">
+                <label
+                  htmlFor="dash-title"
+                  className="block text-xs font-extrabold text-[var(--color-text-mid)] mb-2"
+                >
                   ① 工具名字
                 </label>
                 <input
+                  id="dash-title"
                   name="title"
                   value={formData.title}
                   onChange={handleInputChange}
@@ -242,10 +246,14 @@ export default function Dashboard() {
 
               {/* ② Tagline */}
               <div>
-                <label className="block text-xs font-extrabold text-[var(--color-text-mid)] mb-2">
+                <label
+                  htmlFor="dash-tagline"
+                  className="block text-xs font-extrabold text-[var(--color-text-mid)] mb-2"
+                >
                   ② 一句話介紹（tagline）
                 </label>
                 <input
+                  id="dash-tagline"
                   name="tagline"
                   value={formData.tagline}
                   onChange={handleInputChange}
@@ -257,20 +265,25 @@ export default function Dashboard() {
 
               {/* ③ 主連結 */}
               <div>
-                <label className="block text-xs font-extrabold text-[var(--color-text-mid)] mb-2">
+                <label
+                  htmlFor="dash-url"
+                  className="block text-xs font-extrabold text-[var(--color-text-mid)] mb-2"
+                >
                   ③ 主連結
                   {["project", "skill", "platform"].includes(
                     formData.category,
                   ) && (
-                    <span className="text-gray-400 font-normal">
+                    <span className="text-gray-500 dark:text-gray-400 font-normal">
                       （可留空）
                     </span>
                   )}
                 </label>
                 <input
+                  id="dash-url"
                   name="url"
                   value={formData.url}
                   onChange={handleInputChange}
+                  aria-describedby="dash-url-help"
                   required={
                     !["project", "skill", "platform"].includes(
                       formData.category,
@@ -279,7 +292,10 @@ export default function Dashboard() {
                   placeholder={currentCategory.urlPlaceholder}
                   className="w-full bg-gray-50 dark:bg-gray-700 p-3 rounded-xl border border-gray-200 dark:border-gray-600 text-sm outline-none focus:border-[var(--color-clay-purple)] transition-all"
                 />
-                <p className="text-xs text-gray-400 mt-1.5">
+                <p
+                  id="dash-url-help"
+                  className="text-xs text-gray-500 dark:text-gray-400 mt-1.5"
+                >
                   不知道放什麼？貼 GitHub repo
                   連結就好，其他細節經企室審核時補。
                 </p>
@@ -328,7 +344,7 @@ export default function Dashboard() {
                 {isSubmitting ? "送出中…" : "📤 送出，等審核"}
               </button>
 
-              <p className="text-center text-xs text-gray-400">
+              <p className="text-center text-xs text-gray-500 dark:text-gray-400">
                 送出後經企室會跟你討論截圖、使用步驟、進階安裝方式、適用部門等細節。
               </p>
             </form>
@@ -344,7 +360,9 @@ export default function Dashboard() {
           {myTools.length === 0 ? (
             <div className="bg-gray-50 dark:bg-gray-800 rounded-[24px] p-10 h-[300px] border-2 border-dashed border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center text-center">
               <span className="text-4xl mb-4 grayscale opacity-50">📦</span>
-              <h4 className="font-bold text-gray-400">你還沒有提交任何工具</h4>
+              <h4 className="font-bold text-gray-500 dark:text-gray-400">
+                你還沒有提交任何工具
+              </h4>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">

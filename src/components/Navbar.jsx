@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { auth } from "@/lib/firebase";
@@ -20,6 +20,16 @@ export default function Navbar() {
   const { toggle } = useTheme();
   const [showLogin, setShowLogin] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+
+  // 手機選單開啟時，Esc 可關閉（與 Modal 的鍵盤行為一致）
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [menuOpen]);
 
   return (
     <>
@@ -87,6 +97,8 @@ export default function Navbar() {
             onClick={() => setMenuOpen((o) => !o)}
             className="md:hidden w-9 h-9 rounded-full border border-gray-200 dark:border-gray-600 flex items-center justify-center text-lg"
             aria-label="選單"
+            aria-expanded={menuOpen}
+            aria-controls="mobile-menu"
           >
             ☰
           </button>
@@ -137,7 +149,10 @@ export default function Navbar() {
       </nav>
 
       {menuOpen && (
-        <div className="md:hidden bg-[var(--color-nav-bg)] border-b border-[var(--color-nav-border)] px-6 py-4 flex flex-col gap-3 text-sm font-bold text-gray-600 dark:text-gray-300">
+        <div
+          id="mobile-menu"
+          className="md:hidden bg-[var(--color-nav-bg)] border-b border-[var(--color-nav-border)] px-6 py-4 flex flex-col gap-3 text-sm font-bold text-gray-600 dark:text-gray-300"
+        >
           <Link href="/hub" onClick={() => setMenuOpen(false)}>
             資源中心
           </Link>

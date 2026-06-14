@@ -134,6 +134,7 @@ export default function RequestCard({ onClose }) {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="姓名（必填）"
+                aria-label="姓名"
                 maxLength={50}
                 className="flex-1 bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm"
               />
@@ -141,6 +142,7 @@ export default function RequestCard({ onClose }) {
                 value={contact}
                 onChange={(e) => setContact(e.target.value)}
                 placeholder="聯絡方式（選填：分機/email）"
+                aria-label="聯絡方式（選填）"
                 maxLength={100}
                 className="flex-1 bg-gray-50 dark:bg-gray-700 p-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm"
               />
@@ -149,6 +151,7 @@ export default function RequestCard({ onClose }) {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="你想要什麼工具 / 解決什麼問題？"
+              aria-label="需求內容"
               rows={4}
               maxLength={1000}
               className="bg-gray-50 dark:bg-gray-700 p-3 rounded-xl border border-gray-200 dark:border-gray-600 text-sm outline-none focus:border-[var(--color-clay-purple)]"
