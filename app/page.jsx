@@ -2,11 +2,14 @@ import {
   getServerCatalog,
   getServerPainCards,
   getServerMetrics,
+  getServerToolViews,
 } from "@/lib/serverCatalog";
+import { rankPopularTools } from "@/lib/popularTools.mjs";
 import { categoryCounts, CATEGORIES, CATEGORY_ORDER } from "@/lib/taxonomy";
 import CategoryEntryCard from "@/components/CategoryEntryCard";
 import MetricsBand from "@/components/MetricsBand";
 import PainPointsExplorer from "@/components/PainPointsExplorer";
+import ToolCard from "@/components/ToolCard";
 import Link from "next/link";
 import RequestButton from "@/components/RequestButton";
 
@@ -60,13 +63,15 @@ const PAIN_CHIPS = [
 ];
 
 export default async function Home() {
-  const [tools, painCards, metrics] = await Promise.all([
+  const [tools, painCards, metrics, toolViews] = await Promise.all([
     getServerCatalog(),
     getServerPainCards(),
     getServerMetrics(),
+    getServerToolViews(),
   ]);
   const counts = categoryCounts(tools);
   const activeCount = counts.all;
+  const popular = rankPopularTools(tools, toolViews);
 
   return (
     <div className="flex flex-col gap-24 px-4 md:px-0">
@@ -129,6 +134,25 @@ export default async function Home() {
           ]}
         />
       </section>
+
+      {/* ── 🔥 熱門工具 ── */}
+      {popular.length > 0 && (
+        <section id="popular" className="scroll-mt-32">
+          <div className="mb-8 text-center">
+            <h2 className="text-3xl md:text-4xl font-black text-[var(--color-text-dark)] mb-3">
+              🔥 熱門工具
+            </h2>
+            <p className="text-[var(--color-text-mid)] font-semibold">
+              同仁最常看的資源
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {popular.map((t) => (
+              <ToolCard key={t.id} tool={t} />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ── 5 類別入口 ── */}
       <section id="catalog" className="scroll-mt-32">
