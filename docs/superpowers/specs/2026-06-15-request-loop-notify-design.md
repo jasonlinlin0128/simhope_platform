@@ -47,10 +47,10 @@ admin 在 RequestInbox 標「已處理」
 ## 元件（邊界清楚、可獨立測）
 
 1. **`src/lib/requestNotify.mjs`（新，純函式，無 firebase/browser 依賴）**
-   - `buildHandledWrites(request)`：回 `{ requestUpdate: { status:"handled", handledAt:true }, notifyUid: string|null }`；`notifyUid = request.uid || null`（匿名 → null）。`handledAt:true` 是「呼叫端要放 serverTimestamp 的標記」（純函式不產生 Firestore sentinel，呼叫端依此插 serverTimestamp）。
+   - `notifyUidForHandled(request)`：回要通知的 uid＝`request.uid`（為非空字串時）否則 `null`（匿名請求不通知）。
    - `hasUnreadHandled(profile)`：回 `!!profile?.unreadHandledRequest`。
    - → TDD。
-2. **`src/components/RequestInbox.jsx`（改）** — 標已處理的 updateDoc 路徑：用 `buildHandledWrites`；request 更新加 `handledAt: serverTimestamp()`（保留既有 status/expireAt）；若 `notifyUid`，多一筆 `setDoc(doc(db,"users",notifyUid), { unreadHandledRequest: true }, { merge:true })`。
+2. **`src/components/RequestInbox.jsx`（改）** — `markHandled` 路徑：request 更新加 `handledAt: serverTimestamp()`（保留既有 status/expireAt）；用 `notifyUidForHandled(r)` 取 uid，若非 null 則多一筆 `setDoc(doc(db,"users",uid), { unreadHandledRequest: true }, { merge:true })`（通知失敗不擋主流程）。
 3. **`src/context/AuthContext.jsx`（改）** — 抽出載入 profile 的邏輯，暴露 `refreshProfile()`（重抓 `getUserProfile(uid)` 並 `setProfile`）；context value 多帶 `refreshProfile`。
 4. **`src/components/Navbar.jsx`（改）** — 桌機與手機的「我的需求」連結，`hasUnreadHandled(profile)` 時加紅點標記（小圓點 + `aria-label` 或 sr-only 文字「有更新」）。
 5. **`app/my-requests/page.jsx`（改）** — 登入且 `profile.unreadHandledRequest` 為 true 時，mount 後 `setDoc(users/{uid}, {unreadHandledRequest:false}, {merge:true})` + `refreshProfile()`。
@@ -70,7 +70,7 @@ admin 在 RequestInbox 標「已處理」
 ## 測試（TDD）
 
 - `requestNotify.test.mjs`：
-  - `buildHandledWrites`：有 uid → `notifyUid===uid`、`requestUpdate.status==="handled"`、含 handledAt 標記；匿名（無 uid）→ `notifyUid===null`；request 為 null/缺欄位 → 安全（notifyUid=null）。
+  - `notifyUidForHandled`：有 uid（非空字串）→ 回該 uid；匿名（無 uid / uid 為空）→ `null`；request 為 null/非物件 → `null`（安全）。
   - `hasUnreadHandled`：profile.unreadHandledRequest=true → true；false/缺欄位/null profile → false。
 - RequestInbox 寫入、AuthContext refreshProfile、Navbar 紅點、/my-requests 清除：build / lint + 部署後人工驗。
 - （可選）`firestore.rules.test.mjs` 補 1 條：本人更新自己 `unreadHandledRequest` → ALLOW（既有規則已涵蓋，補測防回歸）。
