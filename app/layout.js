@@ -7,6 +7,7 @@ import ThemeProvider from "@/components/ThemeProvider";
 import BlobBackground from "@/components/BlobBackground";
 import ChatbotWidget from "@/components/ChatbotWidget";
 import PasskeyPrompt from "@/components/PasskeyPrompt";
+import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import { ToastProvider } from "@/components/Toast";
 import { ConfirmProvider } from "@/components/ConfirmDialog";
 
@@ -71,6 +72,7 @@ export default function RootLayout({ children }) {
             __html: `(function(){try{var t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark');}}catch(e){}})();`,
           }}
         />
+        <ServiceWorkerRegister />
         {/* a11y: 跳到主內容（平常 sr-only，鍵盤 focus 時現身） */}
         <a
           href="#main"
