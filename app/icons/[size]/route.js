@@ -21,6 +21,7 @@ export async function GET(request, { params }) {
         background: BRAND_GRADIENT,
       }}
     >
+      {/* eslint-disable-next-line @next/next/no-img-element -- ImageResponse(Satori) 只支援 <img>，不能用 next/image */}
       <img width={mark} height={mark} src={WHITE_MARK_DATA_URI} alt="" />
     </div>,
     { width: size, height: size },

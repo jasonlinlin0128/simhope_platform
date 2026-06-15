@@ -17,6 +17,7 @@ export default function AppleIcon() {
         background: BRAND_GRADIENT,
       }}
     >
+      {/* eslint-disable-next-line @next/next/no-img-element -- ImageResponse(Satori) 只支援 <img>，不能用 next/image */}
       <img width={115} height={115} src={WHITE_MARK_DATA_URI} alt="" />
     </div>,
     { ...size },
