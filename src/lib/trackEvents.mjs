@@ -6,6 +6,7 @@
 export const TRACK_EVENTS = {
   tool_open: "toolOpen",
   tool_view: "toolView",
+  tool_helpful: "toolHelpful",
   search: "search",
   request_submit: "requestSubmit",
 };
@@ -37,8 +38,8 @@ export function shouldTrack(event, dedupKey, seen) {
  * 組裝要 increment 的欄位（server 端用）。
  * @param {string} event
  * @param {string} [toolId]
- * @returns {{field:string, byToolKey:string|null, viewToolKey:string|null}|null}
- *   null = 不合法事件；byToolKey=開啟排名用，viewToolKey=瀏覽熱門用
+ * @returns {{field:string, byToolKey:string|null, viewToolKey:string|null, helpfulToolKey:string|null}|null}
+ *   null = 不合法事件；byToolKey=開啟排名用，viewToolKey=瀏覽熱門用，helpfulToolKey=有幫助評分用
  */
 export function buildIncrements(event, toolId) {
   const field = eventField(event);
@@ -50,5 +51,7 @@ export function buildIncrements(event, toolId) {
     byToolKey: event === "tool_open" ? id : null,
     // 瀏覽 → 全期 analytics/toolViews（首頁熱門用）
     viewToolKey: event === "tool_view" ? id : null,
+    // 有幫助 → 全期 analytics/toolHelpful（工具評分用）
+    helpfulToolKey: event === "tool_helpful" ? id : null,
   };
 }
