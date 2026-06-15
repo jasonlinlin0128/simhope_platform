@@ -11,28 +11,32 @@ import { track } from "@/lib/track";
  */
 export default function HelpfulButton({ toolId }) {
   const [count, setCount] = useState(null); // null = 載入中
-  const [marked, setMarked] = useState(() => {
-    if (!toolId) return false;
-    try {
-      return localStorage.getItem(`simhope_helpful_${toolId}`) === "1";
-    } catch {
-      /* 無痕/停用 → 視為未標記 */
-      return false;
-    }
-  });
+  const [marked, setMarked] = useState(false); // 初值一律 false → SSR/hydration 一致
 
   useEffect(() => {
-    if (!toolId) return;
+    if (!toolId || typeof window === "undefined") return;
     let cancelled = false;
-    getDoc(doc(db, "analytics", "toolHelpful"))
-      .then((s) => {
+    // async 邊界內 setState（非 effect 同步呼叫）→ 不觸發 set-state-in-effect；
+    // 初次 render 已標記態為 false，掛載後才從 localStorage 校正，避免 hydration mismatch。
+    (async () => {
+      try {
+        if (
+          localStorage.getItem(`simhope_helpful_${toolId}`) === "1" &&
+          !cancelled
+        )
+          setMarked(true);
+      } catch {
+        /* 無痕/停用 → 視為未標記 */
+      }
+      try {
+        const s = await getDoc(doc(db, "analytics", "toolHelpful"));
         if (cancelled) return;
         const v = s.exists() ? s.data()[toolId] : 0;
         setCount(typeof v === "number" ? v : 0);
-      })
-      .catch(() => {
+      } catch {
         if (!cancelled) setCount(0);
-      });
+      }
+    })();
     return () => {
       cancelled = true;
     };
