@@ -5,6 +5,7 @@ import { eventField, shouldTrack, buildIncrements } from "./trackEvents.mjs";
 test("eventField：已知事件回 camelCase 欄位", () => {
   assert.equal(eventField("tool_open"), "toolOpen");
   assert.equal(eventField("tool_view"), "toolView");
+  assert.equal(eventField("tool_helpful"), "toolHelpful");
   assert.equal(eventField("search"), "search");
   assert.equal(eventField("request_submit"), "requestSubmit");
 });
@@ -37,35 +38,39 @@ test("shouldTrack：同 key 第二次不送、不同 key 仍送", () => {
   assert.equal(shouldTrack("tool_open", "tool_open:t2", seen), true);
 });
 
-test("buildIncrements：tool_open + toolId → byToolKey（viewToolKey null）", () => {
+test("buildIncrements：tool_open + toolId", () => {
   assert.deepEqual(buildIncrements("tool_open", "t1"), {
     field: "toolOpen",
     byToolKey: "t1",
     viewToolKey: null,
+    helpfulToolKey: null,
   });
 });
 
-test("buildIncrements：tool_view + toolId → viewToolKey（byToolKey null）", () => {
+test("buildIncrements：tool_view + toolId", () => {
   assert.deepEqual(buildIncrements("tool_view", "t1"), {
     field: "toolView",
     byToolKey: null,
     viewToolKey: "t1",
+    helpfulToolKey: null,
   });
 });
 
-test("buildIncrements：search 無 toolId → 兩 key 皆 null", () => {
+test("buildIncrements：tool_helpful + toolId", () => {
+  assert.deepEqual(buildIncrements("tool_helpful", "t1"), {
+    field: "toolHelpful",
+    byToolKey: null,
+    viewToolKey: null,
+    helpfulToolKey: "t1",
+  });
+});
+
+test("buildIncrements：search 無 toolId → 三 key 皆 null", () => {
   assert.deepEqual(buildIncrements("search"), {
     field: "search",
     byToolKey: null,
     viewToolKey: null,
-  });
-});
-
-test("buildIncrements：tool_view 無 toolId → 兩 key 皆 null", () => {
-  assert.deepEqual(buildIncrements("tool_view"), {
-    field: "toolView",
-    byToolKey: null,
-    viewToolKey: null,
+    helpfulToolKey: null,
   });
 });
 

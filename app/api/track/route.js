@@ -31,6 +31,7 @@ export async function POST(req) {
     const totalsRef = adminDb.collection("analytics").doc("totals");
     const dailyRef = adminDb.collection("analytics_daily").doc(dayId);
     const toolViewsRef = adminDb.collection("analytics").doc("toolViews");
+    const toolHelpfulRef = adminDb.collection("analytics").doc("toolHelpful");
 
     const totalsUpdate = {
       [inc.field]: FieldValue.increment(1),
@@ -56,6 +57,17 @@ export async function POST(req) {
         toolViewsRef,
         {
           [inc.viewToolKey]: FieldValue.increment(1),
+          updatedAt: FieldValue.serverTimestamp(),
+        },
+        { merge: true },
+      );
+    }
+    // 全期 per-tool 有幫助累計（工具評分用；同 toolViews 寫法）
+    if (inc.helpfulToolKey) {
+      batch.set(
+        toolHelpfulRef,
+        {
+          [inc.helpfulToolKey]: FieldValue.increment(1),
           updatedAt: FieldValue.serverTimestamp(),
         },
         { merge: true },

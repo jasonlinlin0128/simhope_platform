@@ -24,6 +24,7 @@ import VersionEditor from "@/components/VersionEditor";
 import VersionHistory from "@/components/VersionHistory";
 import { latestVersionLabel } from "@/lib/versions";
 import AiAssist from "@/components/AiAssist";
+import HelpfulButton from "@/components/HelpfulButton";
 import { useToast } from "@/components/Toast";
 
 // ─── Block type definitions ────────────────────────────────────────────────
@@ -1191,12 +1192,15 @@ export default function ToolDetail({ params }) {
               </div>
             </>
           ) : (
-            <DetailTabs
-              tool={tool}
-              blocks={localBlocks}
-              activeTab={activeTab}
-              setActiveTab={setActiveTab}
-            />
+            <>
+              <DetailTabs
+                tool={tool}
+                blocks={localBlocks}
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+              />
+              <HelpfulButton toolId={id} />
+            </>
           )}
         </main>
       </div>
