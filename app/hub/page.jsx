@@ -1,4 +1,5 @@
-import { getServerCatalog } from "@/lib/serverCatalog";
+import { getServerCatalog, getServerToolHelpful } from "@/lib/serverCatalog";
+import { attachHelpfulCounts } from "@/lib/helpfulBadge.mjs";
 import HubExplorer from "@/components/HubExplorer";
 
 /**
@@ -7,8 +8,12 @@ import HubExplorer from "@/components/HubExplorer";
  */
 export default async function HubPage({ searchParams }) {
   const { cat } = await searchParams;
-  const tools = await getServerCatalog();
+  const [tools, toolHelpful] = await Promise.all([
+    getServerCatalog(),
+    getServerToolHelpful(),
+  ]);
+  const enriched = attachHelpfulCounts(tools, toolHelpful);
   // ?cat= 重複時 Next 給陣列；取首值，與舊 useSearchParams().get() 行為一致。
   const initialCat = (Array.isArray(cat) ? cat[0] : cat) || "all";
-  return <HubExplorer tools={tools} initialCat={initialCat} />;
+  return <HubExplorer tools={enriched} initialCat={initialCat} />;
 }

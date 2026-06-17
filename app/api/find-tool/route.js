@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import { callGemini } from "@/lib/gemini.mjs";
 import { HttpError, handleApiError } from "@/lib/apiError.mjs";
 import { rateLimit, clientIp } from "@/lib/rateLimit.mjs";
-import { getServerCatalog } from "@/lib/serverCatalog";
+import { getServerCatalog, getServerToolHelpful } from "@/lib/serverCatalog";
 import { buildFindToolPrompt, validateToolMatches } from "@/lib/findTool.mjs";
+import { attachHelpfulCounts } from "@/lib/helpfulBadge.mjs";
 
 const FIND_STATUSES = ["live", "beta", "new"];
 
@@ -41,7 +42,11 @@ export async function POST(request) {
       timeoutMs: 10000,
     });
     const { reply, tools } = validateToolMatches(parsed, catalog, 4);
-    return NextResponse.json({ reply, tools });
+    const helpfulMap = await getServerToolHelpful(); // fail-soft：catch→{}，讀失敗則無 badge
+    return NextResponse.json({
+      reply,
+      tools: attachHelpfulCounts(tools, helpfulMap),
+    });
   } catch (e) {
     return handleApiError(e, "/api/find-tool");
   }
