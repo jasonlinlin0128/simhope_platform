@@ -6,15 +6,22 @@ import { categoryCounts, CATEGORIES, CATEGORY_ORDER } from "@/lib/taxonomy";
 import ToolCard from "@/components/ToolCard";
 import CategoryTabs from "@/components/CategoryTabs";
 import { track } from "@/lib/track";
+import { sortTools } from "@/lib/sortTools.mjs";
 
 /**
- * 資源中心互動島：搜尋 + Fuse + 分類 tabs + grid。
- * @param {{tools: object[], initialCat?: string}} props  tools 由 server 抓好傳入。
+ * 資源中心互動島：搜尋 + Fuse + 分類 tabs + sort toggle + grid。
+ * @param {{tools: object[], initialCat?: string, viewsMap?: Record<string, number>}} props
+ *   tools 由 server 抓好傳入；viewsMap = 全期 per-tool 瀏覽數（最熱門排序用）。
  */
-export default function HubExplorer({ tools, initialCat = "all" }) {
+export default function HubExplorer({
+  tools,
+  initialCat = "all",
+  viewsMap = {},
+}) {
   const [activeCat, setActiveCat] = useState(initialCat);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [sortMode, setSortMode] = useState("popular"); // 預設最熱門
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQuery(searchQuery.trim()), 300);
@@ -51,8 +58,9 @@ export default function HubExplorer({ tools, initialCat = "all" }) {
           (CATEGORY_ORDER.includes(t.category) ? t.category : "tool") ===
           activeCat,
       );
-    return result;
-  }, [activeTools, debouncedQuery, fuse, activeCat]);
+    // 搜尋中維持 Fuse 相關度；否則依所選 sort（最熱門/最新）
+    return debouncedQuery ? result : sortTools(result, sortMode, viewsMap);
+  }, [activeTools, debouncedQuery, fuse, activeCat, sortMode, viewsMap]);
 
   return (
     <div className="px-4 md:px-0 max-w-6xl mx-auto py-10">
@@ -92,6 +100,33 @@ export default function HubExplorer({ tools, initialCat = "all" }) {
         counts={counts}
         onChange={setActiveCat}
       />
+
+      <div className="flex justify-end mb-5">
+        <div
+          className="inline-flex gap-1 p-1 rounded-xl border border-[var(--color-card-border)] bg-white dark:bg-gray-800"
+          role="group"
+          aria-label="排序方式"
+        >
+          {[
+            { key: "popular", label: "🔥 最熱門" },
+            { key: "recent", label: "🆕 最新" },
+          ].map((opt) => (
+            <button
+              key={opt.key}
+              type="button"
+              onClick={() => setSortMode(opt.key)}
+              aria-pressed={sortMode === opt.key}
+              className={`px-3 py-1.5 rounded-lg text-sm font-bold transition ${
+                sortMode === opt.key
+                  ? "bg-[var(--color-clay-purple)] text-white"
+                  : "text-[var(--color-text-mid)] hover:text-[var(--color-text-dark)]"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {filtered.map((t) => (
