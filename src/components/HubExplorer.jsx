@@ -9,8 +9,9 @@ import { track } from "@/lib/track";
 import { sortTools } from "@/lib/sortTools.mjs";
 
 /**
- * 資源中心互動島：搜尋 + Fuse + 分類 tabs + grid。
- * @param {{tools: object[], initialCat?: string}} props  tools 由 server 抓好傳入。
+ * 資源中心互動島：搜尋 + Fuse + 分類 tabs + sort toggle + grid。
+ * @param {{tools: object[], initialCat?: string, viewsMap?: Record<string, number>}} props
+ *   tools 由 server 抓好傳入；viewsMap = 全期 per-tool 瀏覽數（最熱門排序用）。
  */
 export default function HubExplorer({
   tools,
