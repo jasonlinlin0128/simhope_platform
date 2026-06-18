@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { db } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
 import {
   collection,
   getDocs,
@@ -22,6 +22,7 @@ import DemandBoard from "@/components/DemandBoard";
 import { BEFORE_BOX, AFTER_BOX, DANGER_BTN } from "@/lib/uiClasses";
 import { useToast } from "@/components/Toast";
 import { useConfirm } from "@/components/ConfirmDialog";
+import { shouldAnnounce } from "@/lib/announcePublish.mjs";
 
 export default function AdminDashboard() {
   const { user, isAdmin, loading: authLoading } = useAuth();
@@ -126,9 +127,27 @@ export default function AdminDashboard() {
   };
 
   const handleUpdateToolStatus = async (id, status) => {
+    // 抓舊狀態 + announcedAt（判斷是否為「發布」轉換）
+    const prev = tools.find((t) => t.id === id);
     try {
       await updateDoc(doc(db, "tools", id), { status });
       fetchAdminData();
+      // 發布（非公開 → live/beta/new）當下即時發 Discord 公告（best-effort、不擋主流程）
+      if (prev && shouldAnnounce(prev.status, status, prev.announcedAt)) {
+        try {
+          const idToken = await auth.currentUser.getIdToken();
+          await fetch("/api/admin/announce-tool", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${idToken}`,
+            },
+            body: JSON.stringify({ id }),
+          });
+        } catch (e) {
+          console.error("發布公告失敗（不影響狀態更新）：", e);
+        }
+      }
     } catch (error) {
       console.error(error);
       toast.error("更新失敗，請重新整理後再試");
