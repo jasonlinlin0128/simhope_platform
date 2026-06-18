@@ -3,8 +3,10 @@ import {
   getServerPainCards,
   getServerMetrics,
   getServerToolViews,
+  getServerToolHelpful,
 } from "@/lib/serverCatalog";
 import { rankPopularTools } from "@/lib/popularTools.mjs";
+import { attachHelpfulCounts } from "@/lib/helpfulBadge.mjs";
 import { categoryCounts, CATEGORIES, CATEGORY_ORDER } from "@/lib/taxonomy";
 import CategoryEntryCard from "@/components/CategoryEntryCard";
 import MetricsBand from "@/components/MetricsBand";
@@ -63,15 +65,21 @@ const PAIN_CHIPS = [
 ];
 
 export default async function Home() {
-  const [tools, painCards, metrics, toolViews] = await Promise.all([
-    getServerCatalog(),
-    getServerPainCards(),
-    getServerMetrics(),
-    getServerToolViews(),
-  ]);
+  const [tools, painCards, metrics, toolViews, toolHelpful] = await Promise.all(
+    [
+      getServerCatalog(),
+      getServerPainCards(),
+      getServerMetrics(),
+      getServerToolViews(),
+      getServerToolHelpful(),
+    ],
+  );
   const counts = categoryCounts(tools);
   const activeCount = counts.all;
-  const popular = rankPopularTools(tools, toolViews);
+  const popular = attachHelpfulCounts(
+    rankPopularTools(tools, toolViews),
+    toolHelpful,
+  );
 
   return (
     <div className="flex flex-col gap-24 px-4 md:px-0">

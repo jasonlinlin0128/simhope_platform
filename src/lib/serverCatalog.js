@@ -109,3 +109,25 @@ export async function getServerToolViews() {
     return {};
   }
 }
+
+/**
+ * 全期 per-tool 有幫助數（analytics/toolHelpful doc）。doc 不存在 / 失敗 → {}。
+ * 只回數值欄位（濾掉 updatedAt 等非數值 key）。鏡像 getServerToolViews()。
+ * @returns {Promise<Record<string, number>>}
+ */
+export async function getServerToolHelpful() {
+  try {
+    const res = await fetch(`${BASE}/analytics/toolHelpful`, {
+      next: { revalidate: REVALIDATE },
+    });
+    if (!res.ok) return {};
+    const obj = docToObject(await res.json());
+    const out = {};
+    for (const [k, v] of Object.entries(obj)) {
+      if (typeof v === "number") out[k] = v;
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}

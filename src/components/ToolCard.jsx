@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { typeBadge, getCTA } from "@/lib/taxonomy";
 import { track } from "@/lib/track";
+import { shouldShowHelpfulBadge } from "@/lib/helpfulBadge.mjs";
 
 // Helper color map for the icon background
 const colorMap = {
@@ -67,6 +68,7 @@ export default function ToolCard({ tool }) {
     status,
     type = "webapp",
     updatedAt,
+    helpfulCount,
   } = tool;
 
   const scs =
@@ -129,6 +131,11 @@ export default function ToolCard({ tool }) {
           <span className={`px-2 py-0.5 rounded-md border ${sObj.cls}`}>
             {sObj.label}
           </span>
+          {shouldShowHelpfulBadge(helpfulCount) && (
+            <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-md bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-200/70 dark:border-purple-700">
+              👍 {helpfulCount}
+            </span>
+          )}
           {updatedAt && (
             <span className="ml-auto text-gray-400 dark:text-gray-500 font-medium tracking-tighter">
               {new Date(
