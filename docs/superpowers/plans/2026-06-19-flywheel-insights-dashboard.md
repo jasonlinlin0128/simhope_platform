@@ -464,7 +464,7 @@ export default function UsageDashboard() {
                         type="button"
                         onClick={() => setSortKey(col.key)}
                         aria-pressed={sortKey === col.key}
-                        className={`font-bold tabular-nums transition ${
+                        className={`font-bold transition ${
                           sortKey === col.key
                             ? "text-[var(--color-clay-purple)]"
                             : "text-[var(--color-text-mid)] hover:text-[var(--color-text-dark)]"
