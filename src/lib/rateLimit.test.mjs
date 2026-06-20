@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { rateLimit, clientIp } from "./rateLimit.mjs";
+import { rateLimit, clientIp, enforceRateLimit } from "./rateLimit.mjs";
+import { HttpError } from "./httpError.mjs";
 
 // 每個測試傳自己的 store → 天然隔離（毋需 reset hook）。
 function newStore() {
@@ -106,4 +107,41 @@ test("clientIp：取 x-forwarded-for 第一跳", () => {
 test("clientIp：無 x-forwarded-for 回 unknown", () => {
   const req = { headers: { get: () => null } };
   assert.equal(clientIp(req), "unknown");
+});
+
+// ── enforceRateLimit（route 守門：超限 throw HttpError 429）──
+
+function reqWithIp(ip) {
+  return { headers: { get: (h) => (h === "x-forwarded-for" ? ip : null) } };
+}
+
+test("enforceRateLimit：未達上限不 throw", () => {
+  const store = newStore();
+  const clk = fakeClock();
+  assert.doesNotThrow(() =>
+    enforceRateLimit(reqWithIp("1.1.1.1"), "k", OPTS, clk.now, store),
+  );
+});
+
+test("enforceRateLimit：達上限 throw HttpError 429", () => {
+  const store = newStore();
+  const clk = fakeClock();
+  const req = reqWithIp("1.1.1.1");
+  for (let i = 0; i < OPTS.limit; i++)
+    enforceRateLimit(req, "k", OPTS, clk.now, store); // 用滿
+  assert.throws(
+    () => enforceRateLimit(req, "k", OPTS, clk.now, store),
+    (e) => e instanceof HttpError && e.status === 429,
+  );
+});
+
+test("enforceRateLimit：不同 IP 各自計數（key 含 clientIp）", () => {
+  const store = newStore();
+  const clk = fakeClock();
+  for (let i = 0; i < OPTS.limit; i++)
+    enforceRateLimit(reqWithIp("1.1.1.1"), "k", OPTS, clk.now, store);
+  // 另一個 IP 仍可通過（不共用同 key）
+  assert.doesNotThrow(() =>
+    enforceRateLimit(reqWithIp("2.2.2.2"), "k", OPTS, clk.now, store),
+  );
 });

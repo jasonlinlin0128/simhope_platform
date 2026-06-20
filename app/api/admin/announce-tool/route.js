@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { FieldValue } from "firebase-admin/firestore";
 import { requireRole } from "@/lib/apiAuth.mjs";
 import { HttpError, handleApiError } from "@/lib/apiError.mjs";
-import { rateLimit, clientIp } from "@/lib/rateLimit.mjs";
+import { enforceRateLimit } from "@/lib/rateLimit.mjs";
 import { getAdmin } from "@/lib/firebaseAdmin";
 import { notify } from "@/lib/notify";
 import {
@@ -17,9 +17,7 @@ import {
  */
 export async function POST(request) {
   try {
-    const ip = clientIp(request);
-    if (!rateLimit(`announce-tool:${ip}`, { limit: 30, windowMs: 60000 }).ok)
-      throw new HttpError(429, "操作過於頻繁，請稍後再試");
+    enforceRateLimit(request, "announce-tool", { limit: 30, windowMs: 60000 });
 
     await requireRole(request, ["admin"], {
       forbiddenMessage: "需要管理員權限",
