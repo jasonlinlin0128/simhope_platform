@@ -12,8 +12,8 @@ import {
 
 /**
  * POST /api/admin/announce-tool — admin-only。工具發布（轉入 live/beta/new）即時發 Discord 公告。
- * IP 限流 → auth(admin) → 讀 tool → 權威去重(announcedAt/status) → notify + 寫 announcedAt。
- * 冪等：已公告 or 非公開狀態 → { announced:false } no-op（200）。
+ * IP 限流 → auth(admin) → 讀 tool → 權威去重(announcedAt/status) → notify →（成功才）寫 announcedAt。
+ * 冪等：已公告 or 非公開狀態 → { announced:false } no-op（200）；notify 失敗也回 { announced:false } 且不標記。
  */
 export async function POST(request) {
   try {
@@ -40,13 +40,17 @@ export async function POST(request) {
       return NextResponse.json({ announced: false });
     }
 
-    // best-effort 公告（notify 內部吞錯）；無論結果都寫 announcedAt 防重發。
-    await notify(buildAnnounceMessage({ ...data, id }));
-    await ref.set(
-      { announcedAt: FieldValue.serverTimestamp() },
-      { merge: true },
-    );
-    return NextResponse.json({ announced: true });
+    // 只有 Discord 真的送出成功才寫 announcedAt。
+    // 暫時性 webhook 中斷（notify 回 false）→ 不標記 → 之後重新發布可再試，
+    // 不會把「沒送成功」的工具誤記成已公告而永久遺失即時通知。
+    const sent = await notify(buildAnnounceMessage({ ...data, id }));
+    if (sent) {
+      await ref.set(
+        { announcedAt: FieldValue.serverTimestamp() },
+        { merge: true },
+      );
+    }
+    return NextResponse.json({ announced: sent });
   } catch (e) {
     return handleApiError(e, "/api/admin/announce-tool");
   }
