@@ -65,7 +65,8 @@ export default function HelpfulButton({ toolId }) {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "操作失敗，請稍後再試");
       // counted:true → 首次計入，count++；counted:false → 之前已投過，不重複加但仍標記。
-      if (data.counted) setCount((c) => (typeof c === "number" ? c + 1 : 1));
+      // count 仍載入中(null)時不捏造數字，交給掛載時的讀取結果，避免顯示錯誤的「1」。
+      if (data.counted) setCount((c) => (typeof c === "number" ? c + 1 : c));
       setMarked(true);
       try {
         localStorage.setItem(`simhope_helpful_${toolId}`, "1");
