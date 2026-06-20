@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { FieldValue } from "firebase-admin/firestore";
 import { getAdmin } from "@/lib/firebaseAdmin";
 import { rateLimit, clientIp } from "@/lib/rateLimit.mjs";
-import { buildIncrements } from "@/lib/trackEvents.mjs";
+import { buildIncrements, ANON_TRACK_EVENTS } from "@/lib/trackEvents.mjs";
+import { getServerToolIdSet } from "@/lib/serverCatalog";
 
 /**
  * POST /api/track — 第一方使用追蹤（匿名匯總計數，無個人行為記錄）。
@@ -18,7 +19,19 @@ export async function POST(req) {
     }
 
     const body = await req.json().catch(() => ({}));
-    const inc = buildIncrements(body.event, body.toolId);
+    // 只收匿名事件白名單；tool_helpful 已改走需登入的 /api/tool-helpful。
+    if (!ANON_TRACK_EVENTS.has(body.event)) {
+      return NextResponse.json({ ok: false }, { status: 400 });
+    }
+
+    // C3：有 toolId 的事件（開啟/瀏覽）→ 驗證 id 存在於目錄，擋掉任意字串在
+    // aggregate doc 長孤兒 key。取目錄失敗/空 → 空 Set → 不過濾（fail-open）。
+    let knownToolIds;
+    if (body.toolId) {
+      const idSet = await getServerToolIdSet();
+      if (idSet.size > 0) knownToolIds = idSet;
+    }
+    const inc = buildIncrements(body.event, body.toolId, knownToolIds);
     if (!inc) return NextResponse.json({ ok: false }, { status: 400 });
 
     const { adminDb } = getAdmin();

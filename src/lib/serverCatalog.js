@@ -51,6 +51,17 @@ export async function getServerCatalog() {
 }
 
 /**
+ * 公開工具的 id 集合（給 /api/track、/api/tool-helpful 驗證 toolId 用）。
+ * 沿用 getServerCatalog 的 ISR 快取。取目錄失敗/空 → 空 Set；
+ * 呼叫端應把「空 Set」視為「無法判定」而 **不過濾**（fail-open），避免誤擋正常計數。
+ * @returns {Promise<Set<string>>}
+ */
+export async function getServerToolIdSet() {
+  const cat = await getServerCatalog();
+  return new Set(cat.map((t) => t.id).filter(Boolean));
+}
+
+/**
  * 已核准痛點卡（approval == approved）。空 → DEFAULT_SITE.painCards 後備；失敗 → []。
  * @returns {Promise<object[]>}
  */

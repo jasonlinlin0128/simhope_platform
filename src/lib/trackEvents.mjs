@@ -12,6 +12,17 @@ export const TRACK_EVENTS = {
 };
 
 /**
+ * 允許走匿名 /api/track 的事件白名單。
+ * tool_helpful 刻意排除：改走需登入 + 後端去重的 /api/tool-helpful（防公開 badge 被匿名灌水）。
+ */
+export const ANON_TRACK_EVENTS = new Set([
+  "tool_open",
+  "tool_view",
+  "search",
+  "request_submit",
+]);
+
+/**
  * @param {string} event
  * @returns {string|null} 對應計數欄位；未知事件回 null（= 不合法）。
  */
@@ -38,20 +49,26 @@ export function shouldTrack(event, dedupKey, seen) {
  * 組裝要 increment 的欄位（server 端用）。
  * @param {string} event
  * @param {string} [toolId]
+ * @param {Set<string>} [knownToolIds]  已知工具 id 集合。提供時：id 不在集合內 → 剔除 per-tool key
+ *   （仍累計 field 總數），防匿名任意 toolId 在 aggregate doc 長出孤兒 key、逼近 Firestore 1MB 上限。
+ *   不提供（undefined）→ 不過濾（fail-open，維持原行為）。
  * @returns {{field:string, byToolKey:string|null, viewToolKey:string|null, helpfulToolKey:string|null}|null}
  *   null = 不合法事件；byToolKey=開啟排名用，viewToolKey=瀏覽熱門用，helpfulToolKey=有幫助評分用
  */
-export function buildIncrements(event, toolId) {
+export function buildIncrements(event, toolId, knownToolIds) {
   const field = eventField(event);
   if (!field) return null;
   const id = toolId ? String(toolId).slice(0, 200) : null;
+  // id 為空 → 無 per-tool key；未給集合 → 不過濾；給了集合但 id 不在其中 → per-tool key 設 null。
+  const known =
+    !id || !(knownToolIds instanceof Set) || knownToolIds.has(id) ? id : null;
   return {
     field,
     // 開啟 → daily byTool（admin 開啟排名用）
-    byToolKey: event === "tool_open" ? id : null,
+    byToolKey: event === "tool_open" ? known : null,
     // 瀏覽 → 全期 analytics/toolViews（首頁熱門用）
-    viewToolKey: event === "tool_view" ? id : null,
+    viewToolKey: event === "tool_view" ? known : null,
     // 有幫助 → 全期 analytics/toolHelpful（工具評分用）
-    helpfulToolKey: event === "tool_helpful" ? id : null,
+    helpfulToolKey: event === "tool_helpful" ? known : null,
   };
 }
