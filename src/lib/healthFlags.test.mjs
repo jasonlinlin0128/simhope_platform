@@ -50,3 +50,32 @@ test("toolFreshnessMs: 全無 → null", () => {
   assert.equal(toolFreshnessMs({}), null);
   assert.equal(toolFreshnessMs(null), null);
 });
+
+import { usageThreshold } from "./healthFlags.mjs";
+
+const P = (id, status = "live") => ({ id, status });
+
+test("usageThreshold: 奇數筆 → 中位數", () => {
+  assert.equal(usageThreshold([P("a"), P("b"), P("c")], { a: 10, b: 30, c: 20 }), 20);
+});
+
+test("usageThreshold: 偶數筆 → 中間兩值平均", () => {
+  assert.equal(usageThreshold([P("a"), P("b"), P("c"), P("d")], { a: 10, b: 20, c: 30, d: 40 }), 25);
+});
+
+test("usageThreshold: 排除零瀏覽工具（median 只看 views>0）", () => {
+  assert.equal(usageThreshold([P("a"), P("b"), P("c")], { a: 0, b: 20, c: 40 }), 30);
+});
+
+test("usageThreshold: 排除非公開工具", () => {
+  assert.equal(usageThreshold([P("a"), P("x", "dev"), P("y", "pending")], { a: 8, x: 100, y: 100 }), 8);
+});
+
+test("usageThreshold: 全零瀏覽 → 地板 1", () => {
+  assert.equal(usageThreshold([P("a"), P("b")], { a: 0, b: 0 }), 1);
+  assert.equal(usageThreshold([P("a")], {}), 1);
+});
+
+test("usageThreshold: 非陣列 → 1", () => {
+  assert.equal(usageThreshold(null, {}), 1);
+});

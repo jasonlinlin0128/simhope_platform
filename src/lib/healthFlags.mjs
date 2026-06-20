@@ -41,3 +41,26 @@ export function toolFreshnessMs(tool) {
   if (u != null) return u;
   return toMs(tool?.createdAt);
 }
+
+/** 缺/非數值/負 → 0（比照 toolSignals.signal）。 */
+function num(map, id) {
+  const n = Number(map && typeof map === "object" ? map[id] : undefined);
+  return Number.isFinite(n) && n > 0 ? n : 0;
+}
+
+/**
+ * 使用門檻 = 「views>0 的公開工具」views 中位數，地板 1。
+ * 刻意排除零瀏覽工具：否則多數無瀏覽時 median=0、views≥0 恆真，使熱門但陳舊全觸發（噪音）。
+ */
+export function usageThreshold(tools, viewsMap) {
+  if (!Array.isArray(tools)) return 1;
+  const vals = tools
+    .filter((t) => PUBLIC_STATUSES.has(t?.status))
+    .map((t) => num(viewsMap, t?.id))
+    .filter((v) => v > 0)
+    .sort((a, b) => a - b);
+  if (vals.length === 0) return 1;
+  const mid = Math.floor(vals.length / 2);
+  const median = vals.length % 2 ? vals[mid] : (vals[mid - 1] + vals[mid]) / 2;
+  return Math.max(1, median);
+}
