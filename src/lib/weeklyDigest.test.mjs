@@ -86,3 +86,17 @@ test("buildDigestMessage：大量工具下總長度仍遠低於 Discord 2000 上
   const msg = buildDigestMessage(many);
   assert.ok(msg.length < 2000, `訊息長度應 < 2000，實得 ${msg.length}`);
 });
+
+test("buildDigestMessage：超長 title（admin 自由輸入）也被擠進 2000 內", () => {
+  // 15 筆、每筆 title/tagline 各 300 字（admin input 無 maxLength）→ per-field 截斷
+  // 不足以保證總長，需總長度硬上限把尾端項目擠掉。
+  const many = Array.from({ length: 15 }, () => ({
+    title: "標".repeat(300),
+    tagline: "x".repeat(300),
+  }));
+  const msg = buildDigestMessage(many);
+  assert.ok(msg.length < 2000, `應 < 2000，實得 ${msg.length}`);
+  assert.ok(msg.includes("（15）"), "標題仍顯示真實總數 15");
+  assert.ok(msg.includes("…還有"), "尾端被擠掉時帶 overflow 提示");
+  assert.ok(!msg.includes("標".repeat(300)), "原始超長 title 不應整段出現");
+});
