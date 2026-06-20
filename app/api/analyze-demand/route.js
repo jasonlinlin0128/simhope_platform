@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { requireRole } from "@/lib/apiAuth.mjs";
 import { callGemini } from "@/lib/gemini.mjs";
-import { HttpError, handleApiError } from "@/lib/apiError.mjs";
-import { rateLimit, clientIp } from "@/lib/rateLimit.mjs";
+import { handleApiError } from "@/lib/apiError.mjs";
+import { enforceRateLimit } from "@/lib/rateLimit.mjs";
 import { getAdmin } from "@/lib/firebaseAdmin";
 import { buildDemandPrompt, normalizeThemes } from "@/lib/demandBoard.mjs";
 
@@ -15,9 +15,7 @@ const MSG_MAX = 500; // 每筆 message 截斷長度
  */
 export async function POST(request) {
   try {
-    const ip = clientIp(request);
-    if (!rateLimit(`analyze-demand:${ip}`, { limit: 10, windowMs: 60000 }).ok)
-      throw new HttpError(429, "操作過於頻繁，請稍後再試");
+    enforceRateLimit(request, "analyze-demand", { limit: 10, windowMs: 60000 });
 
     await requireRole(request, ["admin"], {
       forbiddenMessage: "需要管理員權限",

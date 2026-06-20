@@ -3,6 +3,7 @@
 // 匿名讀（受 firestore.rules 約束，只回公開資料）；不用 firebase client SDK。
 import { docToObject } from "./firestoreValue.mjs";
 import { normalizeMetrics } from "./metrics.mjs";
+import { pickNumericFields } from "./numericMap.mjs";
 import { DEFAULT_SITE } from "./siteDefaults";
 
 const PROJECT_ID = "simhope-platform";
@@ -110,12 +111,7 @@ export async function getServerToolViews() {
       next: { revalidate: REVALIDATE },
     });
     if (!res.ok) return {};
-    const obj = docToObject(await res.json());
-    const out = {};
-    for (const [k, v] of Object.entries(obj)) {
-      if (typeof v === "number") out[k] = v;
-    }
-    return out;
+    return pickNumericFields(docToObject(await res.json()));
   } catch {
     return {};
   }
@@ -132,12 +128,7 @@ export async function getServerToolHelpful() {
       next: { revalidate: REVALIDATE },
     });
     if (!res.ok) return {};
-    const obj = docToObject(await res.json());
-    const out = {};
-    for (const [k, v] of Object.entries(obj)) {
-      if (typeof v === "number") out[k] = v;
-    }
-    return out;
+    return pickNumericFields(docToObject(await res.json()));
   } catch {
     return {};
   }

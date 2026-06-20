@@ -2,6 +2,7 @@
 // per-IP（或任意 key）記憶體滑動視窗限流。server-only。
 // 注意：Vercel serverless 多實例 → 只在單一實例內計數（非全域精確、best-effort），
 // 足以擋住明顯洗版；嚴格全域限流需外部 store（YAGNI，見 audit §6）。
+import { HttpError } from "./httpError.mjs";
 
 /**
  * 模組級 store（單一實例內共用）。
@@ -46,4 +47,20 @@ export function rateLimit(
 export function clientIp(req) {
   const xff = req.headers.get("x-forwarded-for") || "";
   return xff.split(",")[0].trim() || "unknown";
+}
+
+/**
+ * Route 便捷守門：超過限流就 throw HttpError(429)。
+ * 給用 handleApiError 的 route 共用（find-tool / analyze-demand / announce-tool…），
+ * 取代各自重複的 `if (!rateLimit(`x:${clientIp(req)}`,opts).ok) throw new HttpError(429,...)`。
+ * @param {Request} req
+ * @param {string} keyPrefix  限流鍵前綴（會接 `:${clientIp(req)}`）
+ * @param {{limit:number, windowMs:number}} opts
+ * @param {() => number} [clock]  注入時鐘（測試用）
+ * @param {{hits: Map<string, number[]>, lastSweep: number}} [store]  注入 store（測試用）
+ * @throws {HttpError} 429
+ */
+export function enforceRateLimit(req, keyPrefix, opts, clock = Date.now, store) {
+  const ok = rateLimit(`${keyPrefix}:${clientIp(req)}`, opts, clock, store).ok;
+  if (!ok) throw new HttpError(429, "操作過於頻繁，請稍後再試");
 }

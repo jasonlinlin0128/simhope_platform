@@ -6,6 +6,7 @@ import { doc, getDoc } from "firebase/firestore";
 import { normalizeMetrics } from "@/lib/metrics.mjs";
 import { getAllTools } from "@/lib/db";
 import { buildToolSignalRows, sortToolSignalRows } from "@/lib/toolSignals.mjs";
+import { pickNumericFields } from "@/lib/numericMap.mjs";
 
 // 近 N 天的 daily doc id（UTC YYYYMMDD）。
 function recentDayIds(n) {
@@ -16,17 +17,6 @@ function recentDayIds(n) {
     ids.push(d.toISOString().slice(0, 10).replace(/-/g, ""));
   }
   return ids;
-}
-
-// analytics doc → 純數值 map（濾掉 updatedAt 等非數值欄位）。比照 serverCatalog。
-function numericMap(data) {
-  const out = {};
-  if (data && typeof data === "object") {
-    for (const [k, v] of Object.entries(data)) {
-      if (typeof v === "number") out[k] = v;
-    }
-  }
-  return out;
 }
 
 // status pill 配色（深色相容）。未知 status → fallback 灰。
@@ -71,8 +61,10 @@ export default function UsageDashboard() {
 
         setTotals(normalizeMetrics(tSnap.exists() ? tSnap.data() : {}));
 
-        const viewsMap = numericMap(vSnap.exists() ? vSnap.data() : {});
-        const helpfulMap = numericMap(hSnap.exists() ? hSnap.data() : {});
+        const viewsMap = pickNumericFields(vSnap.exists() ? vSnap.data() : {});
+        const helpfulMap = pickNumericFields(
+          hSnap.exists() ? hSnap.data() : {},
+        );
 
         // 近 14 天 byTool 加總 → opensMap。
         const opensMap = {};

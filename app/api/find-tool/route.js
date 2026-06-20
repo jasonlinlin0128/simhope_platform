@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { callGemini } from "@/lib/gemini.mjs";
 import { HttpError, handleApiError } from "@/lib/apiError.mjs";
-import { rateLimit, clientIp } from "@/lib/rateLimit.mjs";
+import { enforceRateLimit } from "@/lib/rateLimit.mjs";
 import { getServerCatalog, getServerToolHelpful } from "@/lib/serverCatalog";
 import { buildFindToolPrompt, validateToolMatches } from "@/lib/findTool.mjs";
 import { attachHelpfulCounts } from "@/lib/helpfulBadge.mjs";
@@ -14,9 +14,7 @@ const FIND_STATUSES = ["live", "beta", "new"];
  */
 export async function POST(request) {
   try {
-    const ip = clientIp(request);
-    if (!rateLimit(`find-tool:${ip}`, { limit: 10, windowMs: 60000 }).ok)
-      throw new HttpError(429, "操作過於頻繁，請稍後再試");
+    enforceRateLimit(request, "find-tool", { limit: 10, windowMs: 60000 });
 
     const body = await request.json().catch(() => ({}));
     const query = String(body.query || "")
