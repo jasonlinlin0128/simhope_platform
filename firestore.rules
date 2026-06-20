@@ -109,6 +109,12 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // 👍 有幫助去重記錄（per-uid-per-tool）：只有 Admin SDK（/api/tool-helpful）能存取。
+    // client 一律拒絕——若使用者能自行刪除自己的投票記錄，就能重複投票灌爆公開 badge。
+    match /helpfulVotes/{id} {
+      allow read, write: if false;
+    }
+
     // 使用數據：累計數公開可讀（首頁顯示）；每日明細僅 admin 讀；
     // 一律禁止 client 寫（只 Admin SDK 經 /api/track 寫，防灌水）。
     match /analytics/{docId} {

@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { FieldValue } from "firebase-admin/firestore";
 import { getAdmin } from "@/lib/firebaseAdmin";
 import { rateLimit, clientIp } from "@/lib/rateLimit.mjs";
-import { buildIncrements } from "@/lib/trackEvents.mjs";
+import { buildIncrements, ANON_TRACK_EVENTS } from "@/lib/trackEvents.mjs";
+import { getServerToolIdSet } from "@/lib/serverCatalog";
 
 /**
  * POST /api/track — 第一方使用追蹤（匿名匯總計數，無個人行為記錄）。
@@ -18,7 +19,19 @@ export async function POST(req) {
     }
 
     const body = await req.json().catch(() => ({}));
-    const inc = buildIncrements(body.event, body.toolId);
+    // 只收匿名事件白名單；tool_helpful 已改走需登入的 /api/tool-helpful。
+    if (!ANON_TRACK_EVENTS.has(body.event)) {
+      return NextResponse.json({ ok: false }, { status: 400 });
+    }
+
+    // C3：有 toolId 的事件（開啟/瀏覽）→ 驗證 id 存在於目錄，擋掉任意字串在
+    // aggregate doc 長孤兒 key。取目錄失敗/空 → 空 Set → 不過濾（fail-open）。
+    let knownToolIds;
+    if (body.toolId) {
+      const idSet = await getServerToolIdSet();
+      if (idSet.size > 0) knownToolIds = idSet;
+    }
+    const inc = buildIncrements(body.event, body.toolId, knownToolIds);
     if (!inc) return NextResponse.json({ ok: false }, { status: 400 });
 
     const { adminDb } = getAdmin();
@@ -31,7 +44,6 @@ export async function POST(req) {
     const totalsRef = adminDb.collection("analytics").doc("totals");
     const dailyRef = adminDb.collection("analytics_daily").doc(dayId);
     const toolViewsRef = adminDb.collection("analytics").doc("toolViews");
-    const toolHelpfulRef = adminDb.collection("analytics").doc("toolHelpful");
 
     const totalsUpdate = {
       [inc.field]: FieldValue.increment(1),
@@ -51,23 +63,13 @@ export async function POST(req) {
     const batch = adminDb.batch();
     batch.set(totalsRef, totalsUpdate, { merge: true });
     batch.set(dailyRef, dailyUpdate, { merge: true });
-    // 全期 per-tool 瀏覽累計（首頁熱門用；與 daily byTool=opens 分開，不混語意）
+    // 全期 per-tool 瀏覽累計（首頁熱門用；與 daily byTool=opens 分開，不混語意）。
+    // 註：helpful 累計已移至需登入的 /api/tool-helpful（tool_helpful 不再經此 route）。
     if (inc.viewToolKey) {
       batch.set(
         toolViewsRef,
         {
           [inc.viewToolKey]: FieldValue.increment(1),
-          updatedAt: FieldValue.serverTimestamp(),
-        },
-        { merge: true },
-      );
-    }
-    // 全期 per-tool 有幫助累計（工具評分用；同 toolViews 寫法）
-    if (inc.helpfulToolKey) {
-      batch.set(
-        toolHelpfulRef,
-        {
-          [inc.helpfulToolKey]: FieldValue.increment(1),
           updatedAt: FieldValue.serverTimestamp(),
         },
         { merge: true },
