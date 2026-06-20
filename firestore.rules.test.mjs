@@ -84,6 +84,7 @@ async function seed() {
     });
     await setDoc(doc(db, "passkeys", "pk1"), { uid: "dev1", credId: "abc" }); // server-only
     await setDoc(doc(db, "webauthnChallenges", "ch1"), { challenge: "xyz", expireAt: 1 }); // server-only
+    await setDoc(doc(db, "helpfulVotes", "t1__dev1"), { toolId: "t1", uid: "dev1" }); // server-only
   });
 }
 
@@ -384,6 +385,17 @@ await it("71. anon 讀 webauthnChallenge → DENY", async () => {
 });
 await it("72. dev1 寫 webauthnChallenge → DENY", async () => {
   await assertFails(setDoc(doc(dev1, "webauthnChallenges", "ch_evil"), { challenge: "x" }));
+});
+// ===== helpfulVotes（server-only：client 不可讀/寫，否則可刪自己投票重複灌 badge）=====
+console.log("helpfulVotes（client 一律拒）:");
+await it("72a. anon 讀 helpfulVote → DENY", async () => {
+  await assertFails(getDoc(doc(anon, "helpfulVotes", "t1__dev1")));
+});
+await it("72b. dev1 寫自己的 helpfulVote → DENY（只 Admin SDK 可）", async () => {
+  await assertFails(setDoc(doc(dev1, "helpfulVotes", "t1__dev1"), { toolId: "t1", uid: "dev1" }));
+});
+await it("72c. dev1 刪自己的 helpfulVote → DENY（防刪後重投）", async () => {
+  await assertFails(deleteDoc(doc(dev1, "helpfulVotes", "t1__dev1")));
 });
 // ===== requests client 寫入全禁（防偽造）=====
 console.log("requests（client 不可建/改/刪）:");
