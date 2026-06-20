@@ -97,12 +97,14 @@ export default function ChatbotWidget() {
                 </button>
               </form>
 
-              {/* 結果 */}
+              {/* 結果（async：error 用 role=alert、成功結果用 aria-live 播報給螢幕報讀者） */}
               {findErr && (
-                <p className="text-xs text-red-500 font-bold">{findErr}</p>
+                <p className="text-xs text-red-500 font-bold" role="alert">
+                  {findErr}
+                </p>
               )}
               {result && (
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-2" aria-live="polite">
                   <p className="text-sm font-bold text-[var(--color-text-dark)]">
                     {result.reply}
                   </p>

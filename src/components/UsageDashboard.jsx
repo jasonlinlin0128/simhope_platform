@@ -138,9 +138,16 @@ export default function UsageDashboard() {
             <table className="w-full text-sm border-collapse">
               <thead>
                 <tr className="text-left text-xs text-[var(--color-text-mid)] border-b border-[var(--color-card-border)]">
-                  <th className="py-2 pr-3 font-bold">工具</th>
+                  <th scope="col" className="py-2 pr-3 font-bold">
+                    工具
+                  </th>
                   {SORT_COLS.map((col) => (
-                    <th key={col.key} className="py-2 px-2 text-right">
+                    <th
+                      key={col.key}
+                      scope="col"
+                      aria-sort={sortKey === col.key ? "descending" : "none"}
+                      className="py-2 px-2 text-right"
+                    >
                       <button
                         type="button"
                         onClick={() => setSortKey(col.key)}
