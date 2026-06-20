@@ -57,15 +57,22 @@ export default function DemandBoard() {
         </button>
       </div>
 
-      {err && <p className="text-sm text-red-500 font-bold">{err}</p>}
+      {err && (
+        <p className="text-sm text-red-500 font-bold" role="alert">
+          {err}
+        </p>
+      )}
 
       {data &&
         (data.total === 0 ? (
-          <p className="text-[var(--color-text-mid)] font-semibold py-6 text-center">
+          <p
+            className="text-[var(--color-text-mid)] font-semibold py-6 text-center"
+            aria-live="polite"
+          >
             目前沒有待處理需求。
           </p>
         ) : (
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3" aria-live="polite">
             <p className="text-sm text-[var(--color-text-mid)]">
               待處理需求{" "}
               <strong className="text-[var(--color-text-dark)]">
