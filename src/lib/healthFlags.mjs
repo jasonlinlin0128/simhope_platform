@@ -64,3 +64,89 @@ export function usageThreshold(tools, viewsMap) {
   const median = vals.length % 2 ? vals[mid] : (vals[mid - 1] + vals[mid]) / 2;
   return Math.max(1, median);
 }
+
+function buildOrphanKeys(idSet, viewsMap, opensMap, helpfulMap) {
+  const keys = new Set();
+  for (const m of [viewsMap, opensMap, helpfulMap]) {
+    if (m && typeof m === "object") for (const k of Object.keys(m)) keys.add(k);
+  }
+  const out = [];
+  for (const k of keys) {
+    if (idSet.has(k)) continue;
+    out.push({ key: k, views: num(viewsMap, k), opens: num(opensMap, k), helpful: num(helpfulMap, k) });
+  }
+  return out;
+}
+
+function emptyReport() {
+  return { staleHot: [], zombies: [], stuckPending: [], orphanKeys: [], counts: { staleHot: 0, zombies: 0, stuckPending: 0, orphanKeys: 0 } };
+}
+
+/**
+ * 把工具 × 三訊號 join 成健檢報告。回新物件、不 mutate 輸入。
+ * @param {object[]} tools getAllTools() 結果（含 pending）
+ * @param {{viewsMap?:object, opensMap?:object, helpfulMap?:object, nowMs?:number}} opts
+ */
+export function buildHealthReport(tools, opts = {}) {
+  const { viewsMap, opensMap, helpfulMap, nowMs } = opts || {};
+  if (!Array.isArray(tools) || !Number.isFinite(nowMs)) return emptyReport();
+  const now = nowMs;
+
+  const threshold = usageThreshold(tools, viewsMap);
+  const idSet = new Set(tools.map((t) => t?.id).filter(Boolean));
+
+  const staleHot = [];
+  const zombies = [];
+  const stuckPending = [];
+
+  for (const t of tools) {
+    const id = t?.id;
+    if (!id) continue;
+    const status = t?.status || "";
+    const views = num(viewsMap, id);
+    const opens = num(opensMap, id);
+    const helpful = num(helpfulMap, id);
+    const base = { id, title: t?.title || id, status, type: t?.type || "", views, opens, helpful };
+
+    if (status === "pending") {
+      const created = toMs(t?.createdAt);
+      if (created != null && now - created > PENDING_STUCK_DAYS * DAY_MS) {
+        stuckPending.push({ ...base, ageDays: Math.floor((now - created) / DAY_MS) });
+      }
+      continue; // pending 不參與其他公開 flag
+    }
+
+    if (PUBLIC_STATUSES.has(status)) {
+      const fresh = toolFreshnessMs(t);
+      const isUsed = views >= threshold || opens >= 1;
+      if (isUsed && fresh != null && now - fresh > STALE_DAYS * DAY_MS) {
+        staleHot.push({ ...base, lastUpdatedMs: fresh, ageDays: Math.floor((now - fresh) / DAY_MS) });
+        continue; // 與 zombie 互斥
+      }
+    }
+
+    if (status === "live") {
+      const created = toMs(t?.createdAt);
+      const isCold = views < ZOMBIE_VIEW_MAX && opens === 0 && helpful === 0;
+      const pastGrace = created != null && now - created > ZOMBIE_GRACE_DAYS * DAY_MS;
+      if (isCold && pastGrace) {
+        zombies.push({ ...base, ageDays: Math.floor((now - created) / DAY_MS) });
+      }
+    }
+  }
+
+  const orphanKeys = buildOrphanKeys(idSet, viewsMap, opensMap, helpfulMap);
+
+  return {
+    staleHot,
+    zombies,
+    stuckPending,
+    orphanKeys,
+    counts: {
+      staleHot: staleHot.length,
+      zombies: zombies.length,
+      stuckPending: stuckPending.length,
+      orphanKeys: orphanKeys.length,
+    },
+  };
+}
