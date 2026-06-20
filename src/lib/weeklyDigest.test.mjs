@@ -56,3 +56,33 @@ test("buildDigestMessage：空 / null → null", () => {
   assert.equal(buildDigestMessage([]), null);
   assert.equal(buildDigestMessage(null), null);
 });
+
+test("buildDigestMessage：超過 maxItems → 只列上限 + 帶『…還有 N 個』且總數誠實", () => {
+  const many = Array.from({ length: 40 }, (_, i) => T(`工具${i}`, NOW));
+  const msg = buildDigestMessage(many, 15);
+  assert.ok(msg.includes("（40）"), "標題仍顯示真實總數 40");
+  assert.ok(msg.includes("…還有 25 個新資源"), "超出 15 筆以摘要帶過");
+  assert.ok(msg.includes("工具0") && msg.includes("工具14"), "前 15 筆有列出");
+  assert.ok(!msg.includes("工具15"), "第 16 筆不應逐筆列出");
+});
+
+test("buildDigestMessage：無 overflow 時不出現『…還有』", () => {
+  const msg = buildDigestMessage([T("a", NOW), T("b", NOW)], 15);
+  assert.ok(!msg.includes("…還有"));
+});
+
+test("buildDigestMessage：過長 tagline 被截斷", () => {
+  const longTag = "x".repeat(500);
+  const msg = buildDigestMessage([{ title: "T", tagline: longTag }], 15, 80);
+  assert.ok(!msg.includes(longTag), "原始超長 tagline 不應整段出現");
+  assert.ok(msg.includes("…"), "截斷處應有省略號");
+});
+
+test("buildDigestMessage：大量工具下總長度仍遠低於 Discord 2000 上限", () => {
+  const many = Array.from({ length: 200 }, (_, i) => ({
+    title: `工具${i}`,
+    tagline: "說明".repeat(60),
+  }));
+  const msg = buildDigestMessage(many);
+  assert.ok(msg.length < 2000, `訊息長度應 < 2000，實得 ${msg.length}`);
+});
