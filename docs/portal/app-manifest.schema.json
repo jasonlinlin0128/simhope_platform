@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://simhope-platform.vercel.app/schemas/app-manifest.schema.json",
+  "title": "SimHope Portal app-manifest",
+  "description": "子系統註冊清單。以 YAML 撰寫（app-manifest.yaml），內容須符合本 schema；註冊 API 收 JSON 等價物。權威驗證實作：src/lib/appManifest.mjs",
+  "type": "object",
+  "required": [
+    "application_id",
+    "name",
+    "description",
+    "production_url",
+    "owner_department",
+    "owner_employee_id",
+    "authentication_mode"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "application_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{1,62}[a-z0-9]$",
+      "description": "全域唯一 slug（小寫英數與連字號）"
+    },
+    "name": { "type": "string", "minLength": 1, "maxLength": 80 },
+    "description": { "type": "string", "minLength": 1, "maxLength": 2000 },
+    "icon": {
+      "type": "string",
+      "maxLength": 16,
+      "description": "emoji 或既有 icon key"
+    },
+    "production_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "https only"
+    },
+    "staging_url": { "type": "string", "format": "uri" },
+    "owner_department": { "type": "string", "maxLength": 64 },
+    "owner_employee_id": { "type": "string", "maxLength": 32 },
+    "authentication_mode": {
+      "type": "string",
+      "enum": [
+        "LOCAL_ACCOUNT",
+        "EXTERNAL_AUTH",
+        "PUBLIC_LINK",
+        "SSO_OIDC",
+        "SSO_SAML"
+      ]
+    },
+    "supports_sso": { "type": "boolean", "default": false },
+    "visibility": {
+      "type": "string",
+      "enum": ["PUBLIC_ALL", "BY_RULE", "HIDDEN"],
+      "default": "HIDDEN",
+      "description": "註冊時預設 HIDDEN；發布可見性由 admin 審核時決定"
+    },
+    "allowed_users": {
+      "type": "array",
+      "maxItems": 500,
+      "items": { "type": "string", "maxLength": 32 }
+    },
+    "allowed_departments": {
+      "type": "array",
+      "maxItems": 100,
+      "items": { "type": "string", "maxLength": 64 }
+    },
+    "allowed_roles": {
+      "type": "array",
+      "maxItems": 100,
+      "items": { "type": "string", "maxLength": 64 }
+    },
+    "health_check_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "https only，禁 localhost/RFC1918"
+    },
+    "repository_url": { "type": "string", "format": "uri" },
+    "data_classification": {
+      "type": "string",
+      "enum": ["public", "internal", "confidential", "restricted"],
+      "default": "internal"
+    }
+  }
+}
