@@ -37,7 +37,7 @@ subject = {
 app.visibility ∈ {
   PUBLIC_ALL,   // 全員工可見（登入即可）
   BY_RULE,      // 按 allowed_users / allowed_departments / allowed_roles 聯集
-  HIDDEN,       // 只有 owner + admin 可見（開發中/下架保留）
+  HIDDEN,       // 入口網清單不顯示（owner/admin 走 admin 後台與 /my-tools 管理，不經 canAccessApp）
 }
 ```
 
@@ -55,6 +55,10 @@ canAccessApp(subject, app):
     ∨ department_id ∈ allowed_departments
     ∨ roles ∩ allowed_roles ≠ ∅
 ```
+
+判斷順序即權威：status 檢查在 owner/admin bypass **之前**——pending/dev/terminated 的 app
+連 owner/admin 也不會出現在入口網清單（/api/apps）；他們檢視自己未發布的 app 走既有
+admin 後台 / 作者視角（tools rules 的 authorUid 分支），不經 canAccessApp。
 
 ## 4. 執行點（enforcement points）
 

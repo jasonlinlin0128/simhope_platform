@@ -97,3 +97,13 @@ test("isForbiddenHost 邊界：公網 IP 與一般網域放行", () => {
   assert.equal(isForbiddenHost("quote.simhope.example.com"), false);
   assert.equal(isForbiddenHost("169.254.1.1"), true);
 });
+
+test("isForbiddenHost：trailing dot 與 IPv6 字面值不可繞過", () => {
+  assert.equal(isForbiddenHost("localhost."), true);
+  assert.equal(isForbiddenHost("app.internal."), true);
+  assert.equal(isForbiddenHost("foo.local."), true);
+  assert.equal(isForbiddenHost("[::1]"), true);
+  assert.equal(isForbiddenHost("[::ffff:7f00:1]"), true); // ::ffff:127.0.0.1 經 URL 正規化後的形態
+  assert.equal(isForbiddenHost("[2001:db8::1]"), true); // IPv6 一律拒（fail-closed）
+  assert.equal(isForbiddenHost("quote.simhope.example.com."), false); // 一般網域帶點仍放行
+});

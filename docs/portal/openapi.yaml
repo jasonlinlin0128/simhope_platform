@@ -236,16 +236,16 @@ components:
         icon: { type: string, maxLength: 16 }
         production_url: { type: string, format: uri }
         staging_url: { type: string, format: uri }
-        owner_department: { type: string }
-        owner_employee_id: { type: string }
+        owner_department: { type: string, maxLength: 64 }
+        owner_employee_id: { type: string, maxLength: 32 }
         authentication_mode:
           type: string
           enum: [LOCAL_ACCOUNT, EXTERNAL_AUTH, PUBLIC_LINK, SSO_OIDC, SSO_SAML]
         supports_sso: { type: boolean, default: false }
         visibility: { type: string, enum: [PUBLIC_ALL, BY_RULE, HIDDEN], default: HIDDEN }
-        allowed_users: { type: array, items: { type: string } }
-        allowed_departments: { type: array, items: { type: string } }
-        allowed_roles: { type: array, items: { type: string } }
+        allowed_users: { type: array, maxItems: 500, items: { type: string, maxLength: 32 } }
+        allowed_departments: { type: array, maxItems: 100, items: { type: string, maxLength: 64 } }
+        allowed_roles: { type: array, maxItems: 100, items: { type: string, maxLength: 64 } }
         health_check_url: { type: string, format: uri }
         repository_url: { type: string, format: uri }
         data_classification:

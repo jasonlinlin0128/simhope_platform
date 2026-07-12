@@ -54,8 +54,11 @@ const APPLICATION_ID_RE = /^[a-z0-9][a-z0-9-]{1,62}[a-z0-9]$/;
 
 /** server 會去 fetch health_check_url → 擋 SSRF 目標（localhost / RFC1918 / link-local）。 */
 export function isForbiddenHost(hostname) {
-  const h = String(hostname || "").toLowerCase();
-  if (!h || h === "localhost" || h === "0.0.0.0" || h === "::1" || h === "[::1]") return true;
+  // trailing-dot FQDN（localhost.）解析結果相同 → 先正規化再比對
+  const h = String(hostname || "").toLowerCase().replace(/\.$/, "");
+  if (!h || h === "localhost" || h === "0.0.0.0") return true;
+  // IPv6 literal 一律拒絕（含 ::1、::ffff:127.0.0.1 映射）——health URL 沒有正當理由用 IPv6 字面值
+  if (h.startsWith("[") || h.includes(":")) return true;
   if (h.endsWith(".local") || h.endsWith(".internal")) return true;
   const m = h.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
   if (!m) return false;
