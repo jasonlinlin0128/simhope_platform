@@ -26,12 +26,18 @@ users/{uid}                    ← 既有 collection，登入後的 profile
 ```
 員工 → POST /api/auth/activate { employee_id, tax_id, new_password }
   server（Admin SDK，全程後端）：
-  1. IP 限流（既有 enforceRateLimit）＋ 該員編 activation_attempts ≥5 → 鎖 15 分（locked_until）
-  2. 讀 employees/{employee_id}：
-     - 不存在 / status != active   → 401（統一訊息「啟用資訊不正確」，不洩漏哪個欄位錯）
-     - activated == true           → 409「已啟用，請直接登入」（防搶註）
-     - tax_id != env.COMPANY_TAX_ID → 401 ＋ attempts++
+  1. IP 限流（既有 enforceRateLimit；serverless 多 instance 下僅 best-effort 輔助，
+     不是主要防線）
+  2. 先驗 tax_id != env.COMPANY_TAX_ID → 401（統一訊息「啟用資訊不正確」）。
+     統編驗過才往下走——避免只憑員編就能探測「該員編存在/已啟用」（枚舉洩漏）。
   3. 密碼政策檢查（長度≥10、不得等於員編/統編/生日格式）
+  3.5 Firestore transaction 讀寫 employees/{employee_id}（主要防暴力＋防 race）：
+     - 不存在 / status != active   → 401（同一統一訊息）
+     - locked_until 未過 / attempts++ ≥5 → 429 鎖 15 分（attempts 的檢查與遞增在
+       同一 transaction 內，不可先讀後寫分兩步）
+     - activated == true           → 409「已啟用，請直接登入」（防搶註）
+     - 以上都過 → 同 transaction 內 CAS 標記 activating（併發兩請求只有一個贏，
+       輸家拿 409）
   4. adminAuth.createUser({ email: `emp${employee_id}@portal.simhope.internal`,
                             password: new_password })   ← Firebase scrypt 雜湊，永無明文落地
   5. 建 users/{uid}（role: viewer, employee_id）＋ employees 標 activated/uid
@@ -40,7 +46,11 @@ users/{uid}                    ← 既有 collection，登入後的 profile
 ```
 
 - 統編放 `COMPANY_TAX_ID` env，不進 DB、不進 repo。
-- 步驟 4–5 需冪等處理：createUser 成功但後續寫入失敗時，重試以 email 查回 uid 續寫（不留半殘帳號）。
+- 步驟 4–6 需冪等處理：createUser 成功但後續寫入失敗時，重試以 alias email 查回 uid
+  續寫 users/employees/audit（不留半殘帳號）；「activating 已標記但 createUser 失敗」
+  的殘局由重試路徑收斂（同員編＋正確統編重進 3.5 時，activating 且無 uid → 視為續跑
+  而非 409）。audit 寫入失敗不 rollback 啟用（記 error log 補償），但權限變更類 audit
+  （PERMISSION_CHANGE）失敗必須讓整個操作失敗——稽核優先級不同。
 
 ## 3. 日常登入
 

@@ -30,11 +30,16 @@
     "production_url": {
       "type": "string",
       "format": "uri",
+      "pattern": "^https://",
       "description": "https only"
     },
-    "staging_url": { "type": "string", "format": "uri" },
-    "owner_department": { "type": "string", "maxLength": 64 },
-    "owner_employee_id": { "type": "string", "maxLength": 32 },
+    "staging_url": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https://"
+    },
+    "owner_department": { "type": "string", "minLength": 1, "maxLength": 64 },
+    "owner_employee_id": { "type": "string", "minLength": 1, "maxLength": 32 },
     "authentication_mode": {
       "type": "string",
       "enum": [
@@ -55,24 +60,29 @@
     "allowed_users": {
       "type": "array",
       "maxItems": 500,
-      "items": { "type": "string", "maxLength": 32 }
+      "items": { "type": "string", "minLength": 1, "maxLength": 32 }
     },
     "allowed_departments": {
       "type": "array",
       "maxItems": 100,
-      "items": { "type": "string", "maxLength": 64 }
+      "items": { "type": "string", "minLength": 1, "maxLength": 64 }
     },
     "allowed_roles": {
       "type": "array",
       "maxItems": 100,
-      "items": { "type": "string", "maxLength": 64 }
+      "items": { "type": "string", "minLength": 1, "maxLength": 64 }
     },
     "health_check_url": {
       "type": "string",
       "format": "uri",
-      "description": "https only，禁 localhost/RFC1918"
+      "pattern": "^https://",
+      "description": "https only，禁 localhost/RFC1918/CGNAT/IPv6 字面值"
     },
-    "repository_url": { "type": "string", "format": "uri" },
+    "repository_url": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https://"
+    },
     "data_classification": {
       "type": "string",
       "enum": ["public", "internal", "confidential", "restricted"],

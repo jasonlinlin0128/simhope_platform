@@ -231,13 +231,13 @@ components:
       additionalProperties: false
       properties:
         application_id: { type: string, pattern: "^[a-z0-9][a-z0-9-]{1,62}[a-z0-9]$" }
-        name: { type: string, maxLength: 80 }
-        description: { type: string, maxLength: 2000 }
+        name: { type: string, minLength: 1, maxLength: 80 }
+        description: { type: string, minLength: 1, maxLength: 2000 }
         icon: { type: string, maxLength: 16 }
-        production_url: { type: string, format: uri }
-        staging_url: { type: string, format: uri }
-        owner_department: { type: string, maxLength: 64 }
-        owner_employee_id: { type: string, maxLength: 32 }
+        production_url: { type: string, format: uri, pattern: "^https://" }
+        staging_url: { type: string, format: uri, pattern: "^https://" }
+        owner_department: { type: string, minLength: 1, maxLength: 64 }
+        owner_employee_id: { type: string, minLength: 1, maxLength: 32 }
         authentication_mode:
           type: string
           enum: [LOCAL_ACCOUNT, EXTERNAL_AUTH, PUBLIC_LINK, SSO_OIDC, SSO_SAML]

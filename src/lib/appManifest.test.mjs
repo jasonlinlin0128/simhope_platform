@@ -85,6 +85,26 @@ test("超長字串被拒", () => {
   assert.equal(validateAppManifest({ ...minimal(), description: "x".repeat(2001) }).ok, false);
 });
 
+test("application_id 非字串被拒", () => {
+  assert.equal(validateAppManifest({ ...minimal(), application_id: 123 }).ok, false);
+});
+
+test("prototype 鏈上的欄位不參與驗證與輸出", () => {
+  const input = Object.create({ visibility: "PUBLIC_ALL" });
+  Object.assign(input, minimal());
+  const r = validateAppManifest(input);
+  assert.equal(r.ok, true);
+  assert.equal(r.value.visibility, "HIDDEN"); // 繼承值被忽略，套預設
+});
+
+test("輸出的 allowed_* 與輸入陣列斷開引用", () => {
+  const arr = ["10231"];
+  const r = validateAppManifest({ ...minimal(), allowed_users: arr });
+  assert.equal(r.ok, true);
+  arr.push("hacker");
+  assert.deepEqual(r.value.allowed_users, ["10231"]);
+});
+
 test("非物件輸入安全拒絕", () => {
   for (const bad of [null, "yaml", 42, ["a"]]) {
     assert.equal(validateAppManifest(bad).ok, false);
@@ -106,4 +126,12 @@ test("isForbiddenHost：trailing dot 與 IPv6 字面值不可繞過", () => {
   assert.equal(isForbiddenHost("[::ffff:7f00:1]"), true); // ::ffff:127.0.0.1 經 URL 正規化後的形態
   assert.equal(isForbiddenHost("[2001:db8::1]"), true); // IPv6 一律拒（fail-closed）
   assert.equal(isForbiddenHost("quote.simhope.example.com."), false); // 一般網域帶點仍放行
+});
+
+test("isForbiddenHost：.localhost 子網域與 CGNAT 段被擋", () => {
+  assert.equal(isForbiddenHost("app.localhost"), true);
+  assert.equal(isForbiddenHost("100.64.0.1"), true);
+  assert.equal(isForbiddenHost("100.127.255.254"), true);
+  assert.equal(isForbiddenHost("100.63.0.1"), false);
+  assert.equal(isForbiddenHost("100.128.0.1"), false);
 });

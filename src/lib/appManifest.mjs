@@ -25,6 +25,7 @@ const REQUIRED = [
 ];
 
 const STRING_MAX = {
+  application_id: 64,
   name: 80,
   description: 2000,
   icon: 16,
@@ -59,12 +60,15 @@ export function isForbiddenHost(hostname) {
   if (!h || h === "localhost" || h === "0.0.0.0") return true;
   // IPv6 literal 一律拒絕（含 ::1、::ffff:127.0.0.1 映射）——health URL 沒有正當理由用 IPv6 字面值
   if (h.startsWith("[") || h.includes(":")) return true;
-  if (h.endsWith(".local") || h.endsWith(".internal")) return true;
+  if (h.endsWith(".local") || h.endsWith(".internal") || h.endsWith(".localhost")) return true;
   const m = h.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
   if (!m) return false;
   const [a, b] = [Number(m[1]), Number(m[2])];
   if (a === 127 || a === 10 || a === 0) return true;
   if (a === 169 && b === 254) return true;
+  if (a === 100 && b >= 64 && b <= 127) return true; // CGNAT 100.64.0.0/10
+  // 注意：這裡擋的是「字面上」的內網位址；DNS 名稱解析到內網 IP（rebinding/TOCTOU)
+  // 由 fetch 端（PR-7 health-poll）再驗 resolved IP。
   if (a === 172 && b >= 16 && b <= 31) return true;
   if (a === 192 && b === 168) return true;
   return false;
@@ -94,6 +98,7 @@ export function validateAppManifest(input) {
   if (input === null || typeof input !== "object" || Array.isArray(input)) {
     return { ok: false, errors: ["manifest 必須是物件"] };
   }
+  input = { ...input }; // 只留 own enumerable 欄位（prototype 鏈上的欄位不得參與驗證與輸出）
 
   for (const key of Object.keys(input)) {
     if (!KNOWN_FIELDS.has(key)) errors.push(`${key}: 未知欄位`);
@@ -153,6 +158,6 @@ export function validateAppManifest(input) {
   value.supports_sso = value.supports_sso ?? false;
   value.visibility = value.visibility ?? "HIDDEN";
   value.data_classification = value.data_classification ?? "internal";
-  for (const field of Object.keys(ARRAY_FIELDS)) value[field] = value[field] ?? [];
+  for (const field of Object.keys(ARRAY_FIELDS)) value[field] = [...(value[field] ?? [])]; // clone，斷開與輸入的引用
   return { ok: true, value };
 }
