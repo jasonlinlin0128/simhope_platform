@@ -1,0 +1,25 @@
+# app-manifest.yaml 範例 — 子系統註冊清單
+# 放在子系統 repo 根目錄；註冊時 POST 其 JSON 等價物到 /api/registry/apps
+# schema：docs/portal/app-manifest.schema.json
+
+application_id: quote-assistant
+name: 報價小幫手
+description: 從 RFQ / 圖紙自動產生結構化報價單草稿，支援歷史價比對。
+icon: "💰"
+production_url: https://quote.simhope.example.com
+staging_url: https://quote-staging.simhope.example.com
+owner_department: dept-mfg
+owner_employee_id: "10231"
+authentication_mode: LOCAL_ACCOUNT # 尚未 SSO：使用者需用該系統自己的帳號登入
+supports_sso: false # 升級 OIDC 後改 true 並將 authentication_mode 改 SSO_OIDC
+visibility: BY_RULE # 註冊後由 admin 審核時最終決定
+allowed_departments:
+  - dept-mfg
+  - dept-qa
+allowed_roles:
+  - quote-editor
+allowed_users:
+  - "10555" # 個人層例外
+health_check_url: https://quote.simhope.example.com/api/health
+repository_url: https://github.com/simhope/quote-assistant
+data_classification: confidential

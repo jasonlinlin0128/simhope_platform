@@ -1,0 +1,265 @@
+# AI 入口網 Portal API — OpenAPI 3.1（階段二交付物 v1）
+# 統一錯誤格式：所有非 2xx 回 { "error": string }（對齊既有 src/lib/apiErrorPayload.mjs；
+# 非預期錯誤一律 500 "伺服器錯誤"，細節只進 server log）。
+# 認證：Authorization: Bearer <Firebase ID token>；server 端 verifyIdToken + 角色/母檔檢查。
+openapi: 3.1.0
+info:
+  title: SimHope AI Portal API
+  version: "1.0.0"
+paths:
+  /api/health:
+    get:
+      summary: 系統存活探測（無認證）
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, const: ok }
+                  ts: { type: string, format: date-time }
+
+  /api/auth/activate:
+    post:
+      summary: 首次啟用（員編＋統編 → 設定個人密碼；統編僅此一用）
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [employee_id, tax_id, new_password]
+              properties:
+                employee_id: { type: string, maxLength: 32 }
+                tax_id: { type: string, maxLength: 16 }
+                new_password: { type: string, minLength: 10, maxLength: 128 }
+      responses:
+        "200":
+          description: 啟用成功，回 custom token 直接登入
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { token: { type: string } }
+        "400": { $ref: "#/components/responses/Error" } # 密碼政策不符
+        "401": { $ref: "#/components/responses/Error" } # 啟用資訊不正確（統一訊息）
+        "409": { $ref: "#/components/responses/Error" } # 已啟用
+        "429": { $ref: "#/components/responses/Error" } # 限流/鎖定
+
+  /api/auth/login-event:
+    post:
+      summary: 登入成功回報（寫 audit；身分取自 token，不信 body）
+      security: [{ bearer: [] }]
+      responses:
+        "204": { description: 已記錄 }
+        "401": { $ref: "#/components/responses/Error" }
+
+  /api/apps:
+    get:
+      summary: 我可見的應用清單（server 端 canAccessApp 過濾後才回）
+      security: [{ bearer: [] }]
+      responses:
+        "200":
+          description: 過濾後清單（BY_RULE/HIDDEN 不可見者絕不出現於 payload）
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/AppCard" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" } # 停用員工
+
+  /api/apps/{id}/open:
+    post:
+      summary: 開啟應用（後端重驗權限 + 寫 audit + 回跳轉 URL）
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: 可開啟
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { url: { type: string, format: uri } }
+        "404": { $ref: "#/components/responses/Error" } # 無權或不存在（不洩漏存在性）
+
+  /api/me/favorites:
+    put:
+      summary: 更新我的收藏（整份取代）
+      security: [{ bearer: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [appIds]
+              properties:
+                appIds:
+                  type: array
+                  maxItems: 100
+                  items: { type: string }
+      responses:
+        "204": { description: 已更新 }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+
+  /api/registry/apps:
+    post:
+      summary: 子系統註冊（吃 app-manifest 內容；developer/admin；進 pending 待審）
+      security: [{ bearer: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AppManifest" }
+      responses:
+        "201":
+          description: 已建立（pending）
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  application_id: { type: string }
+                  status: { type: string, const: pending }
+        "400": { $ref: "#/components/responses/Error" } # manifest 驗證失敗（含欄位列表）
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" } # application_id 已存在
+
+  /api/registry/apps/{id}:
+    patch:
+      summary: 更新註冊資料（admin，或 developer 且為 owner）
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AppManifest" }
+      responses:
+        "200": { description: 已更新 }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+
+  /api/admin/apps/{id}/permissions:
+    put:
+      summary: 設定 app 的 visibility 與 allowed_*（admin；寫 PERMISSION_CHANGE audit）
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                visibility: { type: string, enum: [PUBLIC_ALL, BY_RULE, HIDDEN] }
+                allowed_users: { type: array, items: { type: string } }
+                allowed_departments: { type: array, items: { type: string } }
+                allowed_roles: { type: array, items: { type: string } }
+      responses:
+        "200": { description: 已更新 }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+
+  /api/admin/audit-logs:
+    get:
+      summary: 稽核紀錄查詢（admin；action/時間篩選、游標分頁）
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: action, in: query, schema: { type: string } }
+        - { name: cursor, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: 分頁結果
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items: { type: array, items: { $ref: "#/components/schemas/AuditLog" } }
+                  nextCursor: { type: string }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+
+  /api/cron/health-poll:
+    get:
+      summary: 巡檢各 app 的 health_check_url（Vercel cron；CRON_SECRET fail-safe）
+      responses:
+        "200": { description: 巡檢完成，結果寫回各 app doc 的 health 欄位 }
+        "401": { $ref: "#/components/responses/Error" }
+
+components:
+  securitySchemes:
+    bearer: { type: http, scheme: bearer, bearerFormat: "Firebase ID token" }
+  responses:
+    Error:
+      description: 統一錯誤格式
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [error]
+            properties:
+              error: { type: string }
+  schemas:
+    AppCard:
+      type: object
+      description: 前端卡片所需最小欄位（不含 ACL 名單等敏感欄位）
+      properties:
+        application_id: { type: string }
+        name: { type: string }
+        description: { type: string }
+        icon: { type: string }
+        authentication_mode:
+          type: string
+          enum: [LOCAL_ACCOUNT, EXTERNAL_AUTH, PUBLIC_LINK, SSO_OIDC, SSO_SAML]
+        status: { type: string }
+        category: { type: string }
+    AppManifest:
+      type: object
+      description: 與 docs/portal/app-manifest.schema.json 同源（該檔為權威）
+      required: [application_id, name, description, production_url, owner_department, owner_employee_id, authentication_mode]
+      additionalProperties: false
+      properties:
+        application_id: { type: string, pattern: "^[a-z0-9][a-z0-9-]{1,62}[a-z0-9]$" }
+        name: { type: string, minLength: 1, maxLength: 80 }
+        description: { type: string, minLength: 1, maxLength: 2000 }
+        icon: { type: string, maxLength: 16 }
+        production_url: { type: string, format: uri, pattern: "^https://" }
+        staging_url: { type: string, format: uri, pattern: "^https://" }
+        owner_department: { type: string, minLength: 1, maxLength: 64 }
+        owner_employee_id: { type: string, minLength: 1, maxLength: 32 }
+        authentication_mode:
+          type: string
+          enum: [LOCAL_ACCOUNT, EXTERNAL_AUTH, PUBLIC_LINK, SSO_OIDC, SSO_SAML]
+        supports_sso: { type: boolean, default: false }
+        visibility: { type: string, enum: [PUBLIC_ALL, BY_RULE, HIDDEN], default: HIDDEN }
+        allowed_users: { type: array, maxItems: 500, items: { type: string, maxLength: 32 } }
+        allowed_departments: { type: array, maxItems: 100, items: { type: string, maxLength: 64 } }
+        allowed_roles: { type: array, maxItems: 100, items: { type: string, maxLength: 64 } }
+        health_check_url: { type: string, format: uri }
+        repository_url: { type: string, format: uri }
+        data_classification:
+          type: string
+          enum: [public, internal, confidential, restricted]
+          default: internal
+    AuditLog:
+      type: object
+      properties:
+        ts: { type: string, format: date-time }
+        action: { type: string }
+        actor_uid: { type: string }
+        actor_employee_id: { type: string }
+        target: { type: string }
+        detail: { type: object }
+        ip: { type: string }
+        result: { type: string, enum: [ok, denied, error] }
