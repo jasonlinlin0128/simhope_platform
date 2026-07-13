@@ -85,6 +85,10 @@ async function seed() {
     await setDoc(doc(db, "passkeys", "pk1"), { uid: "dev1", credId: "abc" }); // server-only
     await setDoc(doc(db, "webauthnChallenges", "ch1"), { challenge: "xyz", expireAt: 1 }); // server-only
     await setDoc(doc(db, "helpfulVotes", "t1__dev1"), { toolId: "t1", uid: "dev1" }); // server-only
+    await setDoc(doc(db, "employees", "10001"), {
+      name: "王小明", department_id: "dept-mfg", status: "active", activated: false, // server-only
+    });
+    await setDoc(doc(db, "departments", "dept-mfg"), { name: "製造部", parent_id: null });
   });
 }
 
@@ -417,6 +421,40 @@ await it("76. dev1 刪 request（僅 admin）→ DENY", async () => {
 });
 await it("77. admin 刪 request → ALLOW", async () => {
   await assertSucceeds(deleteDoc(doc(admin, "requests", "req_anon")));
+});
+// ===== employees（server-only：HR 母檔含個資與啟用狀態，client 一律拒）=====
+console.log("employees（client 一律拒）:");
+await it("78. anon 讀 employee → DENY", async () => {
+  await assertFails(getDoc(doc(anon, "employees", "10001")));
+});
+await it("79. dev1 讀 employee → DENY", async () => {
+  await assertFails(getDoc(doc(dev1, "employees", "10001")));
+});
+await it("80. admin（client）讀 employee → DENY（只 Admin SDK 可）", async () => {
+  await assertFails(getDoc(doc(admin, "employees", "10001")));
+});
+await it("81. dev1 寫 employee（自我啟用/竄改狀態）→ DENY", async () => {
+  await assertFails(setDoc(doc(dev1, "employees", "10001"), { activated: true, uid: "dev1" }));
+});
+await it("82. admin（client）寫 employee → DENY", async () => {
+  await assertFails(updateDoc(doc(admin, "employees", "10001"), { status: "inactive" }));
+});
+// ===== departments（登入可讀；僅 admin 可寫）=====
+console.log("departments（登入可讀、admin 可寫）:");
+await it("83. anon 讀 department → DENY", async () => {
+  await assertFails(getDoc(doc(anon, "departments", "dept-mfg")));
+});
+await it("84. viewer1 讀 department → ALLOW", async () => {
+  await assertSucceeds(getDoc(doc(viewer1, "departments", "dept-mfg")));
+});
+await it("85. dev1 寫 department → DENY（僅 admin）", async () => {
+  await assertFails(setDoc(doc(dev1, "departments", "dept-evil"), { name: "evil" }));
+});
+await it("86. admin 寫 department → ALLOW", async () => {
+  await assertSucceeds(setDoc(doc(admin, "departments", "dept-new"), { name: "新部門" }));
+});
+await it("87. dev1 刪 department → DENY", async () => {
+  await assertFails(deleteDoc(doc(dev1, "departments", "dept-mfg")));
 });
 // ===== TESTS END =====
 

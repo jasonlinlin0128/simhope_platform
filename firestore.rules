@@ -115,6 +115,18 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // 員工母檔（HR 名冊匯入）：含個資與啟用狀態，只有 Admin SDK（伺服器端）能存取。
+    // client 一律拒絕——啟用驗證/停用封鎖都走後端 API，前端不需要也不可以直讀。
+    match /employees/{employeeId} {
+      allow read, write: if false;
+    }
+
+    // 部門：登入者可讀（入口網按部門過濾顯示用）；僅 admin 可寫。
+    match /departments/{deptId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
     // 使用數據：累計數公開可讀（首頁顯示）；每日明細僅 admin 讀；
     // 一律禁止 client 寫（只 Admin SDK 經 /api/track 寫，防灌水）。
     match /analytics/{docId} {
