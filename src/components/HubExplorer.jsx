@@ -22,6 +22,35 @@ export default function HubExplorer({
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [sortMode, setSortMode] = useState("popular"); // 預設最熱門
+  const [restricted, setRestricted] = useState([]); // 我有權限的受限 app
+
+  // server 傳進來的 tools 是**公開目錄**（匿名 REST，只含 visibility=PUBLIC_ALL）。
+  // 受限 app（BY_RULE）不在裡面——否則就洩漏給訪客了。有權限的人改由 /api/apps
+  // （伺服器端 canSeeApp 過濾）補進來，登入後才會看到。
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      const { auth } = await import("@/lib/firebase");
+      const user = auth.currentUser;
+      if (!user) return;
+      try {
+        const res = await fetch("/api/apps", {
+          headers: { Authorization: `Bearer ${await user.getIdToken()}` },
+        });
+        if (!res.ok) return;
+        const { apps } = await res.json();
+        if (cancelled) return;
+        const known = new Set(tools.map((t) => t.id));
+        setRestricted((apps ?? []).filter((a) => !known.has(a.id)));
+      } catch {
+        /* 補不到就只顯示公開目錄，不影響現有畫面 */
+      }
+    };
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [tools]);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQuery(searchQuery.trim()), 300);
@@ -33,11 +62,16 @@ export default function HubExplorer({
     if (debouncedQuery) track("search");
   }, [debouncedQuery]);
 
-  const activeTools = useMemo(
-    () => tools.filter((t) => t.status !== "terminated"),
-    [tools],
+  // 公開目錄 + 我有權限的受限 app（後者登入後才會補進來）
+  const allTools = useMemo(
+    () => [...tools, ...restricted],
+    [tools, restricted],
   );
-  const counts = useMemo(() => categoryCounts(tools), [tools]);
+  const activeTools = useMemo(
+    () => allTools.filter((t) => t.status !== "terminated"),
+    [allTools],
+  );
+  const counts = useMemo(() => categoryCounts(allTools), [allTools]);
 
   const fuse = useMemo(
     () =>

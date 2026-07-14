@@ -887,6 +887,28 @@ export default function ToolDetail({ params }) {
     if (!authLoading) fetchTool();
   }, [authLoading, fetchTool]);
 
+  // 受限 app 沒有 url 可直連 → 走 /api/apps/{id}/open：伺服器重驗權限 + 寫 APP_OPEN 稽核 + 回連結
+  const [opening, setOpening] = useState(false);
+  const openViaPortal = useCallback(async () => {
+    setOpening(true);
+    try {
+      const headers = user
+        ? { Authorization: `Bearer ${await user.getIdToken()}` }
+        : {};
+      const res = await fetch(`/api/apps/${encodeURIComponent(id)}/open`, {
+        method: "POST",
+        headers,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "無法開啟");
+      window.open(data.url, "_blank", "noopener,noreferrer");
+    } catch (e) {
+      toast.error(e.message || "無法開啟，請稍後再試");
+    } finally {
+      setOpening(false);
+    }
+  }, [id, user, toast]);
+
   const isAuthor = tool && user && tool.authorUid === user.uid;
   const canEdit = isAdmin || isAuthor;
 
@@ -1133,8 +1155,23 @@ export default function ToolDetail({ params }) {
                   </div>
                 );
               }
-              if (!url) return null;
               const cta = TYPE_ACTION[tool.type] || TYPE_ACTION.webapp;
+              // 受限 app（BY_RULE）的 url 不會下發到前端——必須走 POST /api/apps/{id}/open，
+              // 由伺服器重驗權限、寫 APP_OPEN 稽核後才回連結。
+              if (!url) {
+                return (
+                  <div className="mt-6 pt-6 border-t border-[var(--color-card-border)] flex justify-center">
+                    <button
+                      type="button"
+                      onClick={openViaPortal}
+                      disabled={opening}
+                      className={`w-full text-center px-6 py-4 rounded-xl font-extrabold shadow-md hover:shadow-lg transition-all disabled:opacity-60 ${cta.cls}`}
+                    >
+                      {opening ? "開啟中…" : cta.label}
+                    </button>
+                  </div>
+                );
+              }
               return (
                 <div className="mt-6 pt-6 border-t border-[var(--color-card-border)] flex justify-center">
                   <a

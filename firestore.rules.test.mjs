@@ -363,8 +363,13 @@ await it("57. newuser 建別人 uid 的 users 文件 → DENY", async () => {
 await it("58. admin 建任意 role 的 users 文件 → ALLOW", async () => {
   await assertSucceeds(setDoc(doc(admin, "users", "made_by_admin"), { role: "developer" }));
 });
-await it("59. dev1 改自己非 role 欄位（devStatus，即 /api/request 情境）→ ALLOW", async () => {
-  await assertSucceeds(updateDoc(doc(dev1, "users", "dev1"), { devStatus: "pending" }));
+await it("59. dev1 自己寫 devStatus → DENY（改由 /api/request 以 Admin SDK 寫；client 不需此權限）", async () => {
+  // 原本這條是 ALLOW（規則過寬）。devStatus 是授權相關欄位，且實際寫入者是後端
+  // /api/request（Admin SDK 繞過 rules）→ client 側一律收掉，見 #108。
+  await assertFails(updateDoc(doc(dev1, "users", "dev1"), { devStatus: "pending" }));
+});
+await it("59b. dev1 改自己的一般欄位（displayName）→ ALLOW", async () => {
+  await assertSucceeds(updateDoc(doc(dev1, "users", "dev1"), { displayName: "阿一" }));
 });
 await it("60. dev1 改自己 role（自我提權）→ DENY", async () => {
   await assertFails(updateDoc(doc(dev1, "users", "dev1"), { role: "admin" }));
@@ -564,6 +569,47 @@ await it("105. dev1 建工具直接設 visibility=HIDDEN → DENY（受限由 ad
     setDoc(doc(dev1, "tools", "t_new_hidden"), {
       authorUid: "dev1", status: "pending", title: "N", createdAt: 1,
       visibility: "HIDDEN",
+    }),
+  );
+});
+// ===== 授權欄位自我提權（review 抓到的提權面）=====
+console.log("授權欄位不得自寫:");
+await it("106. viewer1 自己寫 acl_roles → DENY（否則可自己發受限系統的 ACL 給自己）", async () => {
+  await assertFails(updateDoc(doc(viewer1, "users", "viewer1"), { acl_roles: ["finance-lead"] }));
+});
+await it("107. viewer1 自己寫 employee_id → DENY（否則可冒用他人員編繼承其部門/owner 身分）", async () => {
+  await assertFails(updateDoc(doc(viewer1, "users", "viewer1"), { employee_id: "10231" }));
+});
+await it("108. viewer1 自己寫 devStatus → DENY", async () => {
+  await assertFails(updateDoc(doc(viewer1, "users", "viewer1"), { devStatus: "approved" }));
+});
+await it("109. viewer1 改自己的一般欄位（displayName）→ ALLOW（不誤傷正常編輯）", async () => {
+  await assertSucceeds(updateDoc(doc(viewer1, "users", "viewer1"), { displayName: "小明" }));
+});
+await it("110. admin 幫人寫 employee_id / acl_roles → ALLOW", async () => {
+  await assertSucceeds(
+    updateDoc(doc(admin, "users", "viewer1"), { employee_id: "10231", acl_roles: ["x"] }),
+  );
+});
+await it("111. 作者改自己工具的 visibility → DENY（過審後不得自行改成公開/受限）", async () => {
+  await assertFails(updateDoc(doc(dev1, "tools", "t_live"), { visibility: "HIDDEN" }));
+});
+await it("112. 作者把自己加進 allowed_users → DENY", async () => {
+  await assertFails(updateDoc(doc(dev1, "tools", "t_restricted"), { allowed_users: ["10231"] }));
+});
+await it("113. 作者改「已發布」工具的 url → DENY（已核准的目的地不得被換成釣魚站）", async () => {
+  await assertFails(updateDoc(doc(dev1, "tools", "t_live"), { url: "https://evil.example.com" }));
+});
+await it("114. 作者改「pending 草稿」的 url → ALLOW（還沒審，那是他自己的草稿）", async () => {
+  await assertSucceeds(updateDoc(doc(dev1, "tools", "t_pending"), { url: "https://ok.example.com" }));
+});
+await it("115. 作者改自己工具的內容（desc）→ ALLOW（不誤傷正常編輯）", async () => {
+  await assertSucceeds(updateDoc(doc(dev1, "tools", "t_live"), { desc: "新描述" }));
+});
+await it("116. admin 改工具 ACL / url → ALLOW", async () => {
+  await assertSucceeds(
+    updateDoc(doc(admin, "tools", "t_live"), {
+      visibility: "BY_RULE", allowed_departments: ["dept-mfg"], url: "https://new.example.com",
     }),
   );
 });

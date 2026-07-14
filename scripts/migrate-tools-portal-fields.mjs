@@ -15,9 +15,10 @@
  *
  * 冪等：已有 visibility 的文件整筆跳過。安全網＝PITR（AGENTS.md，不寫 in-DB 備份）。
  *
- * ⚠️ 順序鐵律（AGENTS.md）：code merge → production deploy → 才跑 --apply → live 驗證。
- * 本 migration 之所以可以「先跑或後跑都不會壞」，是因為 rules 與 canAccessApp 都把
- * 「visibility 欄位缺席」視為 PUBLIC_ALL——但仍請照鐵律走。
+ * ⚠️⚠️ 這支 migration 是 AGENTS.md「code merge → deploy → migration」鐵律的**明訂例外**：
+ * 必須跑在 code merge **之前**。理由與完整步驟見 docs/portal/pr4-rollout.md
+ * （簡述：新版 serverCatalog 用 visibility 等值查詢，沒有這個欄位的文件不會被命中 →
+ * 先 merge 再跑，首頁會當場歸零；而本 migration 只加欄位、現行程式碼不讀 → 先跑是 no-op）。
  */
 
 import { initializeApp, cert } from "firebase-admin/app";
@@ -81,7 +82,9 @@ async function main() {
         allowed_users: [],
         allowed_departments: [],
         allowed_roles: [],
-        updatedAt: FieldValue.serverTimestamp(),
+        // ⚠️ 絕不動 updatedAt：卡片會顯示它，健檢看板也用它判斷「陳舊工具」——
+        // 一次 migration 把 25 個工具全變成「剛更新」，等於清空所有陳舊告警。
+        portalFieldsMigratedAt: FieldValue.serverTimestamp(),
       },
       { merge: true },
     );

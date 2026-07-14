@@ -47,6 +47,14 @@ migration 只跑一次。若新建路徑（/dashboard 送審、import script、�
    失敗，不會靜默上架成隱形工具（rules 測試 #103–#105）。
 3. 要設成受限（BY_RULE/HIDDEN）由 admin 事後在後台改，不從建立端開放。
 
+## ⚠️ 上線期間的凍結規定（第 5 步～第 7 步之間）
+
+這段區間程式碼是新的、rules 還是舊的（寬鬆）。舊 rules 只看 status、不看 visibility →
+**此時若把任何工具改成 BY_RULE/HIDDEN，匿名使用者仍可直接讀到它**（連 ACL 欄位一起）。
+
+→ **在第 7 步（rules 發布）完成並驗證之前，不得設定任何受限 app。** 第 8 步的驗收要包含：
+用無痕視窗直接讀一個已知的受限文件，必須被拒（permission denied）。
+
 ## 出事回滾
 
 - 第 5 步後首頁異常 → Vercel instant rollback（rules 還沒動，舊碼 + 新欄位可正常運作）。

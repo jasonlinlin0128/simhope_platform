@@ -87,10 +87,16 @@
    升級 GCIP，屬「不串付費 API」決策範圍，需 Jason 決定。**帳號啟用、權限變更、passkey
    登入是伺服器端權威紀錄**，不受此限。admin 稽核頁已標示此邊界，避免把「沒紀錄」誤讀成
    「沒登入」。
-7. **稽核的 append-only 是規則層保證，不是儲存層**：firestore.rules 對 client 全 deny
+7. **PUBLIC_ALL 工具的原始文件仍可被匿名整份讀取**（PR-4 review 提出）：Firestore 的
+   document read 無法逐欄位遮蔽——`allow read` 放行了，整份文件（含 `owner_employee_id`、
+   `health_check_url` 等入口網欄位）就都讀得到。`/api/apps` 的欄位白名單只保護 API 路徑，
+   保護不了 client SDK / REST 直讀。目前可接受：公開工具的 owner 員編與健檢網址不算機密
+   （健檢網址還被 manifest 驗證器強制為公網 https）。**但未來若要在 tools 文件放真正機密的
+   欄位（憑證、內部端點），必須先把公開展示資料與私有 Registry 欄位拆成兩個 collection。**
+8. **稽核的 append-only 是規則層保證，不是儲存層**：firestore.rules 對 client 全 deny
    （含 admin），但 Admin SDK 天生繞過 rules → 任何未來拿到 `adminDb` 的 route 都能改寫
    歷史。真正的不可竄改需外部 WORM 儲存，目前不做（內部站 ROI）。
 
-8. **停用員工的即時封鎖已實作於 `requireRole`（PR-2）**，但 Firestore rules 層仍以 users.role
+9. **停用員工的即時封鎖已實作於 `requireRole`（PR-2）**，但 Firestore rules 層仍以 users.role
    為準——未過 API 的 client 直讀路徑（tools 公開清單）不查 employees。PR-4 rules 收斂
    時一併處理；在那之前，離職員工仍可讀公開工具清單（＝與匿名訪客同等，非提權）。
