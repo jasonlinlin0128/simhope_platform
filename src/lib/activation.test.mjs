@@ -6,6 +6,7 @@ import {
   validateActivateInput,
   activationGate,
   applyFailedAttempt,
+  checkLease,
   MAX_ATTEMPTS,
   LOCK_MS,
   ACTIVATING_STALE_MS,
@@ -36,6 +37,8 @@ test("密碼政策：長度/純數字/含員編/含統編", () => {
 test("validateActivateInput：型別與員編格式，統一錯誤訊息", () => {
   assert.equal(validateActivateInput({ employee_id: "10231", tax_id: "1", new_password: "x" }).ok, true);
   for (const bad of [
+    null, // JSON body 為 null（不得炸成 500）
+    "string",
     {},
     { employee_id: 123, tax_id: "1", new_password: "x" },
     { employee_id: "emp 1", tax_id: "1", new_password: "x" },
@@ -77,10 +80,37 @@ test("activationGate：正常未啟用 → ok, resume=false", () => {
   assert.equal(r.resume, false);
 });
 
+test("checkLease：租約相符且未啟用 → ok", () => {
+  assert.equal(checkLease(emp({ activating_lease: "L1" }), "L1").ok, true);
+});
+
+test("checkLease：已啟用 → 409（慢請求不得回頭重設已啟用帳號的密碼）", () => {
+  const r = checkLease(emp({ activated: true, activating_lease: "L1" }), "L1");
+  assert.equal(r.code, 409);
+});
+
+test("checkLease：租約被別人接手 / 不存在 → 409", () => {
+  assert.equal(checkLease(emp({ activating_lease: "L2" }), "L1").code, 409);
+  assert.equal(checkLease(emp(), "L1").code, 409);
+  assert.equal(checkLease(null, "L1").code, 409);
+});
+
 test("applyFailedAttempt：遞增；達上限鎖 15 分", () => {
   assert.deepEqual(applyFailedAttempt(emp(), NOW), {
     activation_attempts: 1, locked_until: null,
   });
   const r = applyFailedAttempt(emp({ activation_attempts: MAX_ATTEMPTS - 1 }), NOW);
   assert.deepEqual(r, { activation_attempts: MAX_ATTEMPTS, locked_until: NOW + LOCK_MS });
+});
+
+test("applyFailedAttempt：鎖定中不再寫入（防持續騷擾＝永久鎖死的可用性 DoS）", () => {
+  const locked = emp({ activation_attempts: MAX_ATTEMPTS, locked_until: NOW + 1000 });
+  assert.equal(applyFailedAttempt(locked, NOW), null);
+});
+
+test("applyFailedAttempt：鎖到期後歸零重新計數", () => {
+  const expired = emp({ activation_attempts: MAX_ATTEMPTS, locked_until: NOW - 1 });
+  assert.deepEqual(applyFailedAttempt(expired, NOW), {
+    activation_attempts: 1, locked_until: null,
+  });
 });

@@ -62,7 +62,10 @@ users/{uid}                    ← 既有 collection，登入後的 profile
 
 登入成功由 client 打 `POST /api/auth/login-event` 記 audit（server 從 ID token 取 uid，不信任 body）。連續失敗鎖定由 Firebase Auth 內建暴力防護 + 我方 IP 限流雙層。
 
-**停用員工封鎖點**（測試 4-8 對應）：所有受保護 API 經 `requireRole`／`requireEmployee` 時加查 `employees.status`，inactive 即 403 並 audit；可見清單過濾也以 status=active 為前提。
+**停用員工封鎖點**（測試 4-8 對應）：✅ 已實作於 `requireRole`（PR-2）——users 文件有
+`employee_id` 者，每次受保護 API 呼叫都回查 `employees.status`，非 active 即 403（離職當下
+即失效，不必等 token 過期）；既有無員編的帳號（Google/開發者）不受影響。audit 記錄待 PR-3
+（audit_logs 尚未建立）。可見清單過濾也以 status=active 為前提（PR-4）。
 
 ## 4. MFA 預留（高權限帳號）
 
