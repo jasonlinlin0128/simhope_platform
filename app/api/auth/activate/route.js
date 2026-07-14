@@ -4,6 +4,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import { getAdmin } from "@/lib/firebaseAdmin";
 import { HttpError, handleApiError } from "@/lib/apiError.mjs";
 import { enforceRateLimit } from "@/lib/rateLimit.mjs";
+import { buildAuditEntry, writeAudit } from "@/lib/auditLog.mjs";
 import {
   aliasEmail,
   checkPasswordPolicy,
@@ -59,6 +60,18 @@ export async function POST(request) {
         const penalty = applyFailedAttempt(snap.data(), now);
         if (penalty) tx.set(empRef, penalty, { merge: true }); // null＝已鎖定，不延長
       });
+      await writeAudit(
+        adminDb,
+        buildAuditEntry({
+          action: "AUTH_LOGIN_FAIL",
+          actorEmployeeId: employee_id,
+          target: employee_id,
+          detail: { reason: "wrong_tax_id" },
+          result: "denied",
+          request,
+          now,
+        }),
+      );
       throw new HttpError(401, "啟用資訊不正確");
     }
 
@@ -136,6 +149,19 @@ export async function POST(request) {
         { merge: true },
       );
     });
+
+    await writeAudit(
+      adminDb,
+      buildAuditEntry({
+        action: "AUTH_ACTIVATE",
+        actorUid: uid,
+        actorEmployeeId: employee_id,
+        target: employee_id,
+        detail: { resumed: gate.resume },
+        request,
+        now,
+      }),
+    );
 
     const customToken = await adminAuth.createCustomToken(uid);
     return NextResponse.json({ customToken });

@@ -29,8 +29,11 @@ export async function requireRole(req, roles, opts = {}) {
   const uid = decoded.uid;
 
   const snap = await adminDb.collection("users").doc(uid).get();
-  const profile = snap.exists ? snap.data() : undefined; // Admin SDK：exists 是 property
-  const role = profile?.role;
+  if (!snap.exists) throw new HttpError(403, opts.forbiddenMessage || "權限不足");
+  const profile = snap.data(); // Admin SDK：exists 是 property
+  // role 欄位缺席＝viewer（對齊 firestore.rules 的 roleIsViewerOrAbsent；
+  // ensureUserDoc 首登建檔時不寫 role）。文件不存在仍一律 403。
+  const role = profile.role ?? "viewer";
   if (!roles.includes(role)) {
     throw new HttpError(403, opts.forbiddenMessage || "權限不足");
   }
