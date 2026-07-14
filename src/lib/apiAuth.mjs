@@ -29,9 +29,20 @@ export async function requireRole(req, roles, opts = {}) {
   const uid = decoded.uid;
 
   const snap = await adminDb.collection("users").doc(uid).get();
-  const role = snap.exists ? snap.data().role : undefined; // Admin SDK：exists 是 property
+  const profile = snap.exists ? snap.data() : undefined; // Admin SDK：exists 是 property
+  const role = profile?.role;
   if (!roles.includes(role)) {
     throw new HttpError(403, opts.forbiddenMessage || "權限不足");
   }
-  return { uid, role };
+
+  // 入口網身分（有綁員編者）：每次都回母檔確認在職——離職/停用當下即失效，
+  // 不必等 token 過期。既有非員編帳號（Google/開發者）無 employee_id → 不受影響。
+  const employeeId = profile?.employee_id;
+  if (employeeId) {
+    const emp = await adminDb.collection("employees").doc(employeeId).get();
+    if (!emp.exists || emp.data().status !== "active") {
+      throw new HttpError(403, "帳號已停用，請聯絡管理員");
+    }
+  }
+  return { uid, role, employeeId };
 }

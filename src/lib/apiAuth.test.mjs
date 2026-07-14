@@ -95,5 +95,44 @@ test("role 命中 → 回 {uid, role}", async () => {
   const out = await requireRole(req("Bearer x"), ["developer", "admin"], {
     admin: fakeAdmin({ uid: "u9", role: "developer" }),
   });
-  assert.deepEqual(out, { uid: "u9", role: "developer" });
+  assert.deepEqual(out, { uid: "u9", role: "developer", employeeId: undefined });
+});
+
+// 入口網身分：users.employee_id → 每次回 employees 母檔確認在職
+function fakePortalAdmin({ role = "viewer", employee, employeeId = "10231" } = {}) {
+  const docs = {
+    users: { exists: true, data: () => ({ role, employee_id: employeeId }) },
+    employees: employee
+      ? { exists: true, data: () => employee }
+      : { exists: false, data: () => undefined },
+  };
+  return {
+    adminAuth: { verifyIdToken: async () => ({ uid: "u1" }) },
+    adminDb: { collection: (name) => ({ doc: () => ({ get: async () => docs[name] }) }) },
+  };
+}
+
+test("員編帳號：母檔 active → 放行並回 employeeId", async () => {
+  const out = await requireRole(req("Bearer x"), ["viewer"], {
+    admin: fakePortalAdmin({ employee: { status: "active" } }),
+  });
+  assert.deepEqual(out, { uid: "u1", role: "viewer", employeeId: "10231" });
+});
+
+test("員編帳號：母檔 inactive → 403（停用即時封鎖，不等 token 過期）", async () => {
+  await assert.rejects(
+    () =>
+      requireRole(req("Bearer x"), ["viewer"], {
+        admin: fakePortalAdmin({ employee: { status: "inactive" } }),
+      }),
+    (e) => e instanceof HttpError && e.status === 403,
+  );
+});
+
+test("員編帳號：母檔文件不存在 → 403（fail-closed）", async () => {
+  await assert.rejects(
+    () =>
+      requireRole(req("Bearer x"), ["viewer"], { admin: fakePortalAdmin({ employee: null }) }),
+    (e) => e instanceof HttpError && e.status === 403,
+  );
 });

@@ -51,6 +51,12 @@ test("空檔案/非法 employee_id/重複/缺 name/壞 status 逐行報錯", () 
   assert.ok(bad.errors.some((e) => e.includes("重複")));
 });
 
+test("employee_id 大小寫變體視為重複（alias email 會撞）", () => {
+  const r = parseEmployeeCsv("employee_id,name,department_id\nA01,王,dept-a\na01,李,dept-b");
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes("不分大小寫")));
+});
+
 test("planImport：create/update/unchanged/missing 分類", () => {
   const rows = [
     { employee_id: "10231", name: "王小明", department_id: "dept-mfg", status: "active" },

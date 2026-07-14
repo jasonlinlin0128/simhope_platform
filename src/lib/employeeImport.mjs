@@ -55,8 +55,10 @@ export function parseEmployeeCsv(text) {
       errors.push(`第 ${line} 行：employee_id「${employee_id}」不合法（英數與連字號，1–32 字）`);
       continue;
     }
-    if (seen.has(employee_id)) {
-      errors.push(`第 ${line} 行：employee_id「${employee_id}」重複`);
+    // 大小寫不敏感的唯一性：alias email（emp{員編}@…）一律小寫，A01 與 a01 會撞同一個
+    // Firebase Auth 帳號 → 名冊階段就擋掉，不讓兩個員工共用一個登入身分。
+    if (seen.has(employee_id.toLowerCase())) {
+      errors.push(`第 ${line} 行：employee_id「${employee_id}」重複（不分大小寫）`);
       continue;
     }
     if (!name) {
@@ -71,7 +73,7 @@ export function parseEmployeeCsv(text) {
       errors.push(`第 ${line} 行：status「${status}」必須是 ${STATUSES.join("/")}`);
       continue;
     }
-    seen.add(employee_id);
+    seen.add(employee_id.toLowerCase());
     rows.push({ employee_id, name, department_id, status });
   }
 
