@@ -55,7 +55,7 @@
 
 | 欄位                          | 說明                                                                                                                                                                           |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| ts                            | server timestamp                                                                                                                                                               |
+| ts                            | 寫入時的伺服器時間（epoch ms number，非 Firestore Timestamp——方便排序與前端直接 `new Date(ts)`）                                                                               |
 | action                        | `AUTH_ACTIVATE`\|`AUTH_LOGIN`\|`AUTH_LOGIN_FAIL`\|`APP_OPEN`\|`APP_REGISTER`\|`APP_UPDATE`\|`APP_STATUS_CHANGE`\|`PERMISSION_CHANGE`\|`EMPLOYEE_IMPORT`\|`EMPLOYEE_DEACTIVATE` |
 | actor_uid / actor_employee_id | 行為者（來自 verifyIdToken，不信 body）                                                                                                                                        |
 | target                        | 客體（application_id / employee_id / uid）                                                                                                                                     |

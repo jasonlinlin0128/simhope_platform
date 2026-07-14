@@ -61,8 +61,12 @@ export default function AuditLogViewer() {
             🧾 稽核記錄
           </h3>
           <p className="text-sm text-[var(--color-text-mid)]">
-            登入、帳號啟用、權限變更與系統開啟行為。唯讀、不可竄改，保留 400
-            天。
+            帳號啟用、權限變更與登入紀錄。唯讀、不可經前台竄改，保留 400 天。
+          </p>
+          <p className="text-xs text-[var(--color-text-mid)] mt-1">
+            ⚠️ 密碼／Google
+            登入由前端回報（可能漏記，非權威）；帳號啟用、權限變更、passkey
+            登入為伺服器端權威紀錄。「開啟系統」紀錄待入口網清單上線（PR-4）。
           </p>
         </div>
         <label className="flex items-center gap-2 text-sm font-bold text-[var(--color-text-mid)]">

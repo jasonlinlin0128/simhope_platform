@@ -15,14 +15,6 @@
         { "fieldPath": "action", "order": "ASCENDING" },
         { "fieldPath": "ts", "order": "DESCENDING" }
       ]
-    },
-    {
-      "collectionGroup": "audit_logs",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "actor_employee_id", "order": "ASCENDING" },
-        { "fieldPath": "ts", "order": "DESCENDING" }
-      ]
     }
   ],
   "fieldOverrides": []

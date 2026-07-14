@@ -22,14 +22,15 @@ async function logLoginOnce(user) {
   const key = `portal.loginLogged:${user.uid}`;
   try {
     if (sessionStorage.getItem(key)) return;
-    sessionStorage.setItem(key, "1");
     const idToken = await user.getIdToken();
-    await fetch("/api/auth/login-event", {
+    const res = await fetch("/api/auth/login-event", {
       method: "POST",
       headers: { Authorization: `Bearer ${idToken}` },
     });
+    // 成功才標記：否則限流/離線的那一次會永久吞掉這個分頁的登入稽核。
+    if (res.ok) sessionStorage.setItem(key, "1");
   } catch {
-    /* 稽核失敗不阻斷登入 */
+    /* 稽核失敗不阻斷登入（下次頁面載入會再試） */
   }
 }
 

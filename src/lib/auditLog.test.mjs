@@ -56,15 +56,17 @@ test("sanitizeDetail：遮蔽密碼/token/統編類 key", () => {
   assert.equal(d.employee_id, "10231"); // 非敏感，保留
 });
 
-test("sanitizeDetail：物件值序列化並截斷；超大 detail → _truncated", () => {
+test("sanitizeDetail：巢狀物件遞迴保留、字串截斷；超大 detail → _truncated", () => {
   const d = sanitizeDetail({ before: { a: 1 }, note: "x".repeat(500) });
-  assert.equal(typeof d.before, "string");
+  assert.deepEqual(d.before, { a: 1 }); // 遞迴保留結構（權限 diff 要看得懂）
   assert.equal(d.note.length, 200);
 
   const huge = Object.fromEntries(
     Array.from({ length: 50 }, (_, i) => [`k${i}`, "y".repeat(200)]),
   );
-  assert.deepEqual(sanitizeDetail(huge), { _truncated: true });
+  const t = sanitizeDetail(huge);
+  assert.equal(t._truncated, true);
+  assert.ok(t._keys.length > 0); // 至少留下有哪些欄位，不是整包蒸發
 });
 
 test("sanitizeDetail：非物件 → null", () => {
@@ -73,11 +75,16 @@ test("sanitizeDetail：非物件 → null", () => {
   assert.equal(sanitizeDetail([1]), null);
 });
 
-test("writeAudit：寫入 audit_logs collection", async () => {
+test("sanitizeDetail：遞迴遮蔽巢狀敏感 key（權限 diff 本來就是巢狀）", () => {
+  const d = sanitizeDetail({ diff: { before: { password: "p" }, after: { role: "admin" } } });
+  assert.equal(d.diff.before.password, "[redacted]");
+  assert.equal(d.diff.after.role, "admin");
+});
+
+test("writeAudit：組裝＋寫入 audit_logs collection", async () => {
   const added = [];
   const db = { collection: (c) => ({ add: async (e) => added.push([c, e]) }) };
-  const entry = buildAuditEntry({ action: "APP_OPEN", target: "quote", now: NOW });
-  await writeAudit(db, entry);
+  await writeAudit(db, { action: "APP_OPEN", target: "quote", now: NOW });
   assert.equal(added.length, 1);
   assert.equal(added[0][0], "audit_logs");
   assert.equal(added[0][1].target, "quote");
@@ -86,7 +93,13 @@ test("writeAudit：寫入 audit_logs collection", async () => {
 test("writeAudit：fail-soft — 寫入失敗不拋，只記 error log", async () => {
   const errs = [];
   const db = { collection: () => ({ add: async () => { throw new Error("firestore down"); } }) };
-  const entry = buildAuditEntry({ action: "AUTH_LOGIN", now: NOW });
-  await writeAudit(db, entry, { error: (...a) => errs.push(a) }); // 不應 reject
+  await writeAudit(db, { action: "AUTH_LOGIN", now: NOW }, { error: (...a) => errs.push(a) });
   assert.equal(errs.length, 1);
+});
+
+test("writeAudit：fail-soft 也涵蓋組裝錯誤（未知 action 不得炸掉主要操作）", async () => {
+  const errs = [];
+  const db = { collection: () => ({ add: async () => {} }) };
+  await writeAudit(db, { action: "TYPO_ACTION", now: NOW }, { error: (...a) => errs.push(a) });
+  assert.equal(errs.length, 1); // 不應 reject
 });

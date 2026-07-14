@@ -26,11 +26,17 @@ export const AUDIT_RESULTS = ["ok", "denied", "error"];
 export const RETENTION_DAYS = 400;
 
 const DETAIL_MAX_CHARS = 2000;
-/** 絕不寫進稽核 detail 的 key（密碼/秘密類）。 */
-const REDACT_KEYS = /pass|token|secret|tax_id|credential/i;
+/** 絕不寫進稽核 detail 的 key（密碼/秘密/憑證類）。寧可誤殺（token_count）也不要漏。 */
+const REDACT_KEYS =
+  /pass|token|secret|tax_id|credential|authorization|cookie|session|api[_-]?key|private[_-]?key/i;
 
-/** detail 淨化：只留純量、遮蔽敏感 key、限制大小（稽核不是 log dump）。 */
-export function sanitizeDetail(detail) {
+const MAX_DEPTH = 3;
+
+/**
+ * detail 淨化：遮蔽敏感 key（**遞迴**——權限變更的 before/after diff 本來就是巢狀物件，
+ * 只看第一層等於讓 `{diff:{password}}` 直接落地）、截斷字串、限制整體大小。
+ */
+export function sanitizeDetail(detail, depth = 0) {
   if (detail === null || typeof detail !== "object" || Array.isArray(detail)) return null;
   const out = {};
   for (const [k, v] of Object.entries(detail)) {
@@ -38,12 +44,16 @@ export function sanitizeDetail(detail) {
       out[k] = "[redacted]";
     } else if (v === null || ["string", "number", "boolean"].includes(typeof v)) {
       out[k] = typeof v === "string" ? v.slice(0, 200) : v;
+    } else if (Array.isArray(v)) {
+      out[k] = JSON.stringify(v.slice(0, 20))?.slice(0, 200) ?? null;
+    } else if (typeof v === "object" && depth < MAX_DEPTH) {
+      out[k] = sanitizeDetail(v, depth + 1);
     } else {
-      out[k] = JSON.stringify(v)?.slice(0, 200) ?? null;
+      out[k] = "[omitted]"; // 過深或不可序列化 → 不猜、不硬塞
     }
   }
   const json = JSON.stringify(out);
-  if (json.length > DETAIL_MAX_CHARS) return { _truncated: true };
+  if (json.length > DETAIL_MAX_CHARS) return { _truncated: true, _keys: Object.keys(out).slice(0, 20) };
   return out;
 }
 
@@ -89,14 +99,20 @@ export function buildAuditEntry({
 }
 
 /**
- * 寫入 audit_logs。**fail-soft**：稽核寫入失敗不得讓主要操作失敗
- * （例外：權限變更類——呼叫端要自行 await 並讓錯誤往上拋，見 authentication-flow §2）。
+ * 組裝並寫入 audit_logs。**fail-soft**：組裝或寫入失敗都不得讓主要操作失敗
+ * （組裝也要包在 try 內——buildAuditEntry 對未知 action 會拋，若在外面拋就會
+ * 把「登入成功」變成 500）。
+ *
+ * 例外：權限變更（PERMISSION_CHANGE）不走這裡——見 /api/admin/set-role，
+ * 它把稽核與變更放同一個 batch，稽核失敗＝變更失敗（寧可不授權，也不要無紀錄的提權）。
+ *
  * @param {object} adminDb  Firestore Admin instance
+ * @param {object} params   buildAuditEntry 的參數
  */
-export async function writeAudit(adminDb, entry, logger = console) {
+export async function writeAudit(adminDb, params, logger = console) {
   try {
-    await adminDb.collection("audit_logs").add(entry);
+    await adminDb.collection("audit_logs").add(buildAuditEntry(params));
   } catch (e) {
-    logger.error("[audit] 寫入失敗", entry.action, entry.target, e);
+    logger.error("[audit] 寫入失敗", params?.action, params?.target, e);
   }
 }
