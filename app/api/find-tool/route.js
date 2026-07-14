@@ -22,6 +22,8 @@ export async function POST(request) {
       .trim();
     if (!query) throw new HttpError(400, "請描述你想做的事");
 
+    // 匿名端點 → 只用公開目錄（getServerCatalog 收斂後只含 visibility=PUBLIC_ALL）。
+    // 受限 app 刻意不進 chatbot 建議：這裡沒有身分可驗，推薦出來就是洩漏內部系統存在。
     const catalog = (await getServerCatalog()).filter((t) =>
       FIND_STATUSES.includes(t.status),
     );

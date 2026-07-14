@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { FieldValue } from "firebase-admin/firestore";
 import { getAdmin } from "@/lib/firebaseAdmin";
 import { rateLimit, clientIp } from "@/lib/rateLimit.mjs";
-import { getServerToolIdSet } from "@/lib/serverCatalog";
+import { getAllToolIdSet } from "@/lib/toolIds";
 import { buildVoteDocId } from "@/lib/helpfulVote.mjs";
 import { buildIncrements } from "@/lib/trackEvents.mjs";
 
@@ -43,7 +43,7 @@ export async function POST(req) {
       return NextResponse.json({ error: "缺少工具 id" }, { status: 400 });
 
     // 驗 toolId 存在於目錄（fail-open：取目錄失敗/空 → 不擋，避免誤殺正常回饋）。
-    const idSet = await getServerToolIdSet();
+    const idSet = await getAllToolIdSet();
     if (idSet.size > 0 && !idSet.has(toolId)) {
       return NextResponse.json({ error: "工具不存在" }, { status: 404 });
     }

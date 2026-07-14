@@ -75,16 +75,8 @@ export async function getServerCatalog() {
   }
 }
 
-/**
- * 公開工具的 id 集合（給 /api/track、/api/tool-helpful 驗證 toolId 用）。
- * 沿用 getServerCatalog 的 ISR 快取。取目錄失敗/空 → 空 Set；
- * 呼叫端應把「空 Set」視為「無法判定」而 **不過濾**（fail-open），避免誤擋正常計數。
- * @returns {Promise<Set<string>>}
- */
-export async function getServerToolIdSet() {
-  const cat = await getServerCatalog();
-  return new Set(cat.map((t) => t.id).filter(Boolean));
-}
+// getServerToolIdSet 已移除（入口網 ACL 收斂後，這支只看得到 PUBLIC_ALL → 受限 app 的
+// 計數會被當成非法 id 丟棄）。驗證 toolId 請用 src/lib/toolIds.js 的 getAllToolIdSet（Admin SDK）。
 
 /**
  * 已核准痛點卡（approval == approved）。空 → DEFAULT_SITE.painCards 後備；失敗 → []。
