@@ -57,3 +57,4 @@ serviceAccountKey.json
 *-debug.log
 /.firebase/
 firebase-export-*/
+.claude/
