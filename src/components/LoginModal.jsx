@@ -9,6 +9,7 @@ import {
   signInWithPopup,
 } from "firebase/auth";
 import { loginWithPasskey, passkeySupported } from "@/lib/passkey";
+import { aliasEmail } from "@/lib/activation.mjs";
 import { useAuth } from "@/context/AuthContext";
 import Modal from "@/components/Modal";
 import { track } from "@/lib/track";
@@ -95,7 +96,9 @@ export default function LoginModal({ onClose, initialTab = "login" }) {
     setError("");
     setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      // 員編登入：無 @ 的輸入視為員工編號 → 確定性轉 alias email（/activate 啟用的帳號）
+      const loginId = email.includes("@") ? email : aliasEmail(email.trim());
+      await signInWithEmailAndPassword(auth, loginId, password);
       onClose();
     } catch (err) {
       setError(mapAuthErr(err));
@@ -237,11 +240,12 @@ export default function LoginModal({ onClose, initialTab = "login" }) {
           </div>
           <form onSubmit={handlePasswordLogin} className="flex flex-col gap-3">
             <input
-              type="email"
+              type="text"
+              autoComplete="username"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="your@simhope.com.tw"
-              aria-label="電子郵件"
+              placeholder="員工編號 或 your@simhope.com.tw"
+              aria-label="員工編號或電子郵件"
               className="w-full px-4 py-2.5 rounded-xl border border-[var(--color-card-border)] bg-[var(--color-card-bg)] text-[var(--color-text-dark)] font-semibold text-sm outline-none focus:border-[var(--color-clay-purple)]"
             />
             <input
