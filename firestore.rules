@@ -48,10 +48,16 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // Tools: 公開狀態人人可讀；未公開（pending）只有作者/admin 可讀；
-    //        developer/admin 可建立，只有作者或 admin 可修改/刪除。
+    // Tools（＝入口網 Application Registry）：
+    //   讀：**只有 visibility=PUBLIC_ALL 的公開狀態**人人可讀（首頁/hub 的匿名 REST 走這裡）；
+    //       受限的 app（BY_RULE / HIDDEN）client 一律讀不到——它們由 /api/apps 以 Admin SDK
+    //       按身分（canSeeApp）過濾後才下發，受限資料不得落入任何 client payload。
+    //       未公開（pending）與受限 app 仍只有作者/admin 可讀（/dashboard、/admin、健檢看板靠這條）。
+    //   ⚠️ visibility 缺欄位的舊文件無法被等值查詢命中 → 上這條規則前，
+    //      必須先跑 scripts/migrate-tools-portal-fields.mjs --apply（見 PR 說明的順序）。
     match /tools/{toolId} {
-      allow read: if resource.data.status in ['live', 'beta', 'new', 'dev', 'terminated']
+      allow read: if (resource.data.visibility == 'PUBLIC_ALL'
+          && resource.data.status in ['live', 'beta', 'new', 'dev', 'terminated'])
         || (isSignedIn() && resource.data.authorUid == request.auth.uid)
         || isAdmin();
       allow create: if isSignedIn()

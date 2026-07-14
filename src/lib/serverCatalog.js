@@ -24,8 +24,16 @@ async function runQuery(structuredQuery) {
 }
 
 /**
- * 公開工具目錄（status in [live,beta,new,dev,terminated]）。shape 同 db.getCatalog()。
+ * 公開工具目錄（visibility=PUBLIC_ALL 且 status in [live,beta,new,dev,terminated]）。
  * 失敗 → []（不 crash 頁面）。
+ *
+ * ⚠️ 這是**匿名** REST 讀，受 firestore.rules 約束（不是 Admin SDK）。rules 只放行
+ * PUBLIC_ALL，而 Firestore 對 query 的規則檢查要求「查詢條件本身可證明安全」——
+ * 因此這裡**必須**帶 visibility 過濾，否則整個查詢會被拒（首頁直接變 0 個工具）。
+ * 受限的 app（BY_RULE/HIDDEN）不經這裡：由 /api/apps 以 Admin SDK 按身分過濾後才下發。
+ *
+ * 相依：所有既有 tools 必須先跑 scripts/migrate-tools-portal-fields.mjs --apply
+ * 補上 visibility（缺欄位的文件無法被等值查詢命中 → 會從清單消失）。
  * @returns {Promise<object[]>}
  */
 export async function getServerCatalog() {
@@ -33,16 +41,32 @@ export async function getServerCatalog() {
     return await runQuery({
       from: [{ collectionId: "tools" }],
       where: {
-        fieldFilter: {
-          field: { fieldPath: "status" },
-          op: "IN",
-          value: {
-            arrayValue: {
-              values: ["live", "beta", "new", "dev", "terminated"].map((s) => ({
-                stringValue: s,
-              })),
+        compositeFilter: {
+          op: "AND",
+          filters: [
+            {
+              fieldFilter: {
+                field: { fieldPath: "visibility" },
+                op: "EQUAL",
+                value: { stringValue: "PUBLIC_ALL" },
+              },
             },
-          },
+            {
+              fieldFilter: {
+                field: { fieldPath: "status" },
+                op: "IN",
+                value: {
+                  arrayValue: {
+                    values: ["live", "beta", "new", "dev", "terminated"].map(
+                      (s) => ({
+                        stringValue: s,
+                      }),
+                    ),
+                  },
+                },
+              },
+            },
+          ],
         },
       },
     });

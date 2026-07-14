@@ -48,6 +48,18 @@ async function seed() {
     });
     await setDoc(doc(db, "tools", "t_live"), {
       authorUid: "dev1", status: "live", createdAt: 1000, title: "L",
+      visibility: "PUBLIC_ALL", // migration M1 後的常態
+    });
+    await setDoc(doc(db, "tools", "t_restricted"), {
+      authorUid: "dev1", status: "live", createdAt: 1000, title: "R",
+      visibility: "BY_RULE", allowed_departments: ["dept-mfg"], // 受限 app
+    });
+    await setDoc(doc(db, "tools", "t_hidden"), {
+      authorUid: "dev1", status: "live", createdAt: 1000, title: "H",
+      visibility: "HIDDEN",
+    });
+    await setDoc(doc(db, "tools", "t_no_visibility"), {
+      authorUid: "dev1", status: "live", createdAt: 1000, title: "NoVis", // migration 前的舊文件
     });
     await setDoc(doc(db, "tools", "t_legacy_nocreated"), {
       authorUid: "dev1", status: "pending", title: "NoCreated", // 缺 createdAt
@@ -261,11 +273,14 @@ await it("37. admin 讀 pc_dev1 → ALLOW", async () => {
 });
 
 console.log("LIST query 相容性（P0 防護：home/hub/admin/dashboard 查詢）:");
-await it("38. anon LIST tools where status in [public]（home/hub）→ ALLOW", async () => {
+await it("38. anon LIST tools where visibility==PUBLIC_ALL && status in [public]（home/hub 現行查詢）→ ALLOW", async () => {
+  // ⚠️ 入口網 ACL 收斂後，只篩 status 的舊查詢會被整個拒絕（見 #102）→ serverCatalog
+  //    的查詢已同步加上 visibility 過濾。這條測試就是那個契約。
   await assertSucceeds(
     getDocs(
       query(
         collection(anon, "tools"),
+        where("visibility", "==", "PUBLIC_ALL"),
         where("status", "in", ["live", "beta", "new", "dev", "terminated"]),
       ),
     ),
@@ -482,6 +497,51 @@ await it("92. dev1 改既有 audit_log → DENY（append-only，不可竄改）"
 });
 await it("93. admin 刪 audit_log → DENY（連 admin 也不能湮滅紀錄）", async () => {
   await assertFails(deleteDoc(doc(admin, "audit_logs", "log1")));
+});
+// ===== tools 讀取收斂（入口網 ACL）：只有 PUBLIC_ALL 公開可讀 =====
+console.log("tools 讀取收斂（visibility）:");
+await it("94. anon 讀 PUBLIC_ALL live 工具 → ALLOW（首頁/hub 匿名 REST 靠這條）", async () => {
+  await assertSucceeds(getDoc(doc(anon, "tools", "t_live")));
+});
+await it("95. anon 讀 BY_RULE 受限 app → DENY（受限資料不得落入 client）", async () => {
+  await assertFails(getDoc(doc(anon, "tools", "t_restricted")));
+});
+await it("96. 登入者（非作者非 admin）讀 BY_RULE 受限 app → DENY（即使他有權限，也只能經 /api/apps）", async () => {
+  await assertFails(getDoc(doc(dev2, "tools", "t_restricted")));
+});
+await it("97. anon 讀 HIDDEN app → DENY", async () => {
+  await assertFails(getDoc(doc(anon, "tools", "t_hidden")));
+});
+await it("98. 作者仍可讀自己的受限 app → ALLOW（/dashboard 不壞）", async () => {
+  await assertSucceeds(getDoc(doc(dev1, "tools", "t_restricted")));
+});
+await it("99. admin 仍可讀受限/隱藏 app → ALLOW（/admin、健檢看板不壞）", async () => {
+  await assertSucceeds(getDoc(doc(admin, "tools", "t_restricted")));
+  await assertSucceeds(getDoc(doc(admin, "tools", "t_hidden")));
+});
+await it("100. anon 讀「migration 前無 visibility 欄位」的工具 → DENY（＝為何 migration 必須先跑）", async () => {
+  await assertFails(getDoc(doc(anon, "tools", "t_no_visibility")));
+});
+await it("101. anon 查詢 PUBLIC_ALL + 公開狀態（首頁實際查詢形狀）→ ALLOW", async () => {
+  await assertSucceeds(
+    getDocs(
+      query(
+        collection(anon, "tools"),
+        where("visibility", "==", "PUBLIC_ALL"),
+        where("status", "in", ["live", "beta", "new", "dev", "terminated"]),
+      ),
+    ),
+  );
+});
+await it("102. anon 查詢「只篩 status」（收斂前的舊查詢形狀）→ DENY（證明 serverCatalog 必須同步改）", async () => {
+  await assertFails(
+    getDocs(
+      query(
+        collection(anon, "tools"),
+        where("status", "in", ["live", "beta", "new", "dev", "terminated"]),
+      ),
+    ),
+  );
 });
 // ===== TESTS END =====
 

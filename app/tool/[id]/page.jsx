@@ -840,9 +840,26 @@ export default function ToolDetail({ params }) {
 
   const fetchTool = useCallback(async () => {
     try {
-      const docSnap = await getDoc(doc(db, "tools", id));
-      if (!docSnap.exists()) return; // tool 留 null → 渲染 not-found 狀態頁
-      const data = docSnap.data();
+      // 受限 app（visibility=BY_RULE）的 client 直讀會被 firestore.rules 擋掉——這是刻意的。
+      // 有權限的人改由 /api/apps/{id} 取得（伺服器端 canSeeApp 判斷）。
+      let data = null;
+      try {
+        const docSnap = await getDoc(doc(db, "tools", id));
+        if (docSnap.exists()) data = docSnap.data();
+      } catch {
+        /* permission-denied → 落到下面的伺服器端路徑 */
+      }
+      if (!data) {
+        const headers = user
+          ? { Authorization: `Bearer ${await user.getIdToken()}` }
+          : {};
+        const res = await fetch(`/api/apps/${encodeURIComponent(id)}`, {
+          headers,
+        });
+        if (!res.ok) return; // 404 → not-found 狀態頁（不區分「不存在」與「沒權限」）
+        data = (await res.json()).app;
+      }
+      if (!data) return; // tool 留 null → 渲染 not-found 狀態頁
       const isPublic = ["live", "beta", "new", "dev", "terminated"].includes(
         data.status,
       );
