@@ -20,6 +20,7 @@ import RequestInbox from "@/components/RequestInbox";
 import UsageDashboard from "@/components/UsageDashboard";
 import DemandBoard from "@/components/DemandBoard";
 import HealthDashboard from "@/components/HealthDashboard";
+import AuditLogViewer from "@/components/AuditLogViewer";
 import { BEFORE_BOX, AFTER_BOX, DANGER_BTN } from "@/lib/uiClasses";
 import { useToast } from "@/components/Toast";
 import { useConfirm } from "@/components/ConfirmDialog";
@@ -239,6 +240,12 @@ export default function AdminDashboard() {
             className={`w-full text-left px-4 py-3 rounded-xl font-bold transition-all ${activeTab === "demand" ? "bg-[var(--color-clay-purple)] text-white shadow-md" : "text-[var(--color-text-mid)] hover:bg-gray-100 dark:hover:bg-gray-700"}`}
           >
             💡 需求看板
+          </button>
+          <button
+            onClick={() => setActiveTab("audit")}
+            className={`w-full text-left px-4 py-3 rounded-xl font-bold transition-all ${activeTab === "audit" ? "bg-[var(--color-clay-purple)] text-white shadow-md" : "text-[var(--color-text-mid)] hover:bg-gray-100 dark:hover:bg-gray-700"}`}
+          >
+            🧾 稽核記錄
           </button>
         </nav>
       </aside>
@@ -577,6 +584,11 @@ export default function AdminDashboard() {
         {activeTab === "demand" && (
           <div className="bg-[var(--color-card-bg)] rounded-[24px] shadow-sm border border-[var(--color-card-border)] p-8">
             <DemandBoard />
+          </div>
+        )}
+        {activeTab === "audit" && (
+          <div className="bg-[var(--color-card-bg)] rounded-[24px] shadow-sm border border-[var(--color-card-border)] p-8">
+            <AuditLogViewer />
           </div>
         )}
       </main>

@@ -4,6 +4,7 @@ import { isoBase64URL } from "@simplewebauthn/server/helpers";
 import { getAdmin } from "@/lib/firebaseAdmin";
 import { getRpInfo, consumeChallenge } from "@/lib/passkeyServer";
 import { HttpError } from "@/lib/httpError.mjs";
+import { writeAudit } from "@/lib/auditLog.mjs";
 
 /**
  * POST /api/auth/passkey/login/verify
@@ -61,6 +62,19 @@ export async function POST(request) {
 
     // 鑄 custom token — uid 來自伺服器查到的 credential owner
     const customToken = await adminAuth.createCustomToken(cred.uid);
+
+    // passkey 登入經過伺服器 → 這是唯一能「權威」記錄的登入路徑（不靠 client 自報）
+    const profile = await adminDb.collection("users").doc(cred.uid).get();
+    await writeAudit(adminDb, {
+      action: "AUTH_LOGIN",
+      actorUid: cred.uid,
+      actorEmployeeId: profile.exists
+        ? (profile.data().employee_id ?? null)
+        : null,
+      target: cred.uid,
+      detail: { method: "passkey", authoritative: true },
+      request,
+    });
     return NextResponse.json({ customToken });
   } catch (e) {
     return NextResponse.json({ error: e.message }, { status: e.status || 500 });

@@ -79,6 +79,18 @@
    能通過統編驗證的本就是內部人，而員編對同事並非秘密；改回統一 401 會讓正常員工在
    「已啟用」情境下卡死且不知所措（UX 代價 > 安全收益）。統編未過者一律統一 401，
    外部人無此 oracle。
-6. **停用員工的即時封鎖已實作於 `requireRole`（PR-2）**，但 Firestore rules 層仍以 users.role
+6. **密碼／Google 登入的稽核是 client 自報，非權威**（PR-3）：這兩條路徑由 Firebase SDK
+   直接對 Firebase 認證，不經過我們的伺服器 → 我們無從攔截。目前由 AuthContext 登入後
+   回報 `/api/auth/login-event`（entry 標 `authoritative:false`）。**當事人可以繞過**
+   （改 sessionStorage、擋一個 XHR，或乾脆用 Firebase REST 登入後直接讀 Firestore）。
+   要真正權威需 Identity Platform 的 blocking function（`beforeSignIn`）＝ Firebase 專案
+   升級 GCIP，屬「不串付費 API」決策範圍，需 Jason 決定。**帳號啟用、權限變更、passkey
+   登入是伺服器端權威紀錄**，不受此限。admin 稽核頁已標示此邊界，避免把「沒紀錄」誤讀成
+   「沒登入」。
+7. **稽核的 append-only 是規則層保證，不是儲存層**：firestore.rules 對 client 全 deny
+   （含 admin），但 Admin SDK 天生繞過 rules → 任何未來拿到 `adminDb` 的 route 都能改寫
+   歷史。真正的不可竄改需外部 WORM 儲存，目前不做（內部站 ROI）。
+
+8. **停用員工的即時封鎖已實作於 `requireRole`（PR-2）**，但 Firestore rules 層仍以 users.role
    為準——未過 API 的 client 直讀路徑（tools 公開清單）不查 employees。PR-4 rules 收斂
    時一併處理；在那之前，離職員工仍可讀公開工具清單（＝與匿名訪客同等，非提權）。

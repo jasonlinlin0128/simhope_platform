@@ -6,6 +6,7 @@ import {
 } from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db as primaryDb } from "./firebase";
+import { setRole } from "./setRole";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDFknAmnkhg1BMq3lczOndvVLuiWCrnZjU",
@@ -49,15 +50,19 @@ export async function createDeveloperAccount({
   );
   await signOut(secondaryAuth);
 
-  // 2. role 文件由 primary（admin）寫入 → 受 isAdmin() 授權
+  // 2. 基本資料由 primary（admin）寫入 → 受 isAdmin() 授權
   await setDoc(doc(primaryDb, "users", user.uid), {
     uid: user.uid,
     email,
     displayName: displayName || email.split("@")[0],
-    role: "developer",
     createdBy: createdByUid,
     createdAt: serverTimestamp(),
   });
+
+  // 3. role 一律走後端（稽核）：這裡不寫 role，由 /api/admin/set-role 授予並寫
+  //    PERMISSION_CHANGE。失敗就讓錯誤往上拋——帳號會停在無 role（＝viewer）狀態，
+  //    admin 可在帳號管理重試授權，不會留下「有 developer 權限但沒稽核」的帳號。
+  await setRole(user.uid, "developer");
 
   return user.uid;
 }

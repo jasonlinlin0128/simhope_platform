@@ -121,6 +121,12 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // 稽核記錄：append-only，只有 Admin SDK 能寫，admin 經 /api/admin/audit-logs 讀。
+    // client 一律拒絕——稽核紀錄若能被當事人讀寫/刪除，就失去舉證意義。
+    match /audit_logs/{logId} {
+      allow read, write: if false;
+    }
+
     // 部門：登入者可讀（入口網按部門過濾顯示用）；僅 admin 可寫。
     match /departments/{deptId} {
       allow read: if isSignedIn();

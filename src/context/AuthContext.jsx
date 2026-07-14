@@ -13,6 +13,27 @@ import { getUserProfile, ensureUserDoc } from "@/lib/db";
 
 const AuthContext = createContext(null);
 
+/**
+ * 登入稽核：每個瀏覽器分頁 session 對同一 uid 只記一次。
+ * onAuthStateChanged 每次頁面載入/token 更新都會觸發，不去重會把 audit_logs 灌成瀏覽紀錄。
+ * fail-soft：記不成不影響登入（伺服器端才是稽核的權威來源）。
+ */
+async function logLoginOnce(user) {
+  const key = `portal.loginLogged:${user.uid}`;
+  try {
+    if (sessionStorage.getItem(key)) return;
+    const idToken = await user.getIdToken();
+    const res = await fetch("/api/auth/login-event", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${idToken}` },
+    });
+    // 成功才標記：否則限流/離線的那一次會永久吞掉這個分頁的登入稽核。
+    if (res.ok) sessionStorage.setItem(key, "1");
+  } catch {
+    /* 稽核失敗不阻斷登入（下次頁面載入會再試） */
+  }
+}
+
 /** Subscribes to Firebase Auth state and fetches the Firestore user profile on sign-in. */
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -27,6 +48,7 @@ export function AuthProvider({ children }) {
         await ensureUserDoc(currentUser);
         const userProfile = await getUserProfile(currentUser.uid);
         setProfile(userProfile);
+        logLoginOnce(currentUser);
       } else {
         setProfile(null);
       }

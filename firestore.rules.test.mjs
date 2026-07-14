@@ -89,6 +89,9 @@ async function seed() {
       name: "王小明", department_id: "dept-mfg", status: "active", activated: false, // server-only
     });
     await setDoc(doc(db, "departments", "dept-mfg"), { name: "製造部", parent_id: null });
+    await setDoc(doc(db, "audit_logs", "log1"), {
+      ts: 1000, action: "AUTH_LOGIN", actor_uid: "dev1", result: "ok", // server-only
+    });
   });
 }
 
@@ -455,6 +458,30 @@ await it("86. admin 寫 department → ALLOW", async () => {
 });
 await it("87. dev1 刪 department → DENY", async () => {
   await assertFails(deleteDoc(doc(dev1, "departments", "dept-mfg")));
+});
+// ===== audit_logs（server-only append-only：client 不可讀/寫/刪，含 admin）=====
+console.log("audit_logs（client 一律拒，含 admin）:");
+await it("88. anon 讀 audit_log → DENY", async () => {
+  await assertFails(getDoc(doc(anon, "audit_logs", "log1")));
+});
+await it("89. dev1 讀 audit_log → DENY", async () => {
+  await assertFails(getDoc(doc(dev1, "audit_logs", "log1")));
+});
+await it("90. admin（client）讀 audit_log → DENY（只能經 /api/admin/audit-logs）", async () => {
+  await assertFails(getDoc(doc(admin, "audit_logs", "log1")));
+});
+await it("91. dev1 偽造 audit_log → DENY", async () => {
+  await assertFails(
+    setDoc(doc(dev1, "audit_logs", "forged"), {
+      ts: 1, action: "AUTH_LOGIN", actor_uid: "admin1", result: "ok",
+    }),
+  );
+});
+await it("92. dev1 改既有 audit_log → DENY（append-only，不可竄改）", async () => {
+  await assertFails(updateDoc(doc(dev1, "audit_logs", "log1"), { result: "denied" }));
+});
+await it("93. admin 刪 audit_log → DENY（連 admin 也不能湮滅紀錄）", async () => {
+  await assertFails(deleteDoc(doc(admin, "audit_logs", "log1")));
 });
 // ===== TESTS END =====
 

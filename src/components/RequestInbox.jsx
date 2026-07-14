@@ -17,6 +17,7 @@ import {
   Timestamp,
 } from "firebase/firestore";
 import { useToast } from "@/components/Toast";
+import { setRole } from "@/lib/setRole";
 import { INPUT_BOX } from "@/lib/uiClasses";
 import { notifyUidForHandled } from "@/lib/requestNotify.mjs";
 
@@ -96,10 +97,9 @@ export default function RequestInbox() {
   const approve = async (r) => {
     if (!r.uid) return;
     try {
-      await updateDoc(doc(db, "users", r.uid), {
-        role: "developer",
-        devStatus: "approved",
-      });
+      // 角色授予走後端（/api/admin/set-role）——client 直接 updateDoc 沒有 server hop，
+      // 就寫不出可信的 PERMISSION_CHANGE 稽核（規格要求權限變更必留紀錄）。
+      await setRole(r.uid, "developer", "approved");
       await updateDoc(doc(db, "requests", r.id), {
         status: "approved",
         expireAt: newExpireAt(),

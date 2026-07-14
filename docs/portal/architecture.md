@@ -66,7 +66,11 @@ Firebase Auth：帳號（員編 alias email、Google、passkey）
 
 1. **授權判斷全在後端**：可見清單由 server（Admin SDK 或 RSC + rules）過濾後才下發；前端竄改 `application_id` 會在 `/api/apps/{id}/open` 被 `canAccessApp()` 再驗一次。
 2. **Portal 與 Registry 分離**：Registry＝`tools` collection + `/api/registry/*`（資料層），Portal＝展示層。子系統註冊只動 Registry，Portal 自動反映（新系統過審即出現，免公告網址）。
-3. **稽核不可繞過**：`audit_logs` 只有 Admin SDK 能寫（rules 全 deny），登入/啟用/權限變更/開啟應用都經 server route，順路寫 audit。
+3. **稽核不可偽造**：`audit_logs` 只有 Admin SDK 能寫（rules 對 client 全 deny，含 admin），
+   actor 一律取自伺服器已驗證身分。**但「不可偽造」≠「不可繞過」**：帳號啟用、權限變更、
+   passkey 登入、開啟應用（PR-4）都經 server route ⇒ 權威；密碼／Google 登入直接打 Firebase
+   不經我們的伺服器 ⇒ 只能由 client 回報，當事人可繞過（entry 標 `authoritative:false`，
+   殘餘風險見 threat-model §3.6）。
 
 ## 3. 環境策略
 

@@ -4,6 +4,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import { getAdmin } from "@/lib/firebaseAdmin";
 import { HttpError, handleApiError } from "@/lib/apiError.mjs";
 import { enforceRateLimit } from "@/lib/rateLimit.mjs";
+import { writeAudit } from "@/lib/auditLog.mjs";
 import {
   aliasEmail,
   checkPasswordPolicy,
@@ -53,12 +54,26 @@ export async function POST(request) {
 
     if (tax_id !== TAX_ID) {
       // 統編錯：對存在的員編記失敗（transaction 內 check-and-increment）；回應一律統一 401
-      await adminDb.runTransaction(async (tx) => {
+      const empExists = await adminDb.runTransaction(async (tx) => {
         const snap = await tx.get(empRef);
-        if (!snap.exists) return;
+        if (!snap.exists) return false;
         const penalty = applyFailedAttempt(snap.data(), now);
         if (penalty) tx.set(empRef, penalty, { merge: true }); // null＝已鎖定，不延長
+        return true;
       });
+      // 只有「員編確實存在」才寫失敗稽核——否則外部人可用亂數員編無限灌 audit_logs，
+      // 把真正的攻擊證據淹沒在雜訊裡（稽核表的價值在於能被讀）。
+      if (empExists) {
+        await writeAudit(adminDb, {
+          action: "AUTH_LOGIN_FAIL",
+          actorEmployeeId: employee_id,
+          target: employee_id,
+          detail: { reason: "wrong_tax_id" },
+          result: "denied",
+          request,
+          now,
+        });
+      }
       throw new HttpError(401, "啟用資訊不正確");
     }
 
@@ -135,6 +150,16 @@ export async function POST(request) {
         },
         { merge: true },
       );
+    });
+
+    await writeAudit(adminDb, {
+      action: "AUTH_ACTIVATE",
+      actorUid: uid,
+      actorEmployeeId: employee_id,
+      target: employee_id,
+      detail: { resumed: gate.resume },
+      request,
+      now,
     });
 
     const customToken = await adminAuth.createCustomToken(uid);
