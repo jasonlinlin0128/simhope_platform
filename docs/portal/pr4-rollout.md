@@ -34,6 +34,19 @@
 反過來若照通則先 merge，第 5 步部署的新查詢會找不到任何帶 visibility 的文件 → 首頁當場歸零。
 通則的本意是「不要讓資料先於程式碼改變語意」，這裡資料沒有改變任何現行語意。
 
+## 為什麼「新建工具」也必須帶 visibility（review 抓到的延後版事故）
+
+migration 只跑一次。若新建路徑（/dashboard 送審、import script、未來任何新路徑）沒寫
+`visibility`，那個工具過審上架後**不會被首頁的等值查詢命中、也讀不到** → 靜默消失。
+這是同一個事故延後到「下一個上架的工具」才發生。
+
+處置（三層，缺一不可）：
+
+1. `PORTAL_DEFAULTS`（`src/lib/appAccess.mjs`）＝新建工具必帶的欄位，兩條建立路徑都套用。
+2. `firestore.rules` 的 `allow create` **強制** `visibility == 'PUBLIC_ALL'`——忘記寫的當場
+   失敗，不會靜默上架成隱形工具（rules 測試 #103–#105）。
+3. 要設成受限（BY_RULE/HIDDEN）由 admin 事後在後台改，不從建立端開放。
+
 ## 出事回滾
 
 - 第 5 步後首頁異常 → Vercel instant rollback（rules 還沒動，舊碼 + 新欄位可正常運作）。

@@ -60,10 +60,14 @@ service cloud.firestore {
           && resource.data.status in ['live', 'beta', 'new', 'dev', 'terminated'])
         || (isSignedIn() && resource.data.authorUid == request.auth.uid)
         || isAdmin();
+      // 建立時**強制**帶 visibility=PUBLIC_ALL：沒有這個欄位的工具，過審後既不會被
+      // 首頁的等值查詢命中、也讀不到 → 靜默從站上消失。與其信任每條建立路徑都記得寫，
+      // 不如讓忘記寫的當場失敗。要設成受限（BY_RULE/HIDDEN）由 admin 事後改。
       allow create: if isSignedIn()
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['developer', 'admin']
         && request.resource.data.authorUid == request.auth.uid
-        && request.resource.data.status == 'pending';
+        && request.resource.data.status == 'pending'
+        && request.resource.data.visibility == 'PUBLIC_ALL';
       allow update: if isSignedIn() && (
         ( resource.data.authorUid == request.auth.uid
           && authorUidUnchanged()

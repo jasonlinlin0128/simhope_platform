@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAdmin } from "@/lib/firebaseAdmin";
 import { HttpError, handleApiError } from "@/lib/apiError.mjs";
 import { getSubject } from "@/lib/portalSubject";
+import { enforceRateLimit } from "@/lib/rateLimit.mjs";
 import { canSeeApp, canOpenApp } from "@/lib/appAccess.mjs";
 import { writeAudit } from "@/lib/auditLog.mjs";
 
@@ -19,6 +20,8 @@ export const dynamic = "force-dynamic";
 export async function POST(request, { params }) {
   const { id } = await params;
   try {
+    // 匿名可達 + 被拒路徑也會寫一筆 audit → 沒有限流就是「任何人都能無限灌稽核表」
+    enforceRateLimit(request, "app-open", { limit: 30, windowMs: 60000 });
     const subject = await getSubject(request);
     const { adminDb } = getAdmin();
 
@@ -58,6 +61,10 @@ export async function POST(request, { params }) {
 
     const url = app.url ?? app.production_url ?? null;
     if (!url) throw new HttpError(409, "此系統尚未設定連結");
+    // 這是一條「經過認可的跳轉」——前端會直接把使用者送過去。url 由 developer 上架時
+    // 自填，只允許 http(s)：`javascript:` 之類的 scheme 到了前端就是 XSS。
+    if (!/^https?:\/\//i.test(url))
+      throw new HttpError(409, "此系統的連結格式不正確");
 
     await writeAudit(adminDb, {
       action: "APP_OPEN",

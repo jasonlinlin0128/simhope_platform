@@ -33,7 +33,9 @@ export async function getSubject(request) {
     const empSnap = await adminDb.collection("employees").doc(employeeId).get();
     if (!empSnap.exists) return { ...ANONYMOUS, uid }; // 母檔沒了 → 降級（fail-closed）
     const emp = empSnap.data();
-    status = emp.status;
+    // status 欄位缺失視為 inactive（fail-closed）。不能留 undefined——canSeeApp 會因
+    // `status !== "active"` 把他擋成「什麼都看不到」，包括本來人人可見的 PUBLIC_ALL。
+    status = emp.status === "active" ? "active" : "inactive";
     departmentId = emp.department_id ?? null;
   }
 

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAdmin } from "@/lib/firebaseAdmin";
 import { handleApiError } from "@/lib/apiError.mjs";
 import { getSubject } from "@/lib/portalSubject";
+import { enforceRateLimit } from "@/lib/rateLimit.mjs";
 import { filterVisibleApps, LISTABLE_STATUSES } from "@/lib/appAccess.mjs";
 
 export const dynamic = "force-dynamic"; // 依身分而異 → 絕不可被快取共用
@@ -31,6 +32,7 @@ function toCard(app) {
  */
 export async function GET(request) {
   try {
+    enforceRateLimit(request, "apps-list", { limit: 60, windowMs: 60000 });
     const subject = await getSubject(request);
     const { adminDb } = getAdmin();
 
@@ -40,9 +42,11 @@ export async function GET(request) {
       .get();
     const apps = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 
-    return NextResponse.json({
-      apps: filterVisibleApps(subject, apps).map(toCard),
-    });
+    // 依身分而異的 payload：明確標記不可快取（force-dynamic 已足夠，這是第二道保險）
+    return NextResponse.json(
+      { apps: filterVisibleApps(subject, apps).map(toCard) },
+      { headers: { "Cache-Control": "private, no-store", Vary: "Authorization" } },
+    );
   } catch (e) {
     return handleApiError(e, "/api/apps");
   }

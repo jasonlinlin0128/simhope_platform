@@ -151,10 +151,11 @@ await it("8. developer create status:'live' → DENY", async () => {
     }),
   );
 });
-await it("9. developer create status:'pending'、authorUid 自己 → ALLOW", async () => {
+await it("9. developer create status:'pending'、authorUid 自己、帶 visibility → ALLOW", async () => {
   await assertSucceeds(
     setDoc(doc(dev1, "tools", "t_new_pending"), {
       authorUid: "dev1", status: "pending", createdAt: 1,
+      visibility: "PUBLIC_ALL", // 入口網 ACL 後為必填（見 #103）
     }),
   );
 });
@@ -541,6 +542,29 @@ await it("102. anon 查詢「只篩 status」（收斂前的舊查詢形狀）�
         where("status", "in", ["live", "beta", "new", "dev", "terminated"]),
       ),
     ),
+  );
+});
+await it("103. dev1 建工具但沒帶 visibility → DENY（否則過審後會從首頁靜默消失）", async () => {
+  await assertFails(
+    setDoc(doc(dev1, "tools", "t_new_novis"), {
+      authorUid: "dev1", status: "pending", title: "N", createdAt: 1,
+    }),
+  );
+});
+await it("104. dev1 建工具帶 visibility=PUBLIC_ALL → ALLOW", async () => {
+  await assertSucceeds(
+    setDoc(doc(dev1, "tools", "t_new_ok"), {
+      authorUid: "dev1", status: "pending", title: "N", createdAt: 1,
+      visibility: "PUBLIC_ALL",
+    }),
+  );
+});
+await it("105. dev1 建工具直接設 visibility=HIDDEN → DENY（受限由 admin 事後改）", async () => {
+  await assertFails(
+    setDoc(doc(dev1, "tools", "t_new_hidden"), {
+      authorUid: "dev1", status: "pending", title: "N", createdAt: 1,
+      visibility: "HIDDEN",
+    }),
   );
 });
 // ===== TESTS END =====

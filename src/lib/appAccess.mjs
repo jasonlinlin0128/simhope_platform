@@ -21,6 +21,21 @@ export const OPENABLE_STATUSES = ["live", "beta", "new"];
 export const VISIBILITIES = ["PUBLIC_ALL", "BY_RULE", "HIDDEN"];
 
 /**
+ * 新建工具時**必須**寫入的入口網欄位。
+ * 少了 visibility，收斂後的 rules 讀不到、等值查詢也命中不了 → 工具過審後不會出現在
+ * 首頁（而且是靜默的）。firestore.rules 的 allow create 會強制 visibility=PUBLIC_ALL；
+ * 要設成受限（BY_RULE/HIDDEN）由 admin 事後在後台改。
+ */
+export const PORTAL_DEFAULTS = Object.freeze({
+  visibility: "PUBLIC_ALL",
+  supports_sso: false,
+  data_classification: "internal",
+  allowed_users: [],
+  allowed_departments: [],
+  allowed_roles: [],
+});
+
+/**
  * @typedef {object} Subject   伺服器端組出來的身分（絕不取自 client）
  * @property {string|null} uid
  * @property {string|null} employee_id
@@ -41,6 +56,10 @@ export const ANONYMOUS = {
 };
 
 function matchesRule(subject, app) {
+  // BY_RULE 一律要求登入身分。否則 allowed_roles:["viewer"]（admin 表達「全體員工」
+  // 最自然的寫法）會連**登出的訪客**都放行——ANONYMOUS.role 就是 "viewer"。
+  if (!subject.uid) return false;
+
   const users = app.allowed_users ?? [];
   const depts = app.allowed_departments ?? [];
   const roles = app.allowed_roles ?? [];

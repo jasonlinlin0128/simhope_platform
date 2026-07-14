@@ -8,6 +8,7 @@ import AIPanel from "@/components/AIPanel";
 import ToolCard from "@/components/ToolCard";
 import PasskeyManager from "@/components/PasskeyManager";
 import { useToast } from "@/components/Toast";
+import { PORTAL_DEFAULTS } from "@/lib/appAccess.mjs";
 import { db, auth } from "@/lib/firebase";
 import { CATEGORIES } from "@/lib/taxonomy";
 import {
@@ -154,6 +155,10 @@ export default function Dashboard() {
         authorUid: user.uid,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
+        // 入口網欄位：**必須**在建立時就寫入。firestore.rules 收斂後，沒有
+        // visibility 的工具既讀不到也查不到 → 過審後不會出現在首頁（靜默消失）。
+        // rules 的 allow create 也會強制這個值，改這裡記得同步。
+        ...PORTAL_DEFAULTS,
         // 預設值（讓詳情頁/卡片不會壞）
         icon: "📦",
         color: "c" + (Math.floor(Math.random() * 6) + 1),

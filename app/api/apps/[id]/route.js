@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAdmin } from "@/lib/firebaseAdmin";
 import { HttpError, handleApiError } from "@/lib/apiError.mjs";
 import { getSubject } from "@/lib/portalSubject";
+import { enforceRateLimit } from "@/lib/rateLimit.mjs";
 import { canSeeApp } from "@/lib/appAccess.mjs";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +17,7 @@ export const dynamic = "force-dynamic";
 export async function GET(request, { params }) {
   const { id } = await params;
   try {
+    enforceRateLimit(request, "apps-get", { limit: 60, windowMs: 60000 });
     const subject = await getSubject(request);
     const { adminDb } = getAdmin();
 
@@ -24,13 +26,16 @@ export async function GET(request, { params }) {
     if (!app || !canSeeApp(subject, app))
       throw new HttpError(404, "找不到這個應用");
 
-    // 內部欄位不出門（ACL 名單、健檢網址、擁有者員編都不該給前端）
+    // 內部欄位不出門（ACL 名單、健檢網址、擁有者員編都不該給前端）。
+    // url 也拿掉——要開啟一律走 POST /api/apps/{id}/open，那裡才會重驗 canOpenApp
+    // 並寫 APP_OPEN 稽核。若這裡直接給 url，等於提供一條「開了但沒紀錄」的旁路。
     const {
       allowed_users,
       allowed_departments,
       allowed_roles,
       health_check_url,
       owner_employee_id,
+      url,
       ...safe
     } = app;
     return NextResponse.json({ app: safe });

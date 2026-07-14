@@ -6,6 +6,7 @@ import {
   filterVisibleApps,
   ANONYMOUS,
   LISTABLE_STATUSES,
+  PORTAL_DEFAULTS,
 } from "./appAccess.mjs";
 
 const sub = (over = {}) => ({
@@ -95,6 +96,19 @@ test("匿名訪客：PUBLIC_ALL 可見；BY_RULE / HIDDEN 不可見", () => {
   assert.equal(canSeeApp(ANONYMOUS, app()), true);
   assert.equal(canSeeApp(ANONYMOUS, app({ visibility: "BY_RULE", allowed_users: ["10231"] })), false);
   assert.equal(canSeeApp(ANONYMOUS, app({ visibility: "HIDDEN" })), false);
+});
+
+test("匿名訪客永遠不通過 BY_RULE——即使 allowed_roles 含 viewer", () => {
+  // admin 表達「全體員工可見」最自然的寫法就是 allowed_roles:["viewer"]；
+  // 若不擋匿名，登出的訪客（role 也是 viewer）就會看到受限 app。
+  const a = app({ visibility: "BY_RULE", allowed_roles: ["viewer"] });
+  assert.equal(canSeeApp(ANONYMOUS, a), false);
+  assert.equal(canSeeApp(sub(), a), true); // 登入的一般同仁 → 可見
+});
+
+test("PORTAL_DEFAULTS：新建工具必帶 visibility（少了會靜默從首頁消失）", () => {
+  assert.equal(PORTAL_DEFAULTS.visibility, "PUBLIC_ALL");
+  assert.deepEqual(PORTAL_DEFAULTS.allowed_users, []);
 });
 
 test("filterVisibleApps：受限 app 不落入回傳（不得進 client payload）", () => {
