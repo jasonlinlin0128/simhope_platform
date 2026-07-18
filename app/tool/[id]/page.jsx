@@ -840,9 +840,26 @@ export default function ToolDetail({ params }) {
 
   const fetchTool = useCallback(async () => {
     try {
-      const docSnap = await getDoc(doc(db, "tools", id));
-      if (!docSnap.exists()) return; // tool 留 null → 渲染 not-found 狀態頁
-      const data = docSnap.data();
+      // 受限 app（visibility=BY_RULE）的 client 直讀會被 firestore.rules 擋掉——這是刻意的。
+      // 有權限的人改由 /api/apps/{id} 取得（伺服器端 canSeeApp 判斷）。
+      let data = null;
+      try {
+        const docSnap = await getDoc(doc(db, "tools", id));
+        if (docSnap.exists()) data = docSnap.data();
+      } catch {
+        /* permission-denied → 落到下面的伺服器端路徑 */
+      }
+      if (!data) {
+        const headers = user
+          ? { Authorization: `Bearer ${await user.getIdToken()}` }
+          : {};
+        const res = await fetch(`/api/apps/${encodeURIComponent(id)}`, {
+          headers,
+        });
+        if (!res.ok) return; // 404 → not-found 狀態頁（不區分「不存在」與「沒權限」）
+        data = (await res.json()).app;
+      }
+      if (!data) return; // tool 留 null → 渲染 not-found 狀態頁
       const isPublic = ["live", "beta", "new", "dev", "terminated"].includes(
         data.status,
       );
@@ -869,6 +886,28 @@ export default function ToolDetail({ params }) {
   useEffect(() => {
     if (!authLoading) fetchTool();
   }, [authLoading, fetchTool]);
+
+  // 受限 app 沒有 url 可直連 → 走 /api/apps/{id}/open：伺服器重驗權限 + 寫 APP_OPEN 稽核 + 回連結
+  const [opening, setOpening] = useState(false);
+  const openViaPortal = useCallback(async () => {
+    setOpening(true);
+    try {
+      const headers = user
+        ? { Authorization: `Bearer ${await user.getIdToken()}` }
+        : {};
+      const res = await fetch(`/api/apps/${encodeURIComponent(id)}/open`, {
+        method: "POST",
+        headers,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "無法開啟");
+      window.open(data.url, "_blank", "noopener,noreferrer");
+    } catch (e) {
+      toast.error(e.message || "無法開啟，請稍後再試");
+    } finally {
+      setOpening(false);
+    }
+  }, [id, user, toast]);
 
   const isAuthor = tool && user && tool.authorUid === user.uid;
   const canEdit = isAdmin || isAuthor;
@@ -1116,8 +1155,23 @@ export default function ToolDetail({ params }) {
                   </div>
                 );
               }
-              if (!url) return null;
               const cta = TYPE_ACTION[tool.type] || TYPE_ACTION.webapp;
+              // 受限 app（BY_RULE）的 url 不會下發到前端——必須走 POST /api/apps/{id}/open，
+              // 由伺服器重驗權限、寫 APP_OPEN 稽核後才回連結。
+              if (!url) {
+                return (
+                  <div className="mt-6 pt-6 border-t border-[var(--color-card-border)] flex justify-center">
+                    <button
+                      type="button"
+                      onClick={openViaPortal}
+                      disabled={opening}
+                      className={`w-full text-center px-6 py-4 rounded-xl font-extrabold shadow-md hover:shadow-lg transition-all disabled:opacity-60 ${cta.cls}`}
+                    >
+                      {opening ? "開啟中…" : cta.label}
+                    </button>
+                  </div>
+                );
+              }
               return (
                 <div className="mt-6 pt-6 border-t border-[var(--color-card-border)] flex justify-center">
                   <a

@@ -7,6 +7,7 @@
 import { initializeApp, cert } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
+import { PORTAL_DEFAULTS } from "../src/lib/appAccess.mjs";
 import {
   readFileSync,
   readdirSync,
@@ -237,6 +238,7 @@ function buildSkillDoc({ slug, name, tagline, desc, bucket, skillZipUrl, repoUrl
       authorUid: ADMIN_UID,
       source: "import-script",
       typeData,
+      ...PORTAL_DEFAULTS, // 入口網欄位：少了 visibility，收斂後的 rules 會讓工具靜默消失
       createdAt: FieldValue.serverTimestamp(),
     },
   };
@@ -257,6 +259,7 @@ function buildMcpDoc({ slug, name, tagline, desc, config, repoUrl, npmPackage })
       source: "import-script",
       url: repoUrl || "",
       typeData: { configSnippet: config, repoUrl, npmPackage },
+      ...PORTAL_DEFAULTS, // 同上：新建工具一律帶入口網欄位
       createdAt: FieldValue.serverTimestamp(),
     },
   };

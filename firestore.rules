@@ -30,39 +30,79 @@ service cloud.firestore {
         || request.resource.data.createdAt == resource.data.createdAt;
     }
 
+    // 入口網 ACL / 安全欄位：非 admin 一律不得改（作者也不行）。
+    // 已發布工具的 url 也鎖——已核准的目的地被換成釣魚站，等於繞過審核；
+    // 尚未發布（pending）時作者可自由改 url，那是他自己的草稿。
+    function aclFieldsUnchanged() {
+      let changed = request.resource.data.diff(resource.data).affectedKeys();
+      return !changed.hasAny([
+          'visibility', 'allowed_users', 'allowed_departments', 'allowed_roles',
+          'owner_employee_id', 'authentication_mode', 'data_classification',
+          'supports_sso', 'health_check_url'
+        ])
+        && (resource.data.status == 'pending' || !changed.hasAny(['url', 'production_url']));
+    }
+
+    // 授權欄位：使用者**不得**自行寫入這些——它們是伺服器授權判斷（canSeeApp / getSubject）
+    // 的輸入。若本人可寫 employee_id，就能冒用別人的員編繼承其部門與 owner 身分；
+    // 若可寫 acl_roles，就能自己發給自己一個受限系統的 ACL slug。
+    function authzFieldsUnchanged(userId) {
+      let changed = request.resource.data.diff(resource.data).affectedKeys();
+      return !changed.hasAny(['role', 'employee_id', 'acl_roles', 'devStatus']);
+    }
+    function noAuthzFieldsOnCreate() {
+      return !request.resource.data.keys().hasAny(['employee_id', 'acl_roles', 'devStatus']);
+    }
+
     // Users:
     //   讀：登入即可（admin 後台需列使用者）
-    //   建：本人只能建「無 role / viewer」文件（首次 Google 登入自動建）；admin 可建任意 role
-    //   改：本人不可改自己的 role；admin 可改任何人
+    //   建：本人只能建「無 role / viewer」且不帶授權欄位的文件（首次 Google 登入自動建）
+    //   改：本人不可改自己的 role / employee_id / acl_roles / devStatus；admin 可改任何人
+    //   （員編綁定與角色授予都走後端：/api/auth/activate、/api/admin/set-role，並留稽核）
     match /users/{userId} {
       allow read: if isSignedIn();
       allow create: if isSignedIn() && (
-        (request.auth.uid == userId && roleIsViewerOrAbsent(request.resource.data)) ||
+        (request.auth.uid == userId
+          && roleIsViewerOrAbsent(request.resource.data)
+          && noAuthzFieldsOnCreate()) ||
         isAdmin()
       );
       allow update: if isSignedIn() && (
-        (request.auth.uid == userId
-          && !('role' in request.resource.data.diff(resource.data).affectedKeys())) ||
+        (request.auth.uid == userId && authzFieldsUnchanged(userId)) ||
         isAdmin()
       );
       allow delete: if isAdmin();
     }
 
-    // Tools: 公開狀態人人可讀；未公開（pending）只有作者/admin 可讀；
-    //        developer/admin 可建立，只有作者或 admin 可修改/刪除。
+    // Tools（＝入口網 Application Registry）：
+    //   讀：**只有 visibility=PUBLIC_ALL 的公開狀態**人人可讀（首頁/hub 的匿名 REST 走這裡）；
+    //       受限的 app（BY_RULE / HIDDEN）client 一律讀不到——它們由 /api/apps 以 Admin SDK
+    //       按身分（canSeeApp）過濾後才下發，受限資料不得落入任何 client payload。
+    //       未公開（pending）與受限 app 仍只有作者/admin 可讀（/dashboard、/admin、健檢看板靠這條）。
+    //   ⚠️ visibility 缺欄位的舊文件無法被等值查詢命中 → 上這條規則前，
+    //      必須先跑 scripts/migrate-tools-portal-fields.mjs --apply（見 PR 說明的順序）。
     match /tools/{toolId} {
-      allow read: if resource.data.status in ['live', 'beta', 'new', 'dev', 'terminated']
+      allow read: if (resource.data.visibility == 'PUBLIC_ALL'
+          && resource.data.status in ['live', 'beta', 'new', 'dev', 'terminated'])
         || (isSignedIn() && resource.data.authorUid == request.auth.uid)
         || isAdmin();
+      // 建立時**強制**帶 visibility=PUBLIC_ALL：沒有這個欄位的工具，過審後既不會被
+      // 首頁的等值查詢命中、也讀不到 → 靜默從站上消失。與其信任每條建立路徑都記得寫，
+      // 不如讓忘記寫的當場失敗。要設成受限（BY_RULE/HIDDEN）由 admin 事後改。
       allow create: if isSignedIn()
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['developer', 'admin']
         && request.resource.data.authorUid == request.auth.uid
-        && request.resource.data.status == 'pending';
+        && request.resource.data.status == 'pending'
+        && request.resource.data.visibility == 'PUBLIC_ALL';
+      // 作者可改自己工具的**內容**，但不得動 ACL / 擁有者 / 狀態：
+      // 否則過審後可自行改成 PUBLIC_ALL、把自己加進 allowed_users，或把已核准的
+      // 連結換成釣魚站（url 也鎖）——都繞過審核。這些一律 admin 才能改。
       allow update: if isSignedIn() && (
         ( resource.data.authorUid == request.auth.uid
           && authorUidUnchanged()
           && statusUnchanged()
-          && createdAtUnchanged() )
+          && createdAtUnchanged()
+          && aclFieldsUnchanged() )
         || isAdmin()
       );
       allow delete: if isSignedIn() && (

@@ -3,7 +3,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import { getAdmin } from "@/lib/firebaseAdmin";
 import { rateLimit, clientIp } from "@/lib/rateLimit.mjs";
 import { buildIncrements, ANON_TRACK_EVENTS } from "@/lib/trackEvents.mjs";
-import { getServerToolIdSet } from "@/lib/serverCatalog";
+import { getAllToolIdSet } from "@/lib/toolIds";
 
 /**
  * POST /api/track — 第一方使用追蹤（匿名匯總計數，無個人行為記錄）。
@@ -28,7 +28,7 @@ export async function POST(req) {
     // aggregate doc 長孤兒 key。取目錄失敗/空 → 空 Set → 不過濾（fail-open）。
     let knownToolIds;
     if (body.toolId) {
-      const idSet = await getServerToolIdSet();
+      const idSet = await getAllToolIdSet();
       if (idSet.size > 0) knownToolIds = idSet;
     }
     const inc = buildIncrements(body.event, body.toolId, knownToolIds);

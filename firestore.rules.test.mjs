@@ -48,6 +48,18 @@ async function seed() {
     });
     await setDoc(doc(db, "tools", "t_live"), {
       authorUid: "dev1", status: "live", createdAt: 1000, title: "L",
+      visibility: "PUBLIC_ALL", // migration M1 後的常態
+    });
+    await setDoc(doc(db, "tools", "t_restricted"), {
+      authorUid: "dev1", status: "live", createdAt: 1000, title: "R",
+      visibility: "BY_RULE", allowed_departments: ["dept-mfg"], // 受限 app
+    });
+    await setDoc(doc(db, "tools", "t_hidden"), {
+      authorUid: "dev1", status: "live", createdAt: 1000, title: "H",
+      visibility: "HIDDEN",
+    });
+    await setDoc(doc(db, "tools", "t_no_visibility"), {
+      authorUid: "dev1", status: "live", createdAt: 1000, title: "NoVis", // migration 前的舊文件
     });
     await setDoc(doc(db, "tools", "t_legacy_nocreated"), {
       authorUid: "dev1", status: "pending", title: "NoCreated", // 缺 createdAt
@@ -148,10 +160,11 @@ await it("8. developer create status:'live' → DENY", async () => {
     }),
   );
 });
-await it("9. developer create status:'pending'、authorUid 自己 → ALLOW", async () => {
+await it("9. developer create status:'pending'、authorUid 自己、帶 visibility → ALLOW", async () => {
   await assertSucceeds(
     setDoc(doc(dev1, "tools", "t_new_pending"), {
       authorUid: "dev1", status: "pending", createdAt: 1,
+      visibility: "PUBLIC_ALL", // 入口網 ACL 後為必填（見 #103）
     }),
   );
 });
@@ -270,11 +283,14 @@ await it("37. admin 讀 pc_dev1 → ALLOW", async () => {
 });
 
 console.log("LIST query 相容性（P0 防護：home/hub/admin/dashboard 查詢）:");
-await it("38. anon LIST tools where status in [public]（home/hub）→ ALLOW", async () => {
+await it("38. anon LIST tools where visibility==PUBLIC_ALL && status in [public]（home/hub 現行查詢）→ ALLOW", async () => {
+  // ⚠️ 入口網 ACL 收斂後，只篩 status 的舊查詢會被整個拒絕（見 #102）→ serverCatalog
+  //    的查詢已同步加上 visibility 過濾。這條測試就是那個契約。
   await assertSucceeds(
     getDocs(
       query(
         collection(anon, "tools"),
+        where("visibility", "==", "PUBLIC_ALL"),
         where("status", "in", ["live", "beta", "new", "dev", "terminated"]),
       ),
     ),
@@ -356,8 +372,13 @@ await it("57. newuser 建別人 uid 的 users 文件 → DENY", async () => {
 await it("58. admin 建任意 role 的 users 文件 → ALLOW", async () => {
   await assertSucceeds(setDoc(doc(admin, "users", "made_by_admin"), { role: "developer" }));
 });
-await it("59. dev1 改自己非 role 欄位（devStatus，即 /api/request 情境）→ ALLOW", async () => {
-  await assertSucceeds(updateDoc(doc(dev1, "users", "dev1"), { devStatus: "pending" }));
+await it("59. dev1 自己寫 devStatus → DENY（改由 /api/request 以 Admin SDK 寫；client 不需此權限）", async () => {
+  // 原本這條是 ALLOW（規則過寬）。devStatus 是授權相關欄位，且實際寫入者是後端
+  // /api/request（Admin SDK 繞過 rules）→ client 側一律收掉，見 #108。
+  await assertFails(updateDoc(doc(dev1, "users", "dev1"), { devStatus: "pending" }));
+});
+await it("59b. dev1 改自己的一般欄位（displayName）→ ALLOW", async () => {
+  await assertSucceeds(updateDoc(doc(dev1, "users", "dev1"), { displayName: "阿一" }));
 });
 await it("60. dev1 改自己 role（自我提權）→ DENY", async () => {
   await assertFails(updateDoc(doc(dev1, "users", "dev1"), { role: "admin" }));
@@ -492,27 +513,136 @@ await it("92. dev1 改既有 audit_log → DENY（append-only，不可竄改）"
 await it("93. admin 刪 audit_log → DENY（連 admin 也不能湮滅紀錄）", async () => {
   await assertFails(deleteDoc(doc(admin, "audit_logs", "log1")));
 });
+// ===== tools 讀取收斂（入口網 ACL）：只有 PUBLIC_ALL 公開可讀 =====
+console.log("tools 讀取收斂（visibility）:");
+await it("94. anon 讀 PUBLIC_ALL live 工具 → ALLOW（首頁/hub 匿名 REST 靠這條）", async () => {
+  await assertSucceeds(getDoc(doc(anon, "tools", "t_live")));
+});
+await it("95. anon 讀 BY_RULE 受限 app → DENY（受限資料不得落入 client）", async () => {
+  await assertFails(getDoc(doc(anon, "tools", "t_restricted")));
+});
+await it("96. 登入者（非作者非 admin）讀 BY_RULE 受限 app → DENY（即使他有權限，也只能經 /api/apps）", async () => {
+  await assertFails(getDoc(doc(dev2, "tools", "t_restricted")));
+});
+await it("97. anon 讀 HIDDEN app → DENY", async () => {
+  await assertFails(getDoc(doc(anon, "tools", "t_hidden")));
+});
+await it("98. 作者仍可讀自己的受限 app → ALLOW（/dashboard 不壞）", async () => {
+  await assertSucceeds(getDoc(doc(dev1, "tools", "t_restricted")));
+});
+await it("99. admin 仍可讀受限/隱藏 app → ALLOW（/admin、健檢看板不壞）", async () => {
+  await assertSucceeds(getDoc(doc(admin, "tools", "t_restricted")));
+  await assertSucceeds(getDoc(doc(admin, "tools", "t_hidden")));
+});
+await it("100. anon 讀「migration 前無 visibility 欄位」的工具 → DENY（＝為何 migration 必須先跑）", async () => {
+  await assertFails(getDoc(doc(anon, "tools", "t_no_visibility")));
+});
+await it("101. anon 查詢 PUBLIC_ALL + 公開狀態（首頁實際查詢形狀）→ ALLOW", async () => {
+  await assertSucceeds(
+    getDocs(
+      query(
+        collection(anon, "tools"),
+        where("visibility", "==", "PUBLIC_ALL"),
+        where("status", "in", ["live", "beta", "new", "dev", "terminated"]),
+      ),
+    ),
+  );
+});
+await it("102. anon 查詢「只篩 status」（收斂前的舊查詢形狀）→ DENY（證明 serverCatalog 必須同步改）", async () => {
+  await assertFails(
+    getDocs(
+      query(
+        collection(anon, "tools"),
+        where("status", "in", ["live", "beta", "new", "dev", "terminated"]),
+      ),
+    ),
+  );
+});
+await it("103. dev1 建工具但沒帶 visibility → DENY（否則過審後會從首頁靜默消失）", async () => {
+  await assertFails(
+    setDoc(doc(dev1, "tools", "t_new_novis"), {
+      authorUid: "dev1", status: "pending", title: "N", createdAt: 1,
+    }),
+  );
+});
+await it("104. dev1 建工具帶 visibility=PUBLIC_ALL → ALLOW", async () => {
+  await assertSucceeds(
+    setDoc(doc(dev1, "tools", "t_new_ok"), {
+      authorUid: "dev1", status: "pending", title: "N", createdAt: 1,
+      visibility: "PUBLIC_ALL",
+    }),
+  );
+});
+await it("105. dev1 建工具直接設 visibility=HIDDEN → DENY（受限由 admin 事後改）", async () => {
+  await assertFails(
+    setDoc(doc(dev1, "tools", "t_new_hidden"), {
+      authorUid: "dev1", status: "pending", title: "N", createdAt: 1,
+      visibility: "HIDDEN",
+    }),
+  );
+});
+// ===== 授權欄位自我提權（review 抓到的提權面）=====
+console.log("授權欄位不得自寫:");
+await it("106. viewer1 自己寫 acl_roles → DENY（否則可自己發受限系統的 ACL 給自己）", async () => {
+  await assertFails(updateDoc(doc(viewer1, "users", "viewer1"), { acl_roles: ["finance-lead"] }));
+});
+await it("107. viewer1 自己寫 employee_id → DENY（否則可冒用他人員編繼承其部門/owner 身分）", async () => {
+  await assertFails(updateDoc(doc(viewer1, "users", "viewer1"), { employee_id: "10231" }));
+});
+await it("108. viewer1 自己寫 devStatus → DENY", async () => {
+  await assertFails(updateDoc(doc(viewer1, "users", "viewer1"), { devStatus: "approved" }));
+});
+await it("109. viewer1 改自己的一般欄位（displayName）→ ALLOW（不誤傷正常編輯）", async () => {
+  await assertSucceeds(updateDoc(doc(viewer1, "users", "viewer1"), { displayName: "小明" }));
+});
+await it("110. admin 幫人寫 employee_id / acl_roles → ALLOW", async () => {
+  await assertSucceeds(
+    updateDoc(doc(admin, "users", "viewer1"), { employee_id: "10231", acl_roles: ["x"] }),
+  );
+});
+await it("111. 作者改自己工具的 visibility → DENY（過審後不得自行改成公開/受限）", async () => {
+  await assertFails(updateDoc(doc(dev1, "tools", "t_live"), { visibility: "HIDDEN" }));
+});
+await it("112. 作者把自己加進 allowed_users → DENY", async () => {
+  await assertFails(updateDoc(doc(dev1, "tools", "t_restricted"), { allowed_users: ["10231"] }));
+});
+await it("113. 作者改「已發布」工具的 url → DENY（已核准的目的地不得被換成釣魚站）", async () => {
+  await assertFails(updateDoc(doc(dev1, "tools", "t_live"), { url: "https://evil.example.com" }));
+});
+await it("114. 作者改「pending 草稿」的 url → ALLOW（還沒審，那是他自己的草稿）", async () => {
+  await assertSucceeds(updateDoc(doc(dev1, "tools", "t_pending"), { url: "https://ok.example.com" }));
+});
+await it("115. 作者改自己工具的內容（desc）→ ALLOW（不誤傷正常編輯）", async () => {
+  await assertSucceeds(updateDoc(doc(dev1, "tools", "t_live"), { desc: "新描述" }));
+});
+await it("116. admin 改工具 ACL / url → ALLOW", async () => {
+  await assertSucceeds(
+    updateDoc(doc(admin, "tools", "t_live"), {
+      visibility: "BY_RULE", allowed_departments: ["dept-mfg"], url: "https://new.example.com",
+    }),
+  );
+});
 // ===== analytics 逐工具明細（收斂為 admin-only，2026-07-18）=====
 console.log("analytics 逐工具明細（toolViews/toolHelpful 收斂為 admin-only）:");
-await it("94. anon 不可讀 analytics/toolViews（收斂前可讀，現在不行）→ DENY", async () => {
+await it("117. anon 不可讀 analytics/toolViews（收斂前可讀，現在不行）→ DENY", async () => {
   await assertFails(getDoc(doc(anon, "analytics", "toolViews")));
 });
-await it("95. dev1（一般登入非 admin）不可讀 analytics/toolViews → DENY", async () => {
+await it("118. dev1（一般登入非 admin）不可讀 analytics/toolViews → DENY", async () => {
   await assertFails(getDoc(doc(dev1, "analytics", "toolViews")));
 });
-await it("96. admin 可讀 analytics/toolViews、但仍不可寫", async () => {
+await it("119. admin 可讀 analytics/toolViews、但仍不可寫", async () => {
   await assertSucceeds(getDoc(doc(admin, "analytics", "toolViews")));
   await assertFails(
     setDoc(doc(admin, "analytics", "toolViews"), { t_live: 999 }),
   );
 });
-await it("97. anon 不可讀 analytics/toolHelpful → DENY", async () => {
+await it("120. anon 不可讀 analytics/toolHelpful → DENY", async () => {
   await assertFails(getDoc(doc(anon, "analytics", "toolHelpful")));
 });
-await it("98. dev1 不可讀 analytics/toolHelpful → DENY", async () => {
+await it("121. dev1 不可讀 analytics/toolHelpful → DENY", async () => {
   await assertFails(getDoc(doc(dev1, "analytics", "toolHelpful")));
 });
-await it("99. admin 可讀 analytics/toolHelpful、但仍不可寫", async () => {
+await it("122. admin 可讀 analytics/toolHelpful、但仍不可寫", async () => {
   await assertSucceeds(getDoc(doc(admin, "analytics", "toolHelpful")));
   await assertFails(
     setDoc(doc(admin, "analytics", "toolHelpful"), { t_live: 999 }),
