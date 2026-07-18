@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 
 /**
  * 詳情頁「👍 有幫助」。**需登入才能按**（防匿名灌水公開 badge）；後端 per-(uid,toolId) 去重。
- * count 讀自公開 analytics/toolHelpful（任何人都看得到數字，但只有登入者能 +1）。
+ * count 讀自 GET /api/tool-helpful/:toolId（任何人都看得到數字，但只有登入者能 +1）。
+ * 2026-07-18 起改走這支 API 而非直接讀 analytics/toolHelpful——該文件已收斂
+ * 為 admin-only（整份含所有工具計數，直接讀會連帶洩漏被隱藏工具的存在）。
  * @param {{ toolId: string }} props
  */
 export default function HelpfulButton({ toolId }) {
@@ -33,10 +33,12 @@ export default function HelpfulButton({ toolId }) {
         /* 無痕/停用 → 視為未標記 */
       }
       try {
-        const s = await getDoc(doc(db, "analytics", "toolHelpful"));
+        const res = await fetch(
+          `/api/tool-helpful/${encodeURIComponent(toolId)}`,
+        );
+        const data = await res.json().catch(() => ({}));
         if (cancelled) return;
-        const v = s.exists() ? s.data()[toolId] : 0;
-        setCount(typeof v === "number" ? v : 0);
+        setCount(typeof data.count === "number" ? data.count : 0);
       } catch {
         if (!cancelled) setCount(0);
       }
