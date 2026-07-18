@@ -32,6 +32,26 @@ Firestore 的 `approval` 欄位移除，但移除 approval 依賴的新版
    改成：跑 `--apply` 前記下 UTC timestamp，出事照 `docs/runbooks/firestore-dr.md`
    情境 A 用 PITR clone 回滾。既有 script 的 in-DB 備份邏輯可保留（無害），新寫的不要再加。
 
+## 多分支同時改 firestore.rules 的發布協調（重要 — 踩過坑）
+
+**Firebase Console 發布 `firestore.rules` 是整份文件取代，不是逐行合併。** 若兩個以上
+未合併的 feature branch 同時在改這個檔案，任一分支提前發布自己孤立版本的 rules，會
+靜默蓋掉/漏掉另一個分支的規則變更——沒有任何錯誤訊息，直到有人發現受影響的功能
+不受規則保護（或反過來被誤擋）才會發現。
+
+2026-07-18 踩過一次（沒釀成事故，靠流程接住）：PR #73（analytics 逐工具明細收斂）跟
+PR #71（Registry ACL）同時修改 `firestore.rules` 且同時未合併。
+
+## 規則
+
+1. **同時有 ≥2 個未合併分支都改了 `firestore.rules` 時**，一律等全部 merge 進 main
+   之後才發布，且只發布「當時 main 上最終合併版」的 `firestore.rules`——不發布任何
+   單一分支自己的版本。判斷方式與完整流程見 `docs/runbooks/firestore-rules-cross-branch.md`。
+2. 若當下只有一個分支改了 rules，照該功能自己的 rollout 文件走（例如單分支的
+   `docs/portal/pr4-rollout.md`），不受此規則限制。
+3. 發布後一定要驗證：不能只看 build/deploy 綠燈，直接用匿名 curl 打 Firestore REST API
+   比對規則是否真的生效（範例見上述 runbook 的驗收段落）。
+
 ## tools collection 欄位現況（2026-05-29 後）
 
 - 狀態只看 `status`（pending/live/beta/new/dev/terminated），**`approval` 欄位已廢除**。
