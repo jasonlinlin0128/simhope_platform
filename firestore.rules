@@ -173,10 +173,22 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // 使用數據：累計數公開可讀（首頁顯示）；每日明細僅 admin 讀；
-    // 一律禁止 client 寫（只 Admin SDK 經 /api/track 寫，防灌水）。
-    match /analytics/{docId} {
+    // 使用數據：totals 是聚合、無逐工具拆分，公開可讀（首頁顯示）；
+    // toolViews/toolHelpful 是逐工具明細，收斂為 admin-only——否則任何人
+    // 直接呼叫 Firestore SDK 就能得知 pending（尚未審核、不在公開 catalog 內）
+    // 工具的存在與熱門度
+    // （2026-07-18 安全性 review 找到，見 docs/superpowers/specs/2026-07-18-analytics-read-lockdown-design.md）。
+    // 每日明細僅 admin 讀；一律禁止 client 寫（只 Admin SDK 經 /api/track 寫，防灌水）。
+    match /analytics/totals {
       allow read: if true;
+      allow write: if false;
+    }
+    match /analytics/toolViews {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+    match /analytics/toolHelpful {
+      allow read: if isAdmin();
       allow write: if false;
     }
     match /analytics_daily/{day} {

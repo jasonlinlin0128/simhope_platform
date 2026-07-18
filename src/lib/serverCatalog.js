@@ -1,10 +1,13 @@
 // src/lib/serverCatalog.js
-// Server-only 公開資料抓取（RSC 公開頁用）。Firestore REST + ISR 快取，
-// 匿名讀（受 firestore.rules 約束，只回公開資料）；不用 firebase client SDK。
+// Server-only 公開資料抓取（RSC 公開頁用）。多數走 Firestore REST + ISR 快取的
+// 匿名讀（受 firestore.rules 約束，只回公開資料）；toolViews/toolHelpful 兩支
+// 例外——2026-07-18 rules 收斂後這兩份文件變成 admin-only，改走 Admin SDK
+// （伺服器對伺服器，繞過 rules，本來就是可信邊界內）。
 import { docToObject } from "./firestoreValue.mjs";
 import { normalizeMetrics } from "./metrics.mjs";
 import { pickNumericFields } from "./numericMap.mjs";
 import { DEFAULT_SITE } from "./siteDefaults";
+import { getAdmin } from "./firebaseAdmin";
 
 const PROJECT_ID = "simhope-platform";
 const BASE = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
@@ -119,15 +122,18 @@ export async function getServerMetrics() {
 /**
  * 全期 per-tool 瀏覽數（analytics/toolViews doc）。doc 不存在 / 失敗 → {}。
  * 只回數值欄位（濾掉 updatedAt 等非數值 key）。
+ *
+ * ⚠️ 2026-07-18 起 analytics/toolViews 收斂為 admin-only（見 docs/superpowers/
+ * specs/2026-07-18-analytics-read-lockdown-design.md），這裡**必須**用 Admin
+ * SDK（伺服器對伺服器，繞過 rules）——舊的匿名 REST 讀法在收斂後會回 403。
+ * 沒有 ISR 快取（Admin SDK 讀不支援 Next fetch cache，views 本來就是動態值）。
  * @returns {Promise<Record<string, number>>}
  */
 export async function getServerToolViews() {
   try {
-    const res = await fetch(`${BASE}/analytics/toolViews`, {
-      next: { revalidate: REVALIDATE },
-    });
-    if (!res.ok) return {};
-    return pickNumericFields(docToObject(await res.json()));
+    const { adminDb } = getAdmin();
+    const snap = await adminDb.collection("analytics").doc("toolViews").get();
+    return pickNumericFields(snap.exists ? snap.data() : {});
   } catch {
     return {};
   }
@@ -136,15 +142,14 @@ export async function getServerToolViews() {
 /**
  * 全期 per-tool 有幫助數（analytics/toolHelpful doc）。doc 不存在 / 失敗 → {}。
  * 只回數值欄位（濾掉 updatedAt 等非數值 key）。鏡像 getServerToolViews()。
+ * 同樣因 rules 收斂改走 Admin SDK，見上方註解。
  * @returns {Promise<Record<string, number>>}
  */
 export async function getServerToolHelpful() {
   try {
-    const res = await fetch(`${BASE}/analytics/toolHelpful`, {
-      next: { revalidate: REVALIDATE },
-    });
-    if (!res.ok) return {};
-    return pickNumericFields(docToObject(await res.json()));
+    const { adminDb } = getAdmin();
+    const snap = await adminDb.collection("analytics").doc("toolHelpful").get();
+    return pickNumericFields(snap.exists ? snap.data() : {});
   } catch {
     return {};
   }

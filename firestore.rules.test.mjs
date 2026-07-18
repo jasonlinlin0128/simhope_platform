@@ -77,7 +77,16 @@ async function seed() {
       authorUid: "dev1", approval: "pending", before: "b", after: "a",
     });
     await setDoc(doc(db, "analytics", "totals"), {
-      toolOpen: 5, toolView: 9,
+      toolOpen: 5,
+      toolView: 9,
+    });
+    await setDoc(doc(db, "analytics", "toolViews"), {
+      t_live: 5,
+      t_hidden: 2, // t_hidden 模擬 pending（尚未審核，不在公開 catalog 內）但仍有計數的工具
+    });
+    await setDoc(doc(db, "analytics", "toolHelpful"), {
+      t_live: 3,
+      t_hidden: 1,
     });
     await setDoc(doc(db, "analytics_daily", "20260610"), {
       date: "2026-06-10", toolOpen: 2,
@@ -611,6 +620,32 @@ await it("116. admin 改工具 ACL / url → ALLOW", async () => {
     updateDoc(doc(admin, "tools", "t_live"), {
       visibility: "BY_RULE", allowed_departments: ["dept-mfg"], url: "https://new.example.com",
     }),
+  );
+});
+// ===== analytics 逐工具明細（收斂為 admin-only，2026-07-18）=====
+console.log("analytics 逐工具明細（toolViews/toolHelpful 收斂為 admin-only）:");
+await it("117. anon 不可讀 analytics/toolViews（收斂前可讀，現在不行）→ DENY", async () => {
+  await assertFails(getDoc(doc(anon, "analytics", "toolViews")));
+});
+await it("118. dev1（一般登入非 admin）不可讀 analytics/toolViews → DENY", async () => {
+  await assertFails(getDoc(doc(dev1, "analytics", "toolViews")));
+});
+await it("119. admin 可讀 analytics/toolViews、但仍不可寫", async () => {
+  await assertSucceeds(getDoc(doc(admin, "analytics", "toolViews")));
+  await assertFails(
+    setDoc(doc(admin, "analytics", "toolViews"), { t_live: 999 }),
+  );
+});
+await it("120. anon 不可讀 analytics/toolHelpful → DENY", async () => {
+  await assertFails(getDoc(doc(anon, "analytics", "toolHelpful")));
+});
+await it("121. dev1 不可讀 analytics/toolHelpful → DENY", async () => {
+  await assertFails(getDoc(doc(dev1, "analytics", "toolHelpful")));
+});
+await it("122. admin 可讀 analytics/toolHelpful、但仍不可寫", async () => {
+  await assertSucceeds(getDoc(doc(admin, "analytics", "toolHelpful")));
+  await assertFails(
+    setDoc(doc(admin, "analytics", "toolHelpful"), { t_live: 999 }),
   );
 });
 // ===== TESTS END =====
