@@ -142,6 +142,38 @@ test("zombie: views >= 上限(3) → 不中（fresh）", () => {
   assert.equal(r.zombies.length, 0);
 });
 
+test("zombie: mcp 工具 views=1 → 不中（無 opens 訊號的類型放寬門檻）", () => {
+  const r = run([T("m", { type: "mcp", createdAt: daysAgoTs(120) })], { viewsMap: { m: 1 } });
+  assert.equal(r.zombies.length, 0);
+});
+
+test("zombie: mcp 工具 views=0 → 仍命中（真的零訊號）", () => {
+  const r = run([T("m", { type: "mcp", createdAt: daysAgoTs(120) })], {});
+  assert.equal(r.zombies.length, 1);
+  assert.equal(r.zombies[0].id, "m");
+});
+
+test("zombie: webapp 工具 views=1 → 仍命中（一般型門檻不變，對照 mcp）", () => {
+  const r = run([T("w", { type: "webapp", createdAt: daysAgoTs(120) })], { viewsMap: { w: 1 } });
+  assert.equal(r.zombies.length, 1);
+});
+
+test("zombie: beta 狀態冷門 + 過寬限期 → 命中（原本只有 live 會）", () => {
+  const r = run([T("b", { status: "beta", createdAt: daysAgoTs(120) })], { viewsMap: { b: 1 } });
+  assert.equal(r.zombies.length, 1);
+  assert.equal(r.zombies[0].id, "b");
+});
+
+test("zombie: new 狀態冷門 + 過寬限期 → 命中", () => {
+  const r = run([T("n", { status: "new", createdAt: daysAgoTs(120) })], { viewsMap: { n: 1 } });
+  assert.equal(r.zombies.length, 1);
+});
+
+test("zombie: dev 狀態不受影響（非公開狀態，不參與殭屍判定）", () => {
+  const r = run([T("d", { status: "dev", createdAt: daysAgoTs(120) })], { viewsMap: { d: 1 } });
+  assert.equal(r.zombies.length, 0);
+});
+
 test("互斥: 被用又陳舊的公開工具進 staleHot、不進 zombie", () => {
   const r = run([T("a", { createdAt: daysAgoTs(300), updatedAt: daysAgoTs(300) })], { viewsMap: { a: 80 } });
   assert.equal(r.staleHot.length, 1);
