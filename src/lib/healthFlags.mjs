@@ -127,7 +127,7 @@ export function buildHealthReport(tools, opts = {}) {
       }
     }
 
-    if (status === "live") {
+    if (PUBLIC_STATUSES.has(status)) {
       const created = toMs(t?.createdAt);
       const viewFloor = NO_OPENS_TYPES.has(t?.type) ? ZOMBIE_VIEW_MAX_NO_OPENS : ZOMBIE_VIEW_MAX;
       const isCold = views < viewFloor && opens === 0 && helpful === 0;
