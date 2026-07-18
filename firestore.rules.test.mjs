@@ -65,7 +65,16 @@ async function seed() {
       authorUid: "dev1", approval: "pending", before: "b", after: "a",
     });
     await setDoc(doc(db, "analytics", "totals"), {
-      toolOpen: 5, toolView: 9,
+      toolOpen: 5,
+      toolView: 9,
+    });
+    await setDoc(doc(db, "analytics", "toolViews"), {
+      t_live: 5,
+      t_hidden: 2, // t_hidden 模擬 pending（尚未審核，不在公開 catalog 內）但仍有計數的工具
+    });
+    await setDoc(doc(db, "analytics", "toolHelpful"), {
+      t_live: 3,
+      t_hidden: 1,
     });
     await setDoc(doc(db, "analytics_daily", "20260610"), {
       date: "2026-06-10", toolOpen: 2,
@@ -482,6 +491,32 @@ await it("92. dev1 改既有 audit_log → DENY（append-only，不可竄改）"
 });
 await it("93. admin 刪 audit_log → DENY（連 admin 也不能湮滅紀錄）", async () => {
   await assertFails(deleteDoc(doc(admin, "audit_logs", "log1")));
+});
+// ===== analytics 逐工具明細（收斂為 admin-only，2026-07-18）=====
+console.log("analytics 逐工具明細（toolViews/toolHelpful 收斂為 admin-only）:");
+await it("94. anon 不可讀 analytics/toolViews（收斂前可讀，現在不行）→ DENY", async () => {
+  await assertFails(getDoc(doc(anon, "analytics", "toolViews")));
+});
+await it("95. dev1（一般登入非 admin）不可讀 analytics/toolViews → DENY", async () => {
+  await assertFails(getDoc(doc(dev1, "analytics", "toolViews")));
+});
+await it("96. admin 可讀 analytics/toolViews、但仍不可寫", async () => {
+  await assertSucceeds(getDoc(doc(admin, "analytics", "toolViews")));
+  await assertFails(
+    setDoc(doc(admin, "analytics", "toolViews"), { t_live: 999 }),
+  );
+});
+await it("97. anon 不可讀 analytics/toolHelpful → DENY", async () => {
+  await assertFails(getDoc(doc(anon, "analytics", "toolHelpful")));
+});
+await it("98. dev1 不可讀 analytics/toolHelpful → DENY", async () => {
+  await assertFails(getDoc(doc(dev1, "analytics", "toolHelpful")));
+});
+await it("99. admin 可讀 analytics/toolHelpful、但仍不可寫", async () => {
+  await assertSucceeds(getDoc(doc(admin, "analytics", "toolHelpful")));
+  await assertFails(
+    setDoc(doc(admin, "analytics", "toolHelpful"), { t_live: 999 }),
+  );
 });
 // ===== TESTS END =====
 
