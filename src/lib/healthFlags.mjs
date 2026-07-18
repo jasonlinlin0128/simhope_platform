@@ -5,10 +5,13 @@
 export const STALE_DAYS = 180;
 export const ZOMBIE_GRACE_DAYS = 90;
 export const ZOMBIE_VIEW_MAX = 3;
+export const ZOMBIE_VIEW_MAX_NO_OPENS = 1; // mcp/embedded 永遠沒有 opens 訊號，views 下限放寬到 1
 export const PENDING_STUCK_DAYS = 14;
+export const USAGE_THRESHOLD_MIN_SAMPLES = 3;
 
 const DAY_MS = 86400000;
 const PUBLIC_STATUSES = new Set(["live", "beta", "new"]);
+const NO_OPENS_TYPES = new Set(["mcp", "embedded"]);
 
 /**
  * 多型時間 → epoch ms；無法判定 → null。
@@ -59,7 +62,7 @@ export function usageThreshold(tools, viewsMap) {
     .map((t) => num(viewsMap, t?.id))
     .filter((v) => v > 0)
     .sort((a, b) => a - b);
-  if (vals.length === 0) return 1;
+  if (vals.length < USAGE_THRESHOLD_MIN_SAMPLES) return 1; // 樣本太薄，不信任中位數，退回地板
   const mid = Math.floor(vals.length / 2);
   const median = vals.length % 2 ? vals[mid] : (vals[mid - 1] + vals[mid]) / 2;
   return Math.max(1, median);
@@ -125,9 +128,10 @@ export function buildHealthReport(tools, opts = {}) {
       }
     }
 
-    if (status === "live") {
+    if (PUBLIC_STATUSES.has(status)) {
       const created = toMs(t?.createdAt);
-      const isCold = views < ZOMBIE_VIEW_MAX && opens === 0 && helpful === 0;
+      const viewFloor = NO_OPENS_TYPES.has(t?.type) ? ZOMBIE_VIEW_MAX_NO_OPENS : ZOMBIE_VIEW_MAX;
+      const isCold = views < viewFloor && opens === 0 && helpful === 0;
       const pastGrace = created != null && now - created > ZOMBIE_GRACE_DAYS * DAY_MS;
       if (isCold && pastGrace) {
         zombies.push({ ...base, ageDays: Math.floor((now - created) / DAY_MS) });
