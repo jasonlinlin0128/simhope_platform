@@ -8,7 +8,11 @@ import HubExplorer from "@/components/HubExplorer";
 
 /**
  * 資源中心（公開頁）。server 端抓 catalog → 傳 client 島；讀 ?cat= 帶初始分類
- * （故為 dynamic render，但 REST fetch 有 300s 快取）。
+ * （故為 dynamic render）。getServerCatalog() 仍是 REST fetch + 300s 快取；
+ * getServerToolHelpful()/getServerToolViews() 已改走 Admin SDK 未快取讀取
+ * （2026-07-18 analytics 逐工具明細收斂為 admin-only 後的必要調整，見
+ * docs/superpowers/specs/2026-07-18-analytics-read-lockdown-design.md——
+ * 對這個內部工具的流量量級可接受）。
  */
 export default async function HubPage({ searchParams }) {
   const { cat } = await searchParams;

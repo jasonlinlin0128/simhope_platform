@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 把 `firestore.rules` 對 `analytics/{docId}` 的萬用公開讀取規則拆成三條明確路徑，讓 `analytics/toolViews`/`toolHelpful`（含被 Registry ACL 隱藏工具的逐工具計數）收斂成 admin-only，同時把目前唯一合法的公開讀取（`HelpfulButton` 的單一數字）改走一支不會連帶洩漏整份 map 的新 API，並把伺服器端的匿名讀取（`serverCatalog.js`）換成 Admin SDK 以免被同一次規則收緊波及。
+**Goal:** 把 `firestore.rules` 對 `analytics/{docId}` 的萬用公開讀取規則拆成三條明確路徑，讓 `analytics/toolViews`/`toolHelpful`（含 pending 尚未審核工具的逐工具計數）收斂成 admin-only，同時把目前唯一合法的公開讀取（`HelpfulButton` 的單一數字）改走一支不會連帶洩漏整份 map 的新 API，並把伺服器端的匿名讀取（`serverCatalog.js`）換成 Admin SDK 以免被同一次規則收緊波及。
 
 **Architecture:** 純規則收斂 + 兩處讀取路徑搬遷，零資料結構變更、零 migration、零新 collection。`analytics/totals`（聚合，無逐工具拆分）完全不動。
 
@@ -13,8 +13,9 @@
 ## Global Constraints
 
 - `firestore.rules` 的變更需 Jason 手動在 Firebase Console 發布（Admin SDK service account 沒有 `firebaserules.releases.create` 權限）——這個 plan 只負責把 rules 檔案改好、測試綠燈，發布本身是 code merge/deploy 之後的手動步驟（見 Task 6）。
-- 新 API 不驗證 `toolId` 是否存在——未知 id 一律回 `count:0`，不查 `getAllToolIdSet()`（見 spec「殘餘風險」段落，刻意決定）。
-- 這個 repo 的 API route handler 一律沒有專屬的 route-level 單元測試（`app/api/apps/[id]/open` 也沒有）——手動 curl 驗證 + `firestore.rules.test.mjs` 是既有的驗證方式，這個 plan 沿用，不新增 route-level test 框架。
+  - ⚠️ **跨分支協調風險**：Console 發布會用送出的那份 ruleset **整份取代**正式環境現有規則。`feature-portal-registry`（PR #71，截至寫這份 plan 時仍未合併）也改了 `firestore.rules`（加 registry/員工相關規則）。若發布當下 PR #71 還沒 merge，**不可**只發布這條分支（`feature-analytics-read-lockdown`）孤立版本的 `firestore.rules`，否則會靜默蓋掉/漏掉 PR #71 那條分支的規則。正確做法：等本分支與 PR #71 都 merge 進 `main` 之後，用當時 `main` 上最終合併版的 `firestore.rules` 一次發布。
+- 新 API 不驗證 `toolId` 是否存在——未知 id 一律回 `count:0`，不做額外的存在性查詢（見 spec「殘餘風險」段落，刻意決定）。
+- 這個 repo 的 API route handler 一律沒有專屬的 route-level 單元測試——手動 curl 驗證 + `firestore.rules.test.mjs` 是既有的驗證方式，這個 plan 沿用，不新增 route-level test 框架。
 
 ---
 
@@ -62,7 +63,8 @@ New：
 ```
     // 使用數據：totals 是聚合、無逐工具拆分，公開可讀（首頁顯示）；
     // toolViews/toolHelpful 是逐工具明細，收斂為 admin-only——否則任何人
-    // 直接呼叫 Firestore SDK 就能得知被 Registry ACL 隱藏工具的存在與熱門度
+    // 直接呼叫 Firestore SDK 就能得知 pending（尚未審核、不在公開 catalog 內）
+    // 工具的存在與熱門度
     // （2026-07-18 安全性 review 找到，見 docs/superpowers/specs/2026-07-18-analytics-read-lockdown-design.md）。
     // 每日明細僅 admin 讀；一律禁止 client 寫（只 Admin SDK 經 /api/track 寫，防灌水）。
     match /analytics/totals {
@@ -121,7 +123,7 @@ await setDoc(doc(db, "analytics", "totals"), {
 });
 await setDoc(doc(db, "analytics", "toolViews"), {
   t_live: 5,
-  t_hidden: 2, // t_hidden 模擬被 Registry ACL 隱藏但仍有計數的工具
+  t_hidden: 2, // t_hidden 模擬 pending（尚未審核，不在公開 catalog 內）但仍有計數的工具
 });
 await setDoc(doc(db, "analytics", "toolHelpful"), {
   t_live: 3,
@@ -180,9 +182,9 @@ git commit -m "$(cat <<'EOF'
 fix(rules): analytics 逐工具明細收斂為 admin-only
 
 analytics/{docId} 原本是一條萬用 allow read:if true，連 toolViews/
-toolHelpful 這兩份含逐工具計數（含被 Registry ACL 隱藏工具）的文件也一
-起公開。任何人直接呼叫 Firestore SDK 就能得知隱藏工具的存在與熱門
-度，繞過 PR-4 才收斂好的 canSeeApp/canOpenApp。拆成三條明確規則：
+toolHelpful 這兩份含逐工具計數（含 pending 尚未審核工具）的文件也一
+起公開。任何人直接呼叫 Firestore SDK 就能得知 pending 工具的存在與熱門
+度，等於在正式審核/上架之前就洩漏了它們。拆成三條明確規則：
 totals（聚合、無逐工具拆分）維持公開，toolViews/toolHelpful 收斂為
 isAdmin()。emulator 新增 6 條測試（94-99），既有 totals 測試（43-45）
 作回歸鎖確認拆分後行為不變。
@@ -202,7 +204,7 @@ EOF
 
 **Interfaces:**
 
-- Consumes: `getAdmin` from `@/lib/firebaseAdmin`（同 `src/lib/toolIds.js` 的 `getAllToolIdSet()` 已在用的匯入）；`pickNumericFields` from `./numericMap.mjs`（既有匯入不變）。
+- Consumes: `getAdmin` from `@/lib/firebaseAdmin`（這個 repo 既有的 Admin SDK 讀取函式共用的匯入）；`pickNumericFields` from `./numericMap.mjs`（既有匯入不變）。
 - Produces: `getServerToolViews()`/`getServerToolHelpful()` 回傳值形狀不變（`Promise<Record<string,number>>`），`app/page.jsx`、`app/hub/page.jsx` 的呼叫端完全不用改。
 
 - [ ] **Step 1: 加 import**
@@ -230,7 +232,7 @@ New：
 // Server-only 公開資料抓取（RSC 公開頁用）。多數走 Firestore REST + ISR 快取的
 // 匿名讀（受 firestore.rules 約束，只回公開資料）；toolViews/toolHelpful 兩支
 // 例外——2026-07-18 rules 收斂後這兩份文件變成 admin-only，改走 Admin SDK
-// （伺服器對伺服器，繞過 rules，本來就是可信邊界內；見 getAllToolIdSet() 同樣寫法）。
+// （伺服器對伺服器，繞過 rules，本來就是可信邊界內）。
 import { docToObject } from "./firestoreValue.mjs";
 import { normalizeMetrics } from "./metrics.mjs";
 import { pickNumericFields } from "./numericMap.mjs";
@@ -339,9 +341,8 @@ fix(catalog): getServerToolViews/ToolHelpful 改用 Admin SDK
 analytics/toolViews、toolHelpful 兩份文件的 rules 已收斂為 admin-only
 （見上一個 commit），這兩支原本走匿名 REST 的伺服器函式在收斂後會被
 擋 403，導致首頁熱門排行、/hub 排行、helpful badge 全部讀不到數字。
-改用 Admin SDK 直接讀（伺服器對伺服器，繞過 rules），比照
-src/lib/toolIds.js 的 getAllToolIdSet() 寫法；回傳形狀不變，呼叫端
-（app/page.jsx、app/hub/page.jsx）不用改。
+改用 Admin SDK 直接讀（伺服器對伺服器，繞過 rules）；回傳形狀不變，
+呼叫端（app/page.jsx、app/hub/page.jsx）不用改。
 
 Co-Authored-By: Jason simhope ai agent <jasonlin@simhope.com.tw>
 EOF
@@ -358,7 +359,7 @@ EOF
 
 **Interfaces:**
 
-- Consumes: `getAdmin` from `@/lib/firebaseAdmin`；`enforceRateLimit` from `@/lib/rateLimit.mjs`；`HttpError`, `handleApiError` from `@/lib/apiError.mjs`（三者都是既有匯出，簽章不變，見 `app/api/apps/[id]/open/route.js` 的既有用法）。
+- Consumes: `getAdmin` from `@/lib/firebaseAdmin`；`enforceRateLimit` from `@/lib/rateLimit.mjs`；`HttpError`, `handleApiError` from `@/lib/apiError.mjs`（三者都是既有匯出，簽章不變）。
 - Produces: `GET /api/tool-helpful/:toolId` → `200 { count: number }`（找不到/亂打的 id 一律回 `count:0`，不是 404）；`429`（超過限流）；`500`（`handleApiError` 統一格式）。Task 5 的 `HelpfulButton.jsx` 依賴這個回應形狀。
 
 - [ ] **Step 1: 建立 route 檔案**
@@ -377,14 +378,14 @@ export const dynamic = "force-dynamic";
  * GET /api/tool-helpful/{toolId} — 公開讀取單一工具的「👍 有幫助」計數。
  *
  * analytics/toolHelpful 這份文件本身已收斂為 admin-only（2026-07-18），因為
- * 它含所有工具（含被 Registry ACL 隱藏的）的計數，整份給任何人讀等於洩漏
- * 隱藏工具的存在與熱門度。但 HelpfulButton 這個公開元件仍然需要顯示「這一個」
- * 工具的數字——這支 route 用 Admin SDK 讀整份文件，只回傳呼叫者問的那個
- * toolId 對應的值，不回傳其他 key。
+ * 它含所有工具的逐一計數，其中包含 pending（尚未審核、不在公開 catalog
+ * 內）的工具——整份給任何人讀等於連帶洩漏這些未上架工具的存在與熱門度。
+ * 但 HelpfulButton 這個公開元件仍然需要顯示「這一個」工具的數字——這支
+ * route 用 Admin SDK 讀整份文件，只回傳呼叫者問的那個 toolId 對應的值，
+ * 不回傳其他 key。
  *
  * 不存在 / 亂打的 toolId 一律回 count:0，不查工具是否存在——「查無此工具」
- * 跟「存在但目前 0 個讚」刻意回傳同一種結果，不主動幫忙分辨兩種情況（同一個
- * 道理跟 /api/apps/[id]/open 用 404 統一「不存在」跟「看不到」一致）。
+ * 跟「存在但目前 0 個讚」刻意回傳同一種結果，不主動幫忙分辨兩種情況。
  */
 export async function GET(request, { params }) {
   const { toolId } = await params;
@@ -423,8 +424,9 @@ feat(api): 新增 GET /api/tool-helpful/[toolId]
 
 analytics/toolHelpful 收斂為 admin-only 後，公開的 HelpfulButton 沒辦法
 再直接整份讀出來挑一個 key。這支 route 用 Admin SDK 讀該文件，只回傳
-呼叫者問的那個 toolId 的計數，不洩漏其他工具（含被隱藏的）的計數。60/
-分鐘限流；未知 toolId 一律回 count:0，不做存在性驗證（見 route 內註解）。
+呼叫者問的那個 toolId 的計數，不洩漏其他工具（含 pending 尚未審核的）
+的計數。60/分鐘限流；未知 toolId 一律回 count:0，不做存在性驗證（見
+route 內註解）。
 
 Co-Authored-By: Jason simhope ai agent <jasonlin@simhope.com.tw>
 EOF
@@ -509,7 +511,8 @@ import { useAuth } from "@/context/AuthContext";
  * 詳情頁「👍 有幫助」。**需登入才能按**（防匿名灌水公開 badge）；後端 per-(uid,toolId) 去重。
  * count 讀自 GET /api/tool-helpful/:toolId（任何人都看得到數字，但只有登入者能 +1）。
  * 2026-07-18 起改走這支 API 而非直接讀 analytics/toolHelpful——該文件已收斂
- * 為 admin-only（整份含所有工具計數，直接讀會連帶洩漏被隱藏工具的存在）。
+ * 為 admin-only（整份含所有工具計數，包含 pending 尚未審核的工具，直接讀
+ * 會連帶洩漏這些未上架工具的存在）。
  * @param {{ toolId: string }} props
  */
 export default function HelpfulButton({ toolId }) {
@@ -570,7 +573,7 @@ fix(helpful): HelpfulButton 改讀 /api/tool-helpful/:toolId
 
 analytics/toolHelpful 收斂為 admin-only 後，這裡原本直接用 client SDK
 整份讀取的寫法會被 rules 擋掉。改成打新的 GET /api/tool-helpful/:toolId，
-只拿回這一個工具的計數，不再連帶下載其他工具（含被隱藏的）的計數。
+只拿回這一個工具的計數，不再連帶下載其他工具（含 pending 尚未審核的）的計數。
 投票邏輯（POST /api/tool-helpful）不變。
 
 Co-Authored-By: Jason simhope ai agent <jasonlin@simhope.com.tw>

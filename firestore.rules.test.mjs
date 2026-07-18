@@ -70,7 +70,7 @@ async function seed() {
     });
     await setDoc(doc(db, "analytics", "toolViews"), {
       t_live: 5,
-      t_hidden: 2, // t_hidden 模擬被 Registry ACL 隱藏但仍有計數的工具
+      t_hidden: 2, // t_hidden 模擬 pending（尚未審核，不在公開 catalog 內）但仍有計數的工具
     });
     await setDoc(doc(db, "analytics", "toolHelpful"), {
       t_live: 3,

@@ -2,7 +2,7 @@
 // Server-only 公開資料抓取（RSC 公開頁用）。多數走 Firestore REST + ISR 快取的
 // 匿名讀（受 firestore.rules 約束，只回公開資料）；toolViews/toolHelpful 兩支
 // 例外——2026-07-18 rules 收斂後這兩份文件變成 admin-only，改走 Admin SDK
-// （伺服器對伺服器，繞過 rules，本來就是可信邊界內；見 getAllToolIdSet() 同樣寫法）。
+// （伺服器對伺服器，繞過 rules，本來就是可信邊界內）。
 import { docToObject } from "./firestoreValue.mjs";
 import { normalizeMetrics } from "./metrics.mjs";
 import { pickNumericFields } from "./numericMap.mjs";

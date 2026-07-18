@@ -7,7 +7,8 @@ import { useAuth } from "@/context/AuthContext";
  * 詳情頁「👍 有幫助」。**需登入才能按**（防匿名灌水公開 badge）；後端 per-(uid,toolId) 去重。
  * count 讀自 GET /api/tool-helpful/:toolId（任何人都看得到數字，但只有登入者能 +1）。
  * 2026-07-18 起改走這支 API 而非直接讀 analytics/toolHelpful——該文件已收斂
- * 為 admin-only（整份含所有工具計數，直接讀會連帶洩漏被隱藏工具的存在）。
+ * 為 admin-only（整份含所有工具計數，包含 pending 尚未審核的工具，直接讀
+ * 會連帶洩漏這些未上架工具的存在）。
  * @param {{ toolId: string }} props
  */
 export default function HelpfulButton({ toolId }) {
@@ -36,6 +37,11 @@ export default function HelpfulButton({ toolId }) {
         const res = await fetch(
           `/api/tool-helpful/${encodeURIComponent(toolId)}`,
         );
+        if (cancelled) return;
+        if (!res.ok) {
+          setCount(0);
+          return;
+        }
         const data = await res.json().catch(() => ({}));
         if (cancelled) return;
         setCount(typeof data.count === "number" ? data.count : 0);
