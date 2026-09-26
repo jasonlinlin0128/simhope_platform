@@ -64,16 +64,29 @@ test("usageThreshold: 偶數筆 → 中間兩值平均", () => {
 });
 
 test("usageThreshold: 排除零瀏覽工具（median 只看 views>0）", () => {
-  assert.equal(usageThreshold([P("a"), P("b"), P("c")], { a: 0, b: 20, c: 40 }), 30);
+  assert.equal(
+    usageThreshold([P("a"), P("b"), P("c"), P("d")], { a: 0, b: 20, c: 30, d: 40 }),
+    30,
+  );
 });
 
 test("usageThreshold: 排除非公開工具", () => {
-  assert.equal(usageThreshold([P("a"), P("x", "dev"), P("y", "pending")], { a: 8, x: 100, y: 100 }), 8);
+  assert.equal(
+    usageThreshold(
+      [P("a"), P("b"), P("c"), P("x", "dev"), P("y", "pending")],
+      { a: 8, b: 8, c: 8, x: 100, y: 100 },
+    ),
+    8,
+  );
 });
 
 test("usageThreshold: 全零瀏覽 → 地板 1", () => {
   assert.equal(usageThreshold([P("a"), P("b")], { a: 0, b: 0 }), 1);
   assert.equal(usageThreshold([P("a")], {}), 1);
+});
+
+test("usageThreshold: 有效樣本數 <3 → 不信任中位數，退回地板 1", () => {
+  assert.equal(usageThreshold([P("a"), P("b")], { a: 10, b: 100 }), 1);
 });
 
 test("usageThreshold: 非陣列 → 1", () => {
@@ -139,6 +152,38 @@ test("zombie: 有 opens → 不中（fresh，避免落入 stale）", () => {
 
 test("zombie: views >= 上限(3) → 不中（fresh）", () => {
   const r = run([T("z", { createdAt: daysAgoTs(200), updatedAt: daysAgoTs(5) })], { viewsMap: { z: 3 } });
+  assert.equal(r.zombies.length, 0);
+});
+
+test("zombie: mcp 工具 views=1 → 不中（無 opens 訊號的類型放寬門檻）", () => {
+  const r = run([T("m", { type: "mcp", createdAt: daysAgoTs(120) })], { viewsMap: { m: 1 } });
+  assert.equal(r.zombies.length, 0);
+});
+
+test("zombie: mcp 工具 views=0 → 仍命中（真的零訊號）", () => {
+  const r = run([T("m", { type: "mcp", createdAt: daysAgoTs(120) })], {});
+  assert.equal(r.zombies.length, 1);
+  assert.equal(r.zombies[0].id, "m");
+});
+
+test("zombie: webapp 工具 views=1 → 仍命中（一般型門檻不變，對照 mcp）", () => {
+  const r = run([T("w", { type: "webapp", createdAt: daysAgoTs(120) })], { viewsMap: { w: 1 } });
+  assert.equal(r.zombies.length, 1);
+});
+
+test("zombie: beta 狀態冷門 + 過寬限期 → 命中（原本只有 live 會）", () => {
+  const r = run([T("b", { status: "beta", createdAt: daysAgoTs(120) })], { viewsMap: { b: 1 } });
+  assert.equal(r.zombies.length, 1);
+  assert.equal(r.zombies[0].id, "b");
+});
+
+test("zombie: new 狀態冷門 + 過寬限期 → 命中", () => {
+  const r = run([T("n", { status: "new", createdAt: daysAgoTs(120) })], { viewsMap: { n: 1 } });
+  assert.equal(r.zombies.length, 1);
+});
+
+test("zombie: dev 狀態不受影響（非公開狀態，不參與殭屍判定）", () => {
+  const r = run([T("d", { status: "dev", createdAt: daysAgoTs(120) })], { viewsMap: { d: 1 } });
   assert.equal(r.zombies.length, 0);
 });
 

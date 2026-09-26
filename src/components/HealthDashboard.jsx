@@ -187,7 +187,7 @@ export default function HealthDashboard() {
         icon="🧟"
         title="殭屍工具"
         count={counts.zombies}
-        desc={`掛 live 但幾乎沒人用、上架已超過 ${ZOMBIE_GRACE_DAYS} 天 — 考慮推廣或下架。`}
+        desc={`上架後幾乎沒人用、已超過 ${ZOMBIE_GRACE_DAYS} 天 — 考慮推廣或下架。`}
       >
         <table className="w-full text-sm border-collapse">
           <thead>
