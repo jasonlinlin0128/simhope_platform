@@ -1,3 +1,6 @@
+"use client";
+
+// 有 onClick（tool_open 追蹤）→ 必須是 client component；首頁（server）的熱門工具區也會渲染它。
 import Link from "next/link";
 import { typeBadge, getCTA } from "@/lib/taxonomy";
 import { track } from "@/lib/track";
